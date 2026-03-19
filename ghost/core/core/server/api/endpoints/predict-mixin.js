@@ -35,7 +35,7 @@ const controller = {
                     method: 'GET',
                     headers: {
                         'Cookie': sessionCookie
-                        // 'Cookie': "ghost-admin-api-session=s%3AMpawl97fpnevr9x4_TpisqT8l-oDgJZ3.MUaqHnfCvHz6SJPZWQdP4P0oWMGWmdXMxF86a4LahSI"
+                        // 'Cookie': "ghost-admin-api-session=s%3AcxEPPNMNXb4cRfgFTmBc_u40A2oRP4Tu.lciZOYoBg1ZfH9ht2oeek6OhLhL5S0mxLHarxQ43ehQ"
                     },
                     responseType: 'json',
                     throwHttpErrors: false // 防止非 2xx 响应抛出异常，让我们自己处理
@@ -82,7 +82,7 @@ const controller = {
                     method: 'POST',
                     headers: {
                         'Cookie': sessionCookie
-                        // 'Cookie': "ghost-admin-api-session=s%3AMpawl97fpnevr9x4_TpisqT8l-oDgJZ3.MUaqHnfCvHz6SJPZWQdP4P0oWMGWmdXMxF86a4LahSI"
+                        // 'Cookie': "ghost-admin-api-session=s%3AcxEPPNMNXb4cRfgFTmBc_u40A2oRP4Tu.lciZOYoBg1ZfH9ht2oeek6OhLhL5S0mxLHarxQ43ehQ"
                     },
                     responseType: 'json',
                     throwHttpErrors: false

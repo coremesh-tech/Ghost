@@ -167,6 +167,9 @@ export default class SessionService extends ESASessionService {
                 yield this.invalidate();
             }
         }
+        
+        // Ensure account state is fetched upon authentication (e.g. login)
+        yield this.fetchAccountState();
 
         callback();
     }
@@ -205,7 +208,7 @@ export default class SessionService extends ESASessionService {
     *pollAccountStateTask() {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-            yield timeout(3600000);
+            yield timeout(600000); // 10 minutes
             if (!this.user || this.user.role?.name !== 'Contributor') {
                 return;
             }
