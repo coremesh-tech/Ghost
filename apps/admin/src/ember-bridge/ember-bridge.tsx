@@ -12,6 +12,7 @@ export type StateBridgeEventMap = {
     subscriptionChange: SubscriptionState;
     sidebarVisibilityChange: SidebarVisibilityChangeEvent;
     routeChange: RouteChangeEvent;
+    accountStateChange: any; // Added to support admin-x-settings
 }
 
 export interface StateBridge {

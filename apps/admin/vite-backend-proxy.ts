@@ -33,11 +33,14 @@ async function resolveGhostSiteUrl() {
 function createAdminApiProxy(site: {
     url: string;
     host: string;
-}): Record<string, ProxyOptions> {
-    // When running the dev server against the backend on HTTPS, we need to
-    // remove the same site and secure flags from the cookie. Otherwise, the
-    // browser won't set it correctly since the dev server is running on HTTP.
-    const rewriteCookies = (proxyRes: IncomingMessage) => {
+}, rewriteSecureCookies: boolean): Record<string, ProxyOptions> {
+    // If the dev server is running on HTTP while backend is HTTPS,
+    // strip Secure and SameSite=None so the browser accepts the cookie.
+    // If dev server is HTTPS, keep cookies as-is.
+    const maybeRewriteCookies = (proxyRes: IncomingMessage) => {
+        if (!rewriteSecureCookies) {
+            return;
+        }
         const cookies = proxyRes.headers["set-cookie"];
         if (Array.isArray(cookies)) {
             proxyRes.headers["set-cookie"] = cookies.map((cookie) => {
@@ -52,6 +55,9 @@ function createAdminApiProxy(site: {
 
     const subdir = getSubdir();
 
+    const adminOrigin = new URL(site.url).origin;
+    const adminReferer = `${adminOrigin}${getSubdir()}/ghost/`;
+
     return {
         [`^${subdir}/ghost/api/.*`]: {
             target: site.url,
@@ -62,7 +68,16 @@ function createAdminApiProxy(site: {
                 "*": site.host,
             },
             configure(proxy) {
-                proxy.on("proxyRes", rewriteCookies);
+                proxy.on("proxyRes", maybeRewriteCookies);
+                proxy.on("proxyReq", (proxyReq) => {
+                    try {
+                        // Ensure backend sees Admin origin to satisfy CSRF checks
+                        proxyReq.setHeader('origin', adminOrigin);
+                        proxyReq.setHeader('referer', adminReferer);
+                    } catch (_) {
+                        // ignore
+                    }
+                });
             },
         },
     };
@@ -87,6 +102,7 @@ function createEmberLiveReloadProxy(): Record<string, ProxyOptions> {
  */
 export function ghostBackendProxyPlugin(): Plugin {
     let siteUrl!: { url: string; host: string };
+    let devIsHttps = false;
 
     return {
         name: "ghost-backend-proxy",
@@ -108,6 +124,8 @@ export function ghostBackendProxyPlugin(): Plugin {
                 clearTimeout(timeout);
 
                 config.logger.info(`👻 Using backend url: ${siteUrl.url}`);
+                // Detect dev server protocol (https enabled) for cookie handling
+                // Will be re-checked in configureServer
             } catch (error) {
                 config.logger
                     .error(`Could not reach Ghost Admin API at: ${GHOST_URL}
@@ -121,20 +139,22 @@ Ensure the Ghost backend is running. If needed, set the GHOST_URL environment va
 
         configureServer(server) {
             if (!siteUrl) return;
+            devIsHttps = Boolean(server.config.server.https);
 
             server.config.server.proxy = {
                 ...server.config.server.proxy,
-                ...createAdminApiProxy(siteUrl),
+                ...createAdminApiProxy(siteUrl, !devIsHttps),
                 ...createEmberLiveReloadProxy(),
             };
         },
 
         configurePreviewServer(server) {
             if (!siteUrl) return;
+            const previewIsHttps = Boolean(server.config.preview.https);
 
             server.config.preview.proxy = {
                 ...server.config.preview.proxy,
-                ...createAdminApiProxy(siteUrl),
+                ...createAdminApiProxy(siteUrl, !previewIsHttps),
             };
         },
     } as const satisfies Plugin;

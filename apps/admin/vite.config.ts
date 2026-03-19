@@ -8,6 +8,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { emberAssetsPlugin } from "./vite-ember-assets";
 import { ghostBackendProxyPlugin } from "./vite-backend-proxy";
 import { deepLinksPlugin } from "./vite-deep-links";
+import fs from 'fs';
 
 export const GHOST_URL = process.env.GHOST_URL ?? "http://localhost:2368/";
 const GHOST_CARDS_PATH = resolve(__dirname, "../../ghost/core/core/frontend/src/cards");
@@ -50,7 +51,11 @@ export default defineConfig(({ command }) => ({
     server: {
         host: '0.0.0.0',
         port: 5174,
-        allowedHosts: true
+        // allowedHosts: true,
+        https: {
+            key: fs.readFileSync(resolve(__dirname, '../../keys/agent2-key.pem')),
+            cert: fs.readFileSync(resolve(__dirname, '../../keys/agent2-cert.pem')),
+        },
     },
     resolve: {
         alias: {

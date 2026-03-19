@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import SocialLinksTab from './users/social-links-tab';
 import clsx from 'clsx';
 import usePinturaEditor from '../../../hooks/use-pintura-editor';
+import StripeAccountTab from './users/stripe-account-tab';
 import useStaffUsers from '../../../hooks/use-staff-users';
 import validator from 'validator';
 import {APIError} from '@tryghost/admin-x-framework/errors';
@@ -424,6 +425,31 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
         setSelectedTab(newTabId);
     };
 
+    const tabs = [
+        {
+            id: 'profile',
+            title: 'Profile',
+            contents: <ProfileTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
+        },
+        {
+            id: 'social-links',
+            title: 'Social Links',
+            contents: <SocialLinksTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
+        },
+        {
+            id: 'email-notifications',
+            title: 'Email Notifications',
+            contents: <EmailNotificationsTab setUserData={setUserData} user={formState} />
+        }
+    ];
+    if (user.roles?.[0].name === "Contributor") {
+        tabs.push({
+            id: 'stripe-account',
+            title: 'Stripe Account',
+            contents: <StripeAccountTab />
+        });
+    }
+
     return (
         <Modal
             afterClose={navigateOnClose}
@@ -549,23 +575,7 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                 <div className={`${!canAccessSettings(currentUser) && 'mx-auto max-w-[536px]'} mt-6 flex flex-col`}>
                     <TabView
                         selectedTab={selectedTab}
-                        tabs={[
-                            {
-                                id: 'profile',
-                                title: 'Profile',
-                                contents: <ProfileTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
-                            },
-                            {
-                                id: 'social-links',
-                                title: 'Social Links',
-                                contents: <SocialLinksTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
-                            },
-                            {
-                                id: 'email-notifications',
-                                title: 'Email Notifications',
-                                contents: <EmailNotificationsTab setUserData={setUserData} user={formState} />
-                            }
-                        ]}
+                        tabs={tabs}
                         onTabChange={handleTabChange}
                     />
                 </div>

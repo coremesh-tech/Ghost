@@ -5,7 +5,7 @@ import {getOwner} from '@ember/application';
 import {inject} from 'ghost-admin/decorators/inject';
 import {run} from '@ember/runloop';
 import {inject as service} from '@ember/service';
-import {task} from 'ember-concurrency';
+import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
 
 export default class SessionService extends ESASessionService {
@@ -26,6 +26,7 @@ export default class SessionService extends ESASessionService {
     @inject config;
 
     @tracked user = null;
+    @tracked accountState = null;
 
     skipAuthSuccessHandler = false;
 
@@ -73,6 +74,17 @@ export default class SessionService extends ESASessionService {
 
         // pre-emptively load editor code in the background to avoid loading state when opening editor
         this.koenig.fetch();
+
+        await this.fetchAccountState();
+
+        if (this.user?.role?.name === 'Contributor') {
+            const bindState = this.accountState?.[0]?.bind_state;
+            if (bindState !== 'ACTIVE') {
+                if (!this.pollAccountStateTask.isRunning) {
+                    this.pollAccountStateTask.perform();
+                }
+            }
+        }
     }
 
     async handleAuthentication() {
@@ -154,10 +166,55 @@ export default class SessionService extends ESASessionService {
             } catch (err) {
                 yield this.invalidate();
             }
-
-            yield this.postAuthPreparation();
         }
 
         callback();
+    }
+
+    async fetchAccountState() {
+        if (!this.user || this.user.role?.name !== 'Contributor') {
+            return;
+        }
+        try {
+            const ghostPaths = this.configManager.get('ghostPaths');
+            const url = `${ghostPaths.url.api('predict_mixin/account_state')}`;
+            const res = await fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+            if (res.status === 401) {
+                return;
+            }
+            if (res.ok) {
+                const data = await res.json().catch(() => null);
+                // The API framework wraps the response in an object with a key matching the docName
+                // e.g., { predict_mixin: [ { ...actualData } ] }
+                if (data && data.predict_mixin && Array.isArray(data.predict_mixin) && data.predict_mixin.length > 0) {
+                    this.accountState = data.predict_mixin[0];
+                } else {
+                    this.accountState = data;
+                }
+                this.stateBridge.triggerAccountStateChange(this.accountState);
+            }
+        } catch (e) {
+            console.error("Error fetching account state", e);
+        }
+    }
+
+    @task({restartable: true})
+    *pollAccountStateTask() {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            yield timeout(3600000);
+            if (!this.user || this.user.role?.name !== 'Contributor') {
+                return;
+            }
+            yield this.fetchAccountState();
+            const bindState = this.accountState?.[0]?.bind_state;
+            if (bindState === 'ACTIVE') {
+                return;
+            }
+            this.notifications.showToast('Stripe account not connected', {type: 'warn', key: 'stripe.account-unbound'});
+        }
     }
 }

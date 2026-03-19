@@ -1,6 +1,6 @@
 import GlobalDataProvider from './global-data-provider';
 import useSearchService, {type ComponentId, type SearchService} from '../../utils/search';
-import {type ReactNode, createContext, useContext, useState} from 'react';
+import {type ReactNode, createContext, useContext, useState, useEffect} from 'react';
 import {ScrollSectionProvider} from '../../hooks/use-scroll-section';
 import {type ZapierTemplate} from '../settings/advanced/integrations/zapier-modal';
 import {officialThemes} from '../../data/official-themes';
@@ -38,6 +38,9 @@ interface SettingsAppContextType {
     zapierTemplates: ZapierTemplate[];
     search: SearchService;
     upgradeStatus?: UpgradeStatusType;
+    accountState?: unknown;
+    userRole?: string;
+    isContributor?: boolean;
     sortingState?: Sorting[];
     setSortingState?: (sortingState: Sorting[]) => void;
     offersShowArchived: boolean;
@@ -78,12 +81,41 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
 
     const [offersShowArchived, setOffersShowArchived] = useState(false);
 
+    // Sync accountState from Ember bridge
+    const [accountState, setAccountState] = useState(() => {
+        const bridge = (window as any).EmberBridge?.state;
+        return props.accountState || bridge?.session?.accountState;
+    });
+
+    useEffect(() => {
+        const bridge = (window as any).EmberBridge?.state;
+        if (!bridge) {
+            return;
+        }
+
+        // Ensure we have the latest state on mount in case it wasn't available during initial render
+        if (bridge.session?.accountState) {
+            setAccountState(bridge.session.accountState);
+        }
+        
+        const handleAccountStateChange = (event: any) => {
+             setAccountState(event.accountState);
+        };
+        
+        bridge.on('accountStateChange', handleAccountStateChange);
+        
+        return () => {
+             bridge.off('accountStateChange', handleAccountStateChange);
+        };
+    }, []);
+
     return (
         <SettingsAppContext.Provider value={{
             // Use local data as default, allow props to override (for backward compatibility)
             officialThemes,
             zapierTemplates,
             ...props,
+            accountState,
             search,
             sortingState,
             setSortingState,
@@ -108,6 +140,9 @@ export const useOfficialThemes = () => useSettingsApp().officialThemes;
 export const useSearch = () => useSettingsApp().search;
 
 export const useUpgradeStatus = () => useSettingsApp().upgradeStatus;
+export const useAccountState = () => useSettingsApp().accountState;
+export const useUserRole = () => useSettingsApp().userRole;
+export const useIsContributor = () => useSettingsApp().isContributor;
 
 export const useSortingState = () => {
     const {sortingState, setSortingState} = useSettingsApp();

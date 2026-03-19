@@ -1,3 +1,22 @@
 {
-    "enableDeveloperExperiments": true
+    "enableDeveloperExperiments": true,
+    "database": {
+        "client": "sqlite3",
+        "connection": {
+            "filename": "content/data/ghost-dev.db"
+        }
+    },
+    "mail": {
+        "from": "zhaoguopeng@ratus.ai",
+        "transport": "SMTP",
+        "options": {
+            "host": "smtp.larksuite.com",
+            "port": 587,
+            "secure": false,
+            "auth": {
+                "user": "zhaoguopeng@ratus.ai",
+                "pass": "Q7L9WpoNSTj45Qnw"
+            }
+        }
+    }
 }

@@ -6,6 +6,9 @@ export default class AdminXSettings extends AdminXComponent {
     static packageName = '@tryghost/admin-x-settings';
 
     additionalProps = () => ({
-        upgradeStatus: this.upgradeStatus
+        upgradeStatus: this.upgradeStatus,
+        accountState: this.session.accountState,
+        userRole: this.session.user?.role?.name,
+        isContributor: this.session.user?.role?.name === 'Contributor'
     });
 }

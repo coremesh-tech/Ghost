@@ -215,6 +215,13 @@ export default class StateBridgeService extends Service.extend(Evented) {
     }
 
     @action
+    triggerAccountStateChange(accountState) {
+        this.trigger('accountStateChange', {
+            accountState
+        });
+    }
+
+    @action
     setSidebarVisible(isVisible) {
         this.trigger('sidebarVisibilityChange', {
             isVisible

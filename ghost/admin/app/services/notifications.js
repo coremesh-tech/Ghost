@@ -57,6 +57,10 @@ export default class NotificationsService extends Service {
         return this.content.filter(n => n.status === 'notification');
     }
 
+    get toasts() {
+        return this.content.filter(n => n.status === 'toast');
+    }
+
     handleNotification(message, delayed = false) {
         const wordRegex = /[a-z]+/igm;
         const wordMatches = (message.message.string || message.message).matchAll(wordRegex);
@@ -139,6 +143,20 @@ export default class NotificationsService extends Service {
         this.handleNotification({
             message,
             status: 'notification',
+            description: options.description,
+            icon: options.icon,
+            type: options.type,
+            key: options.key,
+            actions: options.actions
+        }, options.delayed);
+    }
+
+    showToast(message, options) {
+        options = options || {};
+
+        this.handleNotification({
+            message,
+            status: 'toast',
             description: options.description,
             icon: options.icon,
             type: options.type,
@@ -243,6 +261,10 @@ export default class NotificationsService extends Service {
 
     closeAlerts(key) {
         this._removeItems('alert', key);
+    }
+
+    closeToasts(key) {
+        this._removeItems('toast', key);
     }
 
     clearAll() {

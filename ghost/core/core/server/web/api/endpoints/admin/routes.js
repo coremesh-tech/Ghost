@@ -407,5 +407,8 @@ module.exports = function apiRoutes() {
     router.get('/search-index/tags', mw.authAdminApi, http(api.searchIndex.fetchTags));
     router.get('/search-index/users', mw.authAdminApi, http(api.searchIndex.fetchUsers));
 
+    router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
+    router.get('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
+
     return router;
 };

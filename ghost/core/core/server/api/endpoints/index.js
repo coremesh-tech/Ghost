@@ -177,6 +177,10 @@ module.exports = {
         return apiFramework.pipeline(require('./site'), localUtils);
     },
 
+    get predictMixin() {
+        return apiFramework.pipeline(require('./predict-mixin'), localUtils);
+    },
+
     get snippets() {
         return apiFramework.pipeline(require('./snippets'), localUtils);
     },
