@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "आपकी सदस्यता {expiryDate} को समाप्त हो जाएगी",
     "Your subscription will renew on {renewalDate}": "आपकी सदस्यता {renewalDate} को नवीनीकृत होगी",
-    "Your subscription will start on {subscriptionStart}": "आपकी सदस्यता {subscriptionStart} को शुरू होगी"
+    "Your subscription will start on {subscriptionStart}": "आपकी सदस्यता {subscriptionStart} को शुरू होगी",
+    "Analyst Contributor Program": "विश्लेषक योगदानकर्ता कार्यक्रम",
+    "See more": "और देखें",
+    "Join": "शामिल हों"
 }

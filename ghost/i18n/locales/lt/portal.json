@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Jūsų prenumerata baigsis {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Jūsų prenumerata atsinaujins {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Jūsų prenumerata prasidės {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Jūsų prenumerata prasidės {subscriptionStart}",
+    "Analyst Contributor Program": "Analitikų bendraautorių programa",
+    "See more": "Rodyti daugiau",
+    "Join": "Prisijungti"
 }

@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "La teva subscripció caducarà el {expiryDate}",
     "Your subscription will renew on {renewalDate}": "La teva subscripció es renovarà el {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "La teva subscripció començarà el {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "La teva subscripció començarà el {subscriptionStart}",
+    "Analyst Contributor Program": "Programa de col·laboradors analistes",
+    "See more": "Veure més",
+    "Join": "Unir-se"
 }

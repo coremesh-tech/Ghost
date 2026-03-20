@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Din prenumeration avslutas {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Din prenumeration förnyas {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Din prenumeration startar {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Din prenumeration startar {subscriptionStart}",
+    "Analyst Contributor Program": "Program för analytikerbidragsgivare",
+    "See more": "Visa mer",
+    "Join": "Gå med"
 }

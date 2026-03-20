@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Абонаментът ви ще изтече на {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Абонаментът ви ще се поднови на {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Абонаментът ви ще започне на {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Абонаментът ви ще започне на {subscriptionStart}",
+    "Analyst Contributor Program": "Програма за анализатори-сътрудници",
+    "See more": "Вижте повече",
+    "Join": "Присъединяване"
 }

@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Zure harpidetza {expiryDate}(e)an iraungiko da",
     "Your subscription will renew on {renewalDate}": "Zure harpidetza {renewalDate}(e)an berrituko da",
-    "Your subscription will start on {subscriptionStart}": "Zure harpidetza {subscriptionStart}(e)an hasiko da"
+    "Your subscription will start on {subscriptionStart}": "Zure harpidetza {subscriptionStart}(e)an hasiko da",
+    "Analyst Contributor Program": "Analisten Laguntzaileen Programa",
+    "See more": "Ikusi gehiago",
+    "Join": "Sartu"
 }

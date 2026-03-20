@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Aboneliğiniz {expiryDate} tarihinde sona erecek",
     "Your subscription will renew on {renewalDate}": "Aboneliğiniz {renewalDate} tarihinde yenilenecek",
-    "Your subscription will start on {subscriptionStart}": "Aboneliğiniz {subscriptionStart} tarihinde başlayacak"
+    "Your subscription will start on {subscriptionStart}": "Aboneliğiniz {subscriptionStart} tarihinde başlayacak",
+    "Analyst Contributor Program": "Analist Katkıda Bulunanlar Programı",
+    "See more": "Daha fazla gör",
+    "Join": "Katıl"
 }

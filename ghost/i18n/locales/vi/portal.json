@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Gói thành viên của bạn sẽ hết hạn vào {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Gói thành viên của bạn sẽ tự động gia hạn vào {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Gói thành viên của bạn bắt đầu có hiệu lực vào {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Gói thành viên của bạn bắt đầu có hiệu lực vào {subscriptionStart}",
+    "Analyst Contributor Program": "Chương trình Cộng tác viên Phân tích",
+    "See more": "Xem thêm",
+    "Join": "Tham gia"
 }

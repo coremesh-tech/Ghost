@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "U intekening sal verval op {expiryDate}",
     "Your subscription will renew on {renewalDate}": "U intekening sal hernu op {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "U intekening sal begin op {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "U intekening sal begin op {subscriptionStart}",
+    "Analyst Contributor Program": "Ontleder Bydraer Program",
+    "See more": "Sien meer",
+    "Join": "Sluit aan"
 }

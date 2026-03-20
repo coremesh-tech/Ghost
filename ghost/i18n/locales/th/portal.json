@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "การรับสมัครข้อมูลของคุณจะหมดอายุในวันที่ {expiryDate}",
     "Your subscription will renew on {renewalDate}": "การรับสมัครข้อมูลของคุณจะต่ออายุในวันที่ {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "การรับสมัครข้อมูลของคุณจะเริ่มในวันที่ {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "การรับสมัครข้อมูลของคุณจะเริ่มในวันที่ {subscriptionStart}",
+    "Analyst Contributor Program": "โครงการผู้สนับสนุนนักวิเคราะห์",
+    "See more": "ดูเพิ่มเติม",
+    "Join": "เข้าร่วม"
 }

@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Термін дії вашої підписки закінчується {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Ваша підписка буде продовжена {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Ваша підписка почне діяти {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Ваша підписка почне діяти {subscriptionStart}",
+    "Analyst Contributor Program": "Програма для авторів-аналітиків",
+    "See more": "Показати більше",
+    "Join": "Приєднатися"
 }

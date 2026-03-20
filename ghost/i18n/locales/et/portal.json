@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Teie tellimus aegub {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Teie tellimus uueneb {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Teie tellimus algab {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Teie tellimus algab {subscriptionStart}",
+    "Analyst Contributor Program": "Analüütikute panustamisprogramm",
+    "See more": "Vaata lähemalt",
+    "Join": "Liitu"
 }

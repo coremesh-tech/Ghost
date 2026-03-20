@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Tvoja pretplata istieče {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Tvoja pretplata će se obnoviti {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Tvoja pretplata će započeti {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Tvoja pretplata će započeti {subscriptionStart}",
+    "Analyst Contributor Program": "Program za analitičare saradnike",
+    "See more": "Vidi više",
+    "Join": "Pridruži se"
 }

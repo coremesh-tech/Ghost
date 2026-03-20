@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Az előfizetésed lejár ekkor: {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Az előfizetésed megújul ekkor: {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Az előfizetésed ekkor indul: {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Az előfizetésed ekkor indul: {subscriptionStart}",
+    "Analyst Contributor Program": "Elemzői Hozzájárulói Program",
+    "See more": "Továbbiak",
+    "Join": "Csatlakozás"
 }

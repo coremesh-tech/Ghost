@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "您的订阅将在{expiryDate}到期",
     "Your subscription will renew on {renewalDate}": "您的订阅将在{renewalDate}续费",
-    "Your subscription will start on {subscriptionStart}": "您的订阅将于{subscriptionStart}开始"
+    "Your subscription will start on {subscriptionStart}": "您的订阅将于{subscriptionStart}开始",
+    "Analyst Contributor Program": "分析师贡献者计划",
+    "See more": "查看更多",
+    "Join": "加入"
 }

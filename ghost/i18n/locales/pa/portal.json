@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "ਤੁਹਾਡੀ ਸਦੱਸਤਾ {expiryDate} ਨੂੰ ਮਿਆਦ ਪੁੱਗ ਜਾਵੇਗੀ।",
     "Your subscription will renew on {renewalDate}": "ਤੁਹਾਡੀ ਸਦੱਸਤਾ {renewalDate} ਨੂੰ ਨਵਿਆਈ ਜਾਵੇਗੀ।",
-    "Your subscription will start on {subscriptionStart}": "ਤੁਹਾਡੀ ਸਦੱਸਤਾ {subscriptionStart} ਨੂੰ ਸ਼ੁਰੂ ਹੋਵੇਗੀ।"
+    "Your subscription will start on {subscriptionStart}": "ਤੁਹਾਡੀ ਸਦੱਸਤਾ {subscriptionStart} ਨੂੰ ਸ਼ੁਰੂ ਹੋਵੇਗੀ।",
+    "Analyst Contributor Program": "ਵਿਸ਼ਲੇਸ਼ਕ ਯੋਗਦਾਨਕਰਤਾ ਪ੍ਰੋਗਰਾਮ",
+    "See more": "ਹੋਰ ਦੇਖੋ",
+    "Join": "ਸ਼ਾਮਲ ਹੋਵੋ"
 }

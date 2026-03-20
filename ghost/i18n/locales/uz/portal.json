@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "",
     "Your subscription will renew on {renewalDate}": "",
-    "Your subscription will start on {subscriptionStart}": ""
+    "Your subscription will start on {subscriptionStart}": "",
+    "Analyst Contributor Program": "Tahlilchilar hissasi dasturi",
+    "See more": "Ko'proq ko'rish",
+    "Join": "Qo'shilish"
 }

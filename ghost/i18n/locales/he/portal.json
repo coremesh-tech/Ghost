@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "המינוי שלכם יפוג ב {expiryDate}",
     "Your subscription will renew on {renewalDate}": "המנוי שלכם יתחדש ב {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "המנוי שלכם יתחיל ב {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "המנוי שלכם יתחיל ב {subscriptionStart}",
+    "Analyst Contributor Program": "תוכנית תורמי אנליסטים",
+    "See more": "ראה עוד",
+    "Join": "הצטרף"
 }

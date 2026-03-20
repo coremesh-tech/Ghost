@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Η συνδρομή σας θα λήξει στις {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Η συνδρομή σας θα ανανεωθεί στις {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Η συνδρομή σας θα ξεκινήσει στις {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Η συνδρομή σας θα ξεκινήσει στις {subscriptionStart}",
+    "Analyst Contributor Program": "Πρόγραμμα Συνεργατών Αναλυτών",
+    "See more": "Δείτε περισσότερα",
+    "Join": "Συμμετοχή"
 }

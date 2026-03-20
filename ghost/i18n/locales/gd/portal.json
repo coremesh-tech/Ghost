@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Falbhaidh an ùine air am fo-sgrìobhadh agad: {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Ath-nuadhaichidh am fo-sgrìobhadh agad: {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Tòisichidh am fo-sgrìobhadh agad: {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Tòisichidh am fo-sgrìobhadh agad: {subscriptionStart}",
+    "Analyst Contributor Program": "Prògram Com-pàirtichean an Neach-sgrùdaidh",
+    "See more": "Faic barrachd",
+    "Join": "Gabh pàirt"
 }

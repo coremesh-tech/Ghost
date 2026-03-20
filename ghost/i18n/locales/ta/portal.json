@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "உங்கள் சந்தா {expiryDate} அன்று காலாவதியாகும்",
     "Your subscription will renew on {renewalDate}": "உங்கள் சந்தா {renewalDate} அன்று புதுப்பிக்கப்படும்",
-    "Your subscription will start on {subscriptionStart}": "உங்கள் சந்தா {subscriptionStart} அன்று தொடங்கும்"
+    "Your subscription will start on {subscriptionStart}": "உங்கள் சந்தா {subscriptionStart} அன்று தொடங்கும்",
+    "Analyst Contributor Program": "பகுப்பாய்வாளர் பங்களிப்பாளர் திட்டம்",
+    "See more": "மேலும் காண்க",
+    "Join": "சேர"
 }

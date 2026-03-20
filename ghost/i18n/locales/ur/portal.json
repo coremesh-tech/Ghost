@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "آپ کی ہوشیاری {expiryDate} تک چلے گی",
     "Your subscription will renew on {renewalDate}": "آپ کی ہوشیاری {renewalDate} تک تجدید ہوگی",
-    "Your subscription will start on {subscriptionStart}": "آپ کی ہوشیاری {subscriptionStart} پر شروع ہوگی"
+    "Your subscription will start on {subscriptionStart}": "آپ کی ہوشیاری {subscriptionStart} پر شروع ہوگی",
+    "Analyst Contributor Program": "تجزیہ کار معاون پروگرام",
+    "See more": "مزید دیکھیں",
+    "Join": "شامل ہوں"
 }

@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Сіздің жазылым {expiryDate} күні аяқталады",
     "Your subscription will renew on {renewalDate}": "Сіздің жазылым {renewalDate} күні қайта жаңартылады",
-    "Your subscription will start on {subscriptionStart}": "Сіздің жазылым {subscriptionStart} күні басталады"
+    "Your subscription will start on {subscriptionStart}": "Сіздің жазылым {subscriptionStart} күні басталады",
+    "Analyst Contributor Program": "Аналитиктердің үлес қосу бағдарламасы",
+    "See more": "Көбірек көру",
+    "Join": "Қосылу"
 }

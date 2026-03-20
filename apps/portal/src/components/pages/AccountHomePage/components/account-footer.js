@@ -1,22 +1,36 @@
-import {t} from '../../../../utils/i18n';
+import { t } from "../../../../utils/i18n";
 
-const AccountFooter = ({handleSignout, supportAddress = ''}) => {
+const AccountFooter = ({ handleSignout, supportAddress = "" }) => {
     const supportAddressMail = `mailto:${supportAddress}`;
     return (
-        <footer className='gh-portal-account-footer'>
-            <ul className='gh-portal-account-footermenu'>
+        <footer className="gh-portal-account-footer">
+            <ul className="gh-portal-account-footermenu">
                 <li>
-                    <button data-test-button="footer-signout" className='gh-portal-btn' name='logout' aria-label='logout' onClick={e => handleSignout(e)}>
-                        {t('Sign out')}
+                    <button
+                        data-test-button="footer-signout"
+                        className="gh-portal-btn"
+                        name="logout"
+                        aria-label="logout"
+                        onClick={(e) => handleSignout(e)}
+                    >
+                        {t("Sign out")}
                     </button>
                 </li>
             </ul>
-            <div className='gh-portal-account-footerright'>
-                <ul className='gh-portal-account-footermenu'>
+            <div className="gh-portal-account-footerright">
+                <ul className="gh-portal-account-footermenu">
                     <li>
-                        <a data-test-link="footer-support" className='gh-portal-btn gh-portal-btn-branded' href={supportAddressMail} onClick={() => {
-                            supportAddressMail && window.open(supportAddressMail);
-                        }}>{t('Contact support')}</a>
+                        <a
+                            data-test-link="footer-support"
+                            className="gh-portal-btn gh-portal-btn-branded"
+                            href={supportAddressMail}
+                            onClick={() => {
+                                supportAddressMail &&
+                                    window.open(supportAddressMail);
+                            }}
+                        >
+                            {t("Contact support")}
+                        </a>
                     </li>
                 </ul>
             </div>

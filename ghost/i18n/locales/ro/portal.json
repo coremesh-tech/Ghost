@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Abonamentul tău va expira pe {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Abonamentul tău se va reînnoi pe {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Abonamentul tău va începe pe {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Abonamentul tău va începe pe {subscriptionStart}",
+    "Analyst Contributor Program": "Programul pentru Colaboratori Analiști",
+    "See more": "Vezi mai mult",
+    "Join": "Alătură-te"
 }

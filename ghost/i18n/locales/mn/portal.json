@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Таны захиалга {expiryDate}-нд дуусна",
     "Your subscription will renew on {renewalDate}": "Таны захиалга {renewalDate}-нд шинэчлэгдэнэ",
-    "Your subscription will start on {subscriptionStart}": "Таны захиалга {subscriptionStart}-нд эхэлнэ"
+    "Your subscription will start on {subscriptionStart}": "Таны захиалга {subscriptionStart}-нд эхэлнэ",
+    "Analyst Contributor Program": "Шинжээчдийн хувь нэмэр оруулах хөтөлбөр",
+    "See more": "Илүү ихийг үзэх",
+    "Join": "Нэгдэх"
 }

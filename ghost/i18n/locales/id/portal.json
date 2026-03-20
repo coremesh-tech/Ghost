@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Langganan Anda akan berakhir pada {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Langganan Anda akan diperpanjang pada {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Langganan Anda akan dimulai pada {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Langganan Anda akan dimulai pada {subscriptionStart}",
+    "Analyst Contributor Program": "Program Kontributor Analis",
+    "See more": "Lihat lebih banyak",
+    "Join": "Bergabung"
 }

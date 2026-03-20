@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Jūsu abonementa derīguma termiņš beigsies {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Jūsu abonements tiks atjaunots šādā datumā: {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Jūsu abonements sāksies šādā datumā: {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Jūsu abonements sāksies šādā datumā: {subscriptionStart}",
+    "Analyst Contributor Program": "Analītiķu līdzstrādnieku programma",
+    "See more": "Skatīt vairāk",
+    "Join": "Pievienoties"
 }

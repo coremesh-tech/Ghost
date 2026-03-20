@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Tilauksesi päättyy {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Tilauksesi uusiutuu {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Tilauksesi alkaa {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Tilauksesi alkaa {subscriptionStart}",
+    "Analyst Contributor Program": "Analyytikkojen osallistumisohjelma",
+    "See more": "Näytä lisää",
+    "Join": "Liity"
 }

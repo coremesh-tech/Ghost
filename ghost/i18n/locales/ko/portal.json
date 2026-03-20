@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "회원님의 구독은 {expiryDate}에 만료돼요",
     "Your subscription will renew on {renewalDate}": "회원님의 구독은 {renewalDate}에 갱신돼요",
-    "Your subscription will start on {subscriptionStart}": "회원님의 구독은 {subscriptionStart}에 시작돼요"
+    "Your subscription will start on {subscriptionStart}": "회원님의 구독은 {subscriptionStart}에 시작돼요",
+    "Analyst Contributor Program": "애널리스트 기여자 프로그램",
+    "See more": "더 보기",
+    "Join": "참여하기"
 }

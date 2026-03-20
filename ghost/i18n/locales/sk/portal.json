@@ -251,5 +251,8 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Váše predplatné expiruje {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Váše predplatné bude obnovené {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Váše predplatné začína {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Váše predplatné začína {subscriptionStart}",
+    "Analyst Contributor Program": "Program pre analytikov",
+    "See more": "Zobraziť viac",
+    "Join": "Pridať sa"
 }
