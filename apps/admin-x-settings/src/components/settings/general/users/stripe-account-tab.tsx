@@ -36,8 +36,8 @@ const RightIcon = () => {
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
             p-id="1251"
-            width="16"
-            height="16"
+            width="20"
+            height="20"
         >
             <path
                 d="M689.984 469.312L461.12 240.448l60.352-60.352L853.376 512l-331.904 331.84-60.352-60.288 228.864-228.864H170.688V469.312h519.296z"
@@ -48,9 +48,28 @@ const RightIcon = () => {
     );
 };
 
+const ArrowRightIcon = () => {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="17696"
+            width="20"
+            height="20"
+        >
+            <path
+                d="M561.984 512l-211.2-211.2 60.352-60.352L682.688 512l-271.552 271.552-60.352-60.352 211.2-211.2z"
+                p-id="17697"
+                fill="#ffffff"
+            ></path>
+        </svg>
+    );
+};
+
 const StripeAccountTab: React.FC = () => {
     const accountState: any = useAccountState();
-    const status = accountState?.[0]?.bind_state;
+    const status = accountState?.bind_state;
     const [activeTab, setActiveTab] = useState("income");
     const [currentPage, setCurrentPage] = useState(1);
     const [stripeData, setStripeData] = useState<any>([]);
@@ -62,11 +81,13 @@ const StripeAccountTab: React.FC = () => {
         currentPage * itemsPerPage
     );
 
-    const isPending = !status || !(status === ACCOUNT_STATUS.PENDING);
+    const isPending = status && !(status === ACCOUNT_STATUS.PENDING);
 
     useEffect(() => {
-        setStripeData(MOCK_STRIPE_DATA());
-    }, []);
+        if (isPending) {
+            setStripeData(MOCK_STRIPE_DATA());
+        }
+    }, [isPending]);
 
     const {
         data: connectUrl,
@@ -79,29 +100,31 @@ const StripeAccountTab: React.FC = () => {
                 "/ghost/api/admin/predict_mixin/connect_url/",
                 {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
                 }
             );
             if (!response.ok) {
                 throw new Error("Failed to get Stripe Connect URL");
             }
             const data = await response.json();
-            if (
-                data &&
-                data.predict_mixin &&
-                Array.isArray(data.predict_mixin) &&
-                data.predict_mixin.length > 0
-            ) {
-                return data.predict_mixin[0][0].accountUrl;
-            }
-            return data.predict_mixin[0][0].accountUrl;
+            return data.predict_mixin[0].accountUrl;
         },
         enabled:
             status === ACCOUNT_STATUS.PENDING ||
             status === ACCOUNT_STATUS.INCOMPLETE,
     });
+
+    const accountUnbind = useCallback(async () => {
+        const response = await fetch("/ghost/api/admin/predict_mixin/unbind/", {
+            method: "GET",
+        });
+        if (!response.ok) {
+            throw new Error("Failed to unbind Stripe account");
+        }
+        const data = await response.json();
+        if (data && data.predict_mixin && data.predict_mixin[0].success) {
+            window.location.reload();
+        }
+    }, []);
 
     const statusText = (() => {
         switch (status) {
@@ -131,10 +154,9 @@ const StripeAccountTab: React.FC = () => {
                     <a
                         className="text-primary-600 hover:text-primary-500 cursor-pointer font-medium"
                         href={connectUrl}
-                        target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <RightIcon />
+                        <ArrowRightIcon />
                     </a>
                 );
             case ACCOUNT_STATUS.ACTIVE:
@@ -142,19 +164,27 @@ const StripeAccountTab: React.FC = () => {
                     <img
                         src={logoutBoxRLine}
                         className="w-[16px] cursor-pointer"
+                        onClick={accountUnbind}
                     />
                 );
             case ACCOUNT_STATUS.INCOMPLETE:
-                if (!connectUrl) return null;
                 return (
-                    <a
-                        className="hover:text-primary-500 cursor-pointer font-medium"
-                        href={connectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <RightIcon />
-                    </a>
+                    <>
+                        {connectUrl ? (
+                            <a
+                                className="text-primary-600 hover:text-primary-500 cursor-pointer font-medium"
+                                href={connectUrl}
+                                rel="noopener noreferrer"
+                            >
+                                <ArrowRightIcon />
+                            </a>
+                        ) : null}
+                        <img
+                            src={logoutBoxRLine}
+                            className="w-[16px] cursor-pointer"
+                            onClick={accountUnbind}
+                        />
+                    </>
                 );
             default:
                 return null;
@@ -179,12 +209,14 @@ const StripeAccountTab: React.FC = () => {
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[290px] md:h-[200px] w-full rounded-xl flex flex-col md:flex-row md:items-end justify-between text-white p-[20px] md:p-[40px] relative`}
+                    className={`bg-[#000000] h-[290px] md:h-[200px] w-full rounded-xl flex flex-col md:flex-row justify-between text-white p-[20px] md:p-[40px] relative ${
+                        isPending ? "md:items-end" : "md:items-start"
+                    }`}
                 >
                     <div className="flex flex-col gap-16 md:gap-6 relative z-[2]">
                         <div className="flex gap-4 font-medium text-lg">
                             <div>Stripe</div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-center">
                                 <span className="font-medium">
                                     {statusText}
                                 </span>

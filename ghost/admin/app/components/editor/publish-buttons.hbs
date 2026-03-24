@@ -18,6 +18,16 @@
         @runningText="Saving"
         @class="gh-btn gh-btn-icon gh-btn-editor gh-editor-save-trigger contributor-save-button"
         data-test-button="contributor-save" />
+
+    <GhTaskButton
+        @buttonText="Submit"
+        @task={{@publishManagement.submitTask}}
+        @runningText="Submitting..."
+        @successText="Submitted"
+        @class="gh-btn gh-btn-icon gh-btn-editor gh-editor-save-trigger"
+        data-test-button="contributor-submit"
+    />
+        
 {{else}}
     {{#if @publishManagement.post.isDraft}}
         <button

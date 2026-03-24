@@ -407,8 +407,24 @@ module.exports = function apiRoutes() {
     router.get('/search-index/tags', mw.authAdminApi, http(api.searchIndex.fetchTags));
     router.get('/search-index/users', mw.authAdminApi, http(api.searchIndex.fetchUsers));
 
+    // Stripe Account
     router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
     router.get('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
+    router.get('/predict_mixin/unbind', mw.authAdminApi, http(api.predictMixin.accountUnbind));
+
+    // Staff Submit
+    router.get('/predict_mixin/staff_submit', mw.authAdminApi, http(api.predictMixin.staffSubmit));
+    // Staff Withdraw
+    router.get('/predict_mixin/staff_withdraw', mw.authAdminApi, http(api.predictMixin.staffWithdraw));
+    // Get Post Submissions
+    router.post('/predict_mixin/post_submissions', mw.authAdminApi, http(api.predictMixin.getStaffPostSubmissions));
+
+    // Admin Approve
+    router.get('/predict_mixin/admin_approve', mw.authAdminApi, http(api.predictMixin.adminApprove));
+    // Admin Reject
+    router.get('/predict_mixin/admin_reject', mw.authAdminApi, http(api.predictMixin.adminReject));
+    // Get Admin Post Submissions
+    router.post('/predict_mixin/admin_post_submissions', mw.authAdminApi, http(api.predictMixin.getAdminPostSubmissions));
 
     return router;
 };

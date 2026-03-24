@@ -105,7 +105,7 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
         bridge.on('accountStateChange', handleAccountStateChange);
         
         return () => {
-             bridge.off('accountStateChange', handleAccountStateChange);
+            bridge.off('accountStateChange', handleAccountStateChange);
         };
     }, []);
 

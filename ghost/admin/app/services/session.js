@@ -190,15 +190,18 @@ export default class SessionService extends ESASessionService {
             }
             if (res.ok) {
                 const data = await res.json().catch(() => null);
-                // The API framework wraps the response in an object with a key matching the docName
-                // e.g., { predict_mixin: [ { ...actualData } ] }
                 if (data && data.predict_mixin && Array.isArray(data.predict_mixin) && data.predict_mixin.length > 0) {
                     this.accountState = data.predict_mixin[0];
                 } else {
                     this.accountState = data;
                 }
                 this.stateBridge.triggerAccountStateChange(this.accountState);
-            }
+                const bindState = this.accountState?.[0]?.bind_state;
+                if (bindState === 'ACTIVE') {
+                    return;
+                }
+                this.notifications.showToast('Stripe account not connected', {type: 'warn', key: 'stripe.account-unbound'});
+                }
         } catch (e) {
             console.error("Error fetching account state", e);
         }
@@ -213,11 +216,6 @@ export default class SessionService extends ESASessionService {
                 return;
             }
             yield this.fetchAccountState();
-            const bindState = this.accountState?.[0]?.bind_state;
-            if (bindState === 'ACTIVE') {
-                return;
-            }
-            this.notifications.showToast('Stripe account not connected', {type: 'warn', key: 'stripe.account-unbound'});
         }
     }
 }

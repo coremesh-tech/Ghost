@@ -24,6 +24,7 @@ export const CONFIRM_EMAIL_MAX_POLL_LENGTH = 15 * 1000;
 export default class PublishManagement extends Component {
     @service modals;
     @service notifications;
+    @service router;
 
     // ensure we get a new PublishOptions instance when @post is replaced
     @use publishOptions = new PublishOptionsResource(() => [this.args.post]);
@@ -225,6 +226,36 @@ export default class PublishManagement extends Component {
     *saveTask() {
         yield this.args.saveTask.perform();
         this.saveButtonTimeoutTask.perform();
+        return true;
+    }
+
+    @task({group: 'saveButtonTaskGroup'})
+    *submitTask() {
+        try {
+            yield this.args.saveTask.perform();
+            const url = this.publishOptions.post.get('id') 
+                ? `/ghost/api/admin/predict_mixin/staff_submit?ghost_post_id=${this.publishOptions.post.get('id')}`
+                : null;
+                
+            if (!url) {
+                this.notifications.showNotification('Cannot submit an unsaved post', {type: 'error'});
+                return;
+            }
+            const response = yield fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to submit post');
+            }
+            this.notifications.showNotification('Post submitted successfully', {type: 'success'});
+            // 返回列表页
+            this.router.transitionTo('posts');
+        } catch (error) {
+            this.notifications.showAPIError(error);
+        }
         return true;
     }
 
