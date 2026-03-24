@@ -25,293 +25,142 @@ const controllerConfig = {
     permissions: false,
 };
 
+const requestWithSession = async (frame, { url, method, body = null }) => {
+    const sessionCookie = generateCookie(frame?.original?.session?.id);
+    try {
+        const options = {};
+        if (method !== "GET" && body) {
+            options.body = body;
+        }
+        const response = await externalRequest(url, {
+            method,
+            headers: {
+                Cookie: sessionCookie,
+            },
+            responseType: "json",
+            throwHttpErrors: false,
+            ...options,
+        });
+        logger.info(
+            `[PredictMixin] ${method} ${url} -> ${
+                response.statusCode
+            } - ${JSON.stringify(response.body)}`
+        );
+        if (response.statusCode >= 400) {
+            return { error: response.body?.message || "error" };
+        }
+        return response.body?.data;
+    } catch (err) {
+        return { error: err.message };
+    }
+};
+
+const api = {
+    accountState: () =>
+        `${predictionMarketsApiUrl}/predict-mixin/pay/account_state`,
+    accountBind: () =>
+        `${predictionMarketsApiUrl}/predict-mixin/pay/account_bind`,
+    accountUnbind: () =>
+        `${predictionMarketsApiUrl}/predict-mixin/pay/account_unbind`,
+    staffSubmit: (id) =>
+        `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/submit`,
+    staffWithdraw: (id) =>
+        `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/withdraw`,
+    staffQuery: () =>
+        `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/query`,
+    adminApprove: (id) =>
+        `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/approve`,
+    adminReject: (id) =>
+        `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/reject`,
+    adminQuery: () =>
+        `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/query`,
+};
+
 /** @type {import('@tryghost/api-framework').Controller} */
 const controller = {
     docName: "predict_mixin",
 
     getAccountState: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/pay/account_state`,
-                    {
-                        method: "GET",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false, // 防止非 2xx 响应抛出异常，让我们自己处理
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] getAccountState response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    // 透传错误状态或返回空
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                // 捕获网络错误，防止 crash
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.accountState(),
+                method: "GET",
+            }),
     },
 
     getConnectUrl: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/pay/account_bind`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] getConnectUrl response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.accountBind(),
+                method: "POST",
+            }),
     },
+
     accountUnbind: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/pay/account_unbind`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] accountUnbind response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.accountUnbind(),
+                method: "POST",
+            }),
     },
+
     staffSubmit: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${frame.original.query.ghost_post_id}/submit`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] staffSubmit response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.staffSubmit(frame.original.query.ghost_post_id),
+                method: "POST",
+            }),
     },
+
     staffWithdraw: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${frame.original.query.ghost_post_id}/withdraw`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] staffWithdraw response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.staffWithdraw(frame.original.query.ghost_post_id),
+                method: "POST",
+            }),
     },
+
     getStaffPostSubmissions: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/query`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                        body: frame.original.params.ghost_post_ids,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] getStaffPostSubmissions response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.staffQuery(),
+                method: "POST",
+                body: frame.original.params.ghost_post_ids,
+            }),
     },
+
     adminApprove: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${frame.original.query.ghost_post_id}/approve`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] adminApprove response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.adminApprove(frame.original.query.ghost_post_id),
+                method: "POST",
+            }),
     },
+
     adminReject: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${frame.original.query.ghost_post_id}/reject`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] adminReject response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.adminReject(frame.original.query.ghost_post_id),
+                method: "POST",
+            }),
     },
+
     getAdminPostSubmissions: {
         ...controllerConfig,
-        async query(frame) {
-            let sessionCookie = generateCookie(frame.original.session.id);
-            try {
-                const response = await externalRequest(
-                    `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/query`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Cookie: sessionCookie,
-                        },
-                        responseType: "json",
-                        throwHttpErrors: false,
-                        body: frame.original.params.ghost_post_ids,
-                    }
-                );
-                logger.info(
-                    `[PredictMixin] getAdminPostSubmissions response: ${
-                        response.statusCode
-                    } - ${JSON.stringify(response.body)}`
-                );
-                if (response.statusCode >= 400) {
-                    return { error: response.body.message || "error" };
-                }
-
-                return response.body.data;
-            } catch (err) {
-                return { error: err.message };
-            }
-        },
+        query: (frame) =>
+            requestWithSession(frame, {
+                url: api.adminQuery(),
+                method: "POST",
+                body: frame.original.params.ghost_post_ids,
+            }),
     },
 };
 
