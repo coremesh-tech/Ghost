@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "您的订阅将于{subscriptionStart}开始",
     "Analyst Contributor Program": "分析师贡献者计划",
     "See more": "查看更多",
-    "Join": "加入"
+    "Join": "加入",
+    "Successfully applied for creator plan": "申请成功，请检查您的电子邮件以获取确认信息",
+    "Failed to apply for creator plan": "申请创作者计划失败"
 }

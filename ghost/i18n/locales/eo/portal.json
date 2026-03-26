@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "",
     "Analyst Contributor Program": "Programo por Analizistaj Kontribuantoj",
     "See more": "Vidi pli",
-    "Join": "Aliĝi"
+    "Join": "Aliĝi",
+    "Successfully applied for creator plan": "Bonvolu kontroli vian retpoŝton por konfirmo se via apliko estas sukcesa",
+    "Failed to apply for creator plan": "Malsukcesis kandidatiĝi por kreanto-plano"
 }

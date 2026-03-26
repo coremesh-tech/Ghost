@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Abonamentul tău va începe pe {subscriptionStart}",
     "Analyst Contributor Program": "Programul pentru Colaboratori Analiști",
     "See more": "Vezi mai mult",
-    "Join": "Alătură-te"
+    "Join": "Alătură-te",
+    "Successfully applied for creator plan": "Vă rugăm să vă verificați e-mailul pentru confirmare dacă aplicația dvs. are succes",
+    "Failed to apply for creator plan": "Aplicația pentru planul de creator a eșuat"
 }

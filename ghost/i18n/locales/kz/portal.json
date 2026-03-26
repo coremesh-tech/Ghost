@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Сіздің жазылым {subscriptionStart} күні басталады",
     "Analyst Contributor Program": "Аналитиктердің үлес қосу бағдарламасы",
     "See more": "Көбірек көру",
-    "Join": "Қосылу"
+    "Join": "Қосылу",
+    "Successfully applied for creator plan": "Өтінішіңіз сәтті болса, растау үшін электрондық поштаңызды тексеріңіз",
+    "Failed to apply for creator plan": "Жасаушы жоспарына өтініш беру сәтсіз аяқталды"
 }

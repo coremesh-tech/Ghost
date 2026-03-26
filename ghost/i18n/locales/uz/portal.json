@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "",
     "Analyst Contributor Program": "Tahlilchilar hissasi dasturi",
     "See more": "Ko'proq ko'rish",
-    "Join": "Qo'shilish"
+    "Join": "Qo'shilish",
+    "Successfully applied for creator plan": "Agar arizangiz muvaffaqiyatli bo'lsa, tasdiqlash uchun elektron pochtangizni tekshiring",
+    "Failed to apply for creator plan": "Ijodkor rejasiga ariza topshirish muvaffaqiyatsiz tugadi"
 }

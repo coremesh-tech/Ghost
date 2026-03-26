@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Η συνδρομή σας θα ξεκινήσει στις {subscriptionStart}",
     "Analyst Contributor Program": "Πρόγραμμα Συνεργατών Αναλυτών",
     "See more": "Δείτε περισσότερα",
-    "Join": "Συμμετοχή"
+    "Join": "Συμμετοχή",
+    "Successfully applied for creator plan": "Ελέγξτε το email σας για επιβεβαίωση εάν η αίτησή σας είναι επιτυχής",
+    "Failed to apply for creator plan": "Αποτυχία αίτησης για το πρόγραμμα δημιουργών"
 }

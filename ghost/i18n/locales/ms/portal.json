@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Langganan anda akan bermula pada {subscriptionStart}",
     "Analyst Contributor Program": "Program Penyumbang Penganalisis",
     "See more": "Lihat lagi",
-    "Join": "Sertai"
+    "Join": "Sertai",
+    "Successfully applied for creator plan": "Sila semak e-mel anda untuk pengesahan jika permohonan anda berjaya",
+    "Failed to apply for creator plan": "Gagal memohon pelan pencipta"
 }

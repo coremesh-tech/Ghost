@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Zure harpidetza {subscriptionStart}(e)an hasiko da",
     "Analyst Contributor Program": "Analisten Laguntzaileen Programa",
     "See more": "Ikusi gehiago",
-    "Join": "Sartu"
+    "Join": "Sartu",
+    "Successfully applied for creator plan": "Mesedez, egiaztatu zure posta elektronikoa baieztapenerako, zure eskaera arrakastatsua bada",
+    "Failed to apply for creator plan": "Ezin izan da sortzaile plana eskatu"
 }

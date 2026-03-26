@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Áskrift þín hefst {subscriptionStart}",
     "Analyst Contributor Program": "Greinenda- og framlagsforrit",
     "See more": "Sjá meira",
-    "Join": "Taka þátt"
+    "Join": "Taka þátt",
+    "Successfully applied for creator plan": "Vinsamlegast athugaðu tölvupóstinn þinn til staðfestingar ef umsókn þín er samþykkt",
+    "Failed to apply for creator plan": "Mistókst að sækja um höfundarplan"
 }

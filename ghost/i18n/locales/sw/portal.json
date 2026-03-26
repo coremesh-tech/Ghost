@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Usajili wako utaanza tarehe {subscriptionStart}",
     "Analyst Contributor Program": "Mpango wa Wachangiaji Wachambuzi",
     "See more": "Ona zaidi",
-    "Join": "Jiunge"
+    "Join": "Jiunge",
+    "Successfully applied for creator plan": "Tafadhali angalia barua pepe yako kwa uthibitisho ikiwa maombi yako yamefaulu",
+    "Failed to apply for creator plan": "Imeshindwa kutuma maombi ya mpango wa muundaji"
 }

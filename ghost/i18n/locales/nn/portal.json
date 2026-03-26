@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Ditt abonnement vil byrja den {subscriptionStart}",
     "Analyst Contributor Program": "Analytikarbidragsytarprogram",
     "See more": "Sjå meir",
-    "Join": "Bli med"
+    "Join": "Bli med",
+    "Successfully applied for creator plan": "Ver venleg og sjekk e-posten din for stadfesting dersom søknaden din er vellukka",
+    "Failed to apply for creator plan": "Kunne ikkje søke om skaparplan"
 }

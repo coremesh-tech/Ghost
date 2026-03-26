@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Ваша подписка начнётся {subscriptionStart}",
     "Analyst Contributor Program": "Программа для авторов-аналитиков",
     "See more": "Показать больше",
-    "Join": "Присоединиться"
+    "Join": "Присоединиться",
+    "Successfully applied for creator plan": "Пожалуйста, проверьте свою электронную почту для подтверждения, если ваша заявка будет одобрена",
+    "Failed to apply for creator plan": "Не удалось подать заявку на план автора"
 }

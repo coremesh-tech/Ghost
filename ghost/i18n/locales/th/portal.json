@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "การรับสมัครข้อมูลของคุณจะเริ่มในวันที่ {subscriptionStart}",
     "Analyst Contributor Program": "โครงการผู้สนับสนุนนักวิเคราะห์",
     "See more": "ดูเพิ่มเติม",
-    "Join": "เข้าร่วม"
+    "Join": "เข้าร่วม",
+    "Successfully applied for creator plan": "โปรดตรวจสอบอีเมลของคุณเพื่อยืนยันหากการสมัครของคุณสำเร็จ",
+    "Failed to apply for creator plan": "ไม่สามารถสมัครแพลนครีเอเตอร์ได้"
 }

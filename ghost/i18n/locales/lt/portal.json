@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Jūsų prenumerata prasidės {subscriptionStart}",
     "Analyst Contributor Program": "Analitikų bendraautorių programa",
     "See more": "Rodyti daugiau",
-    "Join": "Prisijungti"
+    "Join": "Prisijungti",
+    "Successfully applied for creator plan": "Patikrinkite savo el. paštą dėl patvirtinimo, jei jūsų paraiška bus sėkminga",
+    "Failed to apply for creator plan": "Nepavyko pateikti paraiškos kūrėjo planui"
 }

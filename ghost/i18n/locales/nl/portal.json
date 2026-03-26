@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Je abonnement begint op {subscriptionStart}",
     "Analyst Contributor Program": "Analistenbijdrageprogramma",
     "See more": "Bekijk meer",
-    "Join": "Deelnemen"
+    "Join": "Deelnemen",
+    "Successfully applied for creator plan": "Controleer uw e-mail voor bevestiging als uw aanvraag succesvol is",
+    "Failed to apply for creator plan": "Aanmelden voor makersplan is mislukt"
 }

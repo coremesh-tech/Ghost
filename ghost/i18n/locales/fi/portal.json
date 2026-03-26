@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Tilauksesi alkaa {subscriptionStart}",
     "Analyst Contributor Program": "Analyytikkojen osallistumisohjelma",
     "See more": "Näytä lisää",
-    "Join": "Liity"
+    "Join": "Liity",
+    "Successfully applied for creator plan": "Tarkista sähköpostistasi vahvistus, jos hakemuksesi on hyväksytty",
+    "Failed to apply for creator plan": "Luojasuunnitelman hakeminen epäonnistui"
 }

@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "{subscriptionStart} اشتراك سوف يبدأ في",
     "Analyst Contributor Program": "برنامج المساهم المحلل",
     "See more": "عرض المزيد",
-    "Join": "انضمام"
+    "Join": "انضمام",
+    "Successfully applied for creator plan": "يرجى التحقق من بريدك الإلكتروني للتأكيد إذا كان طلبك ناجحًا",
+    "Failed to apply for creator plan": "فشل التقديم لخطة المبدع"
 }

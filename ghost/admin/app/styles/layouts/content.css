@@ -474,6 +474,20 @@
     color: var(--darkgrey);
 }
 
+.gh-content-entry-review-comment {
+    display: flex;
+    align-items: start;
+    gap: 4px;
+}
+
+.gh-content-entry-review-comment-label {
+    flex-shrink: 0;
+}
+
+.gh-content-entry-review-comment-content {
+    color: #ff4d4f;
+}
+
 .gh-posts-list-item p {
     margin: 0 0 2px;
 }

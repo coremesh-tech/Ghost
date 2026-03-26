@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "",
     "Analyst Contributor Program": "विश्लेषक योगदानकर्ता कार्यक्रम",
     "See more": "थप हेर्नुहोस्",
-    "Join": "सामेल हुनुहोस्"
+    "Join": "सामेल हुनुहोस्",
+    "Successfully applied for creator plan": "यदि तपाइँको आवेदन सफल भयो भने कृपया पुष्टिको लागि आफ्नो इमेल जाँच गर्नुहोस्",
+    "Failed to apply for creator plan": "सिर्जनाकर्ता योजनाको लागि आवेदन गर्न असफल"
 }

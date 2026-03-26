@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "ਤੁਹਾਡੀ ਸਦੱਸਤਾ {subscriptionStart} ਨੂੰ ਸ਼ੁਰੂ ਹੋਵੇਗੀ।",
     "Analyst Contributor Program": "ਵਿਸ਼ਲੇਸ਼ਕ ਯੋਗਦਾਨਕਰਤਾ ਪ੍ਰੋਗਰਾਮ",
     "See more": "ਹੋਰ ਦੇਖੋ",
-    "Join": "ਸ਼ਾਮਲ ਹੋਵੋ"
+    "Join": "ਸ਼ਾਮਲ ਹੋਵੋ",
+    "Successfully applied for creator plan": "ਜੇਕਰ ਤੁਹਾਡੀ ਅਰਜ਼ੀ ਸਫਲ ਹੁੰਦੀ ਹੈ ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਪੁਸ਼ਟੀ ਲਈ ਆਪਣੀ ਈਮੇਲ ਦੀ ਜਾਂਚ ਕਰੋ",
+    "Failed to apply for creator plan": "ਸਿਰਜਣਹਾਰ ਯੋਜਨਾ ਲਈ ਅਰਜ਼ੀ ਦੇਣ ਵਿੱਚ ਅਸਫਲ"
 }

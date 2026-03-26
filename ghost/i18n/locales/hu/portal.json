@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Az előfizetésed ekkor indul: {subscriptionStart}",
     "Analyst Contributor Program": "Elemzői Hozzájárulói Program",
     "See more": "Továbbiak",
-    "Join": "Csatlakozás"
+    "Join": "Csatlakozás",
+    "Successfully applied for creator plan": "Kérjük, ellenőrizze e-mailjét a megerősítéshez, ha jelentkezése sikeres",
+    "Failed to apply for creator plan": "Nem sikerült jelentkezni az alkotói tervre"
 }

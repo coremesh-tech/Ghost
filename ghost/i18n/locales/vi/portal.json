@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Gói thành viên của bạn bắt đầu có hiệu lực vào {subscriptionStart}",
     "Analyst Contributor Program": "Chương trình Cộng tác viên Phân tích",
     "See more": "Xem thêm",
-    "Join": "Tham gia"
+    "Join": "Tham gia",
+    "Successfully applied for creator plan": "Vui lòng kiểm tra email của bạn để xác nhận nếu đơn đăng ký của bạn thành công",
+    "Failed to apply for creator plan": "Không thể đăng ký gói nhà sáng tạo"
 }

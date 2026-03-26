@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "আপনার সাবস্ক্রিপশন {subscriptionStart} থেকে শুরু হবে",
     "Analyst Contributor Program": "বিশ্লেষক অবদানকারী প্রোগ্রাম",
     "See more": "আরও দেখুন",
-    "Join": "যোগ দিন"
+    "Join": "যোগ দিন",
+    "Successfully applied for creator plan": "আপনার আবেদন সফল হলে অনুগ্রহ করে নিশ্চিতকরণের জন্য আপনার ইমেল চেক করুন",
+    "Failed to apply for creator plan": "ক্রিয়েটর প্ল্যানের জন্য আবেদন করতে ব্যর্থ হয়েছে"
 }

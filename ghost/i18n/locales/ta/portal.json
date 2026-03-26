@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "உங்கள் சந்தா {subscriptionStart} அன்று தொடங்கும்",
     "Analyst Contributor Program": "பகுப்பாய்வாளர் பங்களிப்பாளர் திட்டம்",
     "See more": "மேலும் காண்க",
-    "Join": "சேர"
+    "Join": "சேர",
+    "Successfully applied for creator plan": "உங்கள் விண்ணப்பம் வெற்றிகரமாக இருந்தால் உறுதிப்படுத்தலுக்கு உங்கள் மின்னஞ்சலைச் சரிபார்க்கவும்",
+    "Failed to apply for creator plan": "கிரியேட்டர் திட்டத்திற்கு விண்ணப்பிக்க முடியவில்லை"
 }

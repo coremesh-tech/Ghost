@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Tòisichidh am fo-sgrìobhadh agad: {subscriptionStart}",
     "Analyst Contributor Program": "Prògram Com-pàirtichean an Neach-sgrùdaidh",
     "See more": "Faic barrachd",
-    "Join": "Gabh pàirt"
+    "Join": "Gabh pàirt",
+    "Successfully applied for creator plan": "Feuch an toir thu sùil air a’ phost-d agad airson dearbhadh ma tha an t-iarrtas agad soirbheachail",
+    "Failed to apply for creator plan": "Dh'fhàillig cur a-steach airson plana cruthachaidh"
 }

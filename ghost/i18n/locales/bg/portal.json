@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Абонаментът ви ще започне на {subscriptionStart}",
     "Analyst Contributor Program": "Програма за анализатори-сътрудници",
     "See more": "Вижте повече",
-    "Join": "Присъединяване"
+    "Join": "Присъединяване",
+    "Successfully applied for creator plan": "Моля, проверете имейла си за потвърждение, ако кандидатстването ви е успешно",
+    "Failed to apply for creator plan": "Неуспешно кандидатстване за план за създатели"
 }

@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Таны захиалга {subscriptionStart}-нд эхэлнэ",
     "Analyst Contributor Program": "Шинжээчдийн хувь нэмэр оруулах хөтөлбөр",
     "See more": "Илүү ихийг үзэх",
-    "Join": "Нэгдэх"
+    "Join": "Нэгдэх",
+    "Successfully applied for creator plan": "Хэрэв таны хүсэлт амжилттай болсон бол баталгаажуулахын тулд имэйлээ шалгана уу",
+    "Failed to apply for creator plan": "Бүтээгчийн төлөвлөгөөнд хүсэлт гаргаж чадсангүй"
 }

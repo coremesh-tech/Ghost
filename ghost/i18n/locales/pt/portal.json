@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "A sua assinatura começará em {subscriptionStart}",
     "Analyst Contributor Program": "Programa de Colaboradores Analistas",
     "See more": "Ver mais",
-    "Join": "Aderir"
+    "Join": "Aderir",
+    "Successfully applied for creator plan": "Por favor, verifique o seu e-mail para confirmação se a sua candidatura for bem-sucedida",
+    "Failed to apply for creator plan": "Falha ao candidatar-se ao plano de criador"
 }

@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "U intekening sal begin op {subscriptionStart}",
     "Analyst Contributor Program": "Ontleder Bydraer Program",
     "See more": "Sien meer",
-    "Join": "Sluit aan"
+    "Join": "Sluit aan",
+    "Successfully applied for creator plan": "Gaan asseblief jou e-pos na vir bevestiging as jou aansoek suksesvol is",
+    "Failed to apply for creator plan": "Kon nie aansoek doen vir skeppersplan nie"
 }

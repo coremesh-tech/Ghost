@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "המנוי שלכם יתחיל ב {subscriptionStart}",
     "Analyst Contributor Program": "תוכנית תורמי אנליסטים",
     "See more": "ראה עוד",
-    "Join": "הצטרף"
+    "Join": "הצטרף",
+    "Successfully applied for creator plan": "אנא בדוק את הדוא\"ל שלך לאישור אם בקשתך תאושר",
+    "Failed to apply for creator plan": "הגשת הבקשה לתוכנית היוצרים נכשלה"
 }

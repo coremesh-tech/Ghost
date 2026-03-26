@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Langganan Anda akan dimulai pada {subscriptionStart}",
     "Analyst Contributor Program": "Program Kontributor Analis",
     "See more": "Lihat lebih banyak",
-    "Join": "Bergabung"
+    "Join": "Bergabung",
+    "Successfully applied for creator plan": "Silakan periksa email Anda untuk konfirmasi jika aplikasi Anda berhasil",
+    "Failed to apply for creator plan": "Gagal mendaftar untuk paket kreator"
 }

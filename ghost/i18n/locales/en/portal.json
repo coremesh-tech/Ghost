@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "",
     "Analyst Contributor Program": "Analyst Contributor Program",
     "See more": "See more",
-    "Join": "Join"
+    "Join": "Join",
+    "Successfully applied for creator plan": "Please check your email for confirmation if your application is successful",
+    "Failed to apply for creator plan": "Failed to apply for creator plan"
 }

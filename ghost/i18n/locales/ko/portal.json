@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "회원님의 구독은 {subscriptionStart}에 시작돼요",
     "Analyst Contributor Program": "애널리스트 기여자 프로그램",
     "See more": "더 보기",
-    "Join": "참여하기"
+    "Join": "참여하기",
+    "Successfully applied for creator plan": "지원이 성공적으로 완료되었는지 확인하려면 이메일을 확인해 주세요",
+    "Failed to apply for creator plan": "크리에이터 플랜 지원에 실패했습니다"
 }

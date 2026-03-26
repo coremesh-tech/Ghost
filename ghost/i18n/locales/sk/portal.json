@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Váše predplatné začína {subscriptionStart}",
     "Analyst Contributor Program": "Program pre analytikov",
     "See more": "Zobraziť viac",
-    "Join": "Pridať sa"
+    "Join": "Pridať sa",
+    "Successfully applied for creator plan": "Ak bude vaša žiadosť úspešná, skontrolujte si prosím e-mail pre potvrdenie",
+    "Failed to apply for creator plan": "Nepodarilo sa požiadať o plán pre tvorcov"
 }

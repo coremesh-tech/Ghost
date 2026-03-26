@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Dit abonnement starter {subscriptionStart}",
     "Analyst Contributor Program": "Analytikerbidragyderprogram",
     "See more": "Se mere",
-    "Join": "Deltag"
+    "Join": "Deltag",
+    "Successfully applied for creator plan": "Tjek venligst din e-mail for bekræftelse, hvis din ansøgning er vellykket",
+    "Failed to apply for creator plan": "Kunne ikke ansøge om skaberplan"
 }

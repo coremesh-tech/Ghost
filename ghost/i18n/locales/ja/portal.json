@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "あなたの購読は{subscriptionStart}に開始されます。",
     "Analyst Contributor Program": "アナリスト貢献者プログラム",
     "See more": "もっと見る",
-    "Join": "参加する"
+    "Join": "参加する",
+    "Successfully applied for creator plan": "申し込みが完了した場合、確認のためメールをチェックしてください",
+    "Failed to apply for creator plan": "クリエイタープランの申し込みに失敗しました"
 }

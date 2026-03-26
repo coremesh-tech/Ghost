@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Abonimi juaj do te filloje ne {subscriptionStart}",
     "Analyst Contributor Program": "Programi i Kontribuesve Analistë",
     "See more": "Shiko më shumë",
-    "Join": "Bashkohu"
+    "Join": "Bashkohu",
+    "Successfully applied for creator plan": "Ju lutemi kontrolloni emailin tuaj për konfirmim nëse aplikimi juaj është i suksesshëm",
+    "Failed to apply for creator plan": "Dështoi aplikimi për planin e krijuesit"
 }

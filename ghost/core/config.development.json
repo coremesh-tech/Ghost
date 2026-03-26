@@ -18,5 +18,6 @@
                 "pass": "Q7L9WpoNSTj45Qnw"
             }
         }
-    }
+    },
+    "PREDICTIONMARKETS_API_URL": "http://10.100.15.106:8086"
 }

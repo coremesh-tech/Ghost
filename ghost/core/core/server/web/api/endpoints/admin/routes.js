@@ -415,16 +415,20 @@ module.exports = function apiRoutes() {
     // Staff Submit
     router.get('/predict_mixin/staff_submit', mw.authAdminApi, http(api.predictMixin.staffSubmit));
     // Staff Withdraw
-    router.get('/predict_mixin/staff_withdraw', mw.authAdminApi, http(api.predictMixin.staffWithdraw));
+    router.post('/predict_mixin/staff_withdraw', mw.authAdminApi, http(api.predictMixin.staffWithdraw));
     // Get Post Submissions
     router.post('/predict_mixin/post_submissions', mw.authAdminApi, http(api.predictMixin.getStaffPostSubmissions));
 
     // Admin Approve
-    router.get('/predict_mixin/admin_approve', mw.authAdminApi, http(api.predictMixin.adminApprove));
+    router.post('/predict_mixin/admin_approve', mw.authAdminApi, http(api.predictMixin.adminApprove));
     // Admin Reject
-    router.get('/predict_mixin/admin_reject', mw.authAdminApi, http(api.predictMixin.adminReject));
+    router.post('/predict_mixin/admin_reject', mw.authAdminApi, http(api.predictMixin.adminReject));
+    // Admin Reopen
+    router.post('/predict_mixin/admin_reopen', mw.authAdminApi, http(api.predictMixin.adminReopen));
     // Get Admin Post Submissions
     router.post('/predict_mixin/admin_post_submissions', mw.authAdminApi, http(api.predictMixin.getAdminPostSubmissions));
 
+    // Member Staff Apply
+    router.post('/predict_mixin/member_staff_apply', mw.authAdminApi, http(api.predictMixin.memberStaffApply));
     return router;
 };

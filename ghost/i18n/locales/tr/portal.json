@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Aboneliğiniz {subscriptionStart} tarihinde başlayacak",
     "Analyst Contributor Program": "Analist Katkıda Bulunanlar Programı",
     "See more": "Daha fazla gör",
-    "Join": "Katıl"
+    "Join": "Katıl",
+    "Successfully applied for creator plan": "Başvurunuz başarılı olursa lütfen onay için e-postanızı kontrol edin",
+    "Failed to apply for creator plan": "İçerik üreticisi planına başvurulamadı"
 }

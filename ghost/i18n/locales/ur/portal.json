@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "آپ کی ہوشیاری {subscriptionStart} پر شروع ہوگی",
     "Analyst Contributor Program": "تجزیہ کار معاون پروگرام",
     "See more": "مزید دیکھیں",
-    "Join": "شامل ہوں"
+    "Join": "شامل ہوں",
+    "Successfully applied for creator plan": "اگر آپ کی درخواست کامیاب ہوتی ہے تو براہ کرم تصدیق کے لیے اپنا ای میل چیک کریں۔",
+    "Failed to apply for creator plan": "تخلیق کار پلان کے لیے درخواست دینے میں ناکام"
 }

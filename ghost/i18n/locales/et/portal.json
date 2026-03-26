@@ -254,5 +254,7 @@
     "Your subscription will start on {subscriptionStart}": "Teie tellimus algab {subscriptionStart}",
     "Analyst Contributor Program": "Analüütikute panustamisprogramm",
     "See more": "Vaata lähemalt",
-    "Join": "Liitu"
+    "Join": "Liitu",
+    "Successfully applied for creator plan": "Palun kontrollige oma e-posti kinnituse saamiseks, kui teie taotlus on edukas",
+    "Failed to apply for creator plan": "Loojaplaani taotlemine ebaõnnestus"
 }

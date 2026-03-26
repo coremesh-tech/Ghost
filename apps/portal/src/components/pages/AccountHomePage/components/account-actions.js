@@ -1,11 +1,12 @@
-import AppContext from "../../../../app-context";
-import { useContext } from "react";
+import AppContext from '../../../../app-context';
+import {useContext, useState} from 'react';
 import {
     hasCommentsEnabled,
     hasMultipleNewsletters,
     isEmailSuppressed,
-    hasNewsletterSendingEnabled,
-} from "../../../../utils/helpers";
+    hasNewsletterSendingEnabled
+} from '../../../../utils/helpers';
+import {ReactComponent as LoaderIcon} from '../../../../images/icons/loader.svg';
 
 import PaidAccountActions from "./paid-account-actions";
 import TransistorPodcastsAction from "./transistor-podcasts-action";
@@ -45,54 +46,54 @@ const AccountActions = () => {
 
     const showEmailPreferences = shouldShowEmailPreferences(site, member);
     const showEmailNewsletterAction = shouldShowEmailNewsletterAction(site);
+    const [isJoining, setIsJoining] = useState(false);
 
-    const handleJoinCreatorPlan = () => {
-        const subject = `Application: Analyst Contributor Program — ${name}`;
-
-        const body = `Dear predictionmarkets.org Team,
-
-I am writing to apply for the Analyst Contributor Program at predictionmarkets.org. 
-I have a strong interest in prediction markets and would like to contribute original research and analysis to your platform.
-
-------------------------
-About me:
-- Name: ${name || "[Your Full Name]"}
-- Professional background: [e.g., economist, quantitative analyst, policy researcher, journalist]
-- Languages: [e.g., English, Mandarin Chinese]
-- Portfolio / prior work: [link to blog, Substack, LinkedIn, GitHub, or articles]
-
-------------------------
-Domain expertise:
-[Describe your focus areas — e.g., macroeconomics, geopolitics, technology, energy, public health, sports]
-
-------------------------
-Content I plan to publish:
-[Describe format and cadence — forecast analyses, market commentary, research notes, explainers]
-
-------------------------
-Sample work:
-[Link or describe a piece demonstrating your analytical ability]
-
-------------------------
-Requested tier:
-[ ] Associate Analyst
-[ ] Senior Analyst (include track record below)
-
-------------------------
-Additional information:
-[Any other relevant background or questions]
-
-------------------------
-I look forward to contributing to the predictionmarkets.org community.
-
-Best regards,
-${name || "[Your Full Name]"}
-${email || "[Email Address]"}
-[Optional: Time zone / Location]`;
-
-        window.location.href = `mailto:creators@mails.predictionmarkets.org?subject=${encodeURIComponent(
-            subject
-        )}&body=${encodeURIComponent(body)}`;
+    const handleJoinCreatorPlan = async () => {
+        if (isJoining) {
+            return;
+        }
+        setIsJoining(true);
+        try {
+            const tokenResponse = await fetch(`/members/api/session`, {
+                credentials: 'same-origin'
+            });
+            const token = await tokenResponse.text();
+            if (!token) {
+                return;
+            }
+            const url = `${site.url.replace(
+                /\/$/,
+                ''
+            )}/ghost/api/admin/predict_mixin/member_staff_apply`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token
+                })
+            });
+            const data = await response.json();
+            if (data?.predict_mixin?.[0]?.id) {
+                doAction('showPopupNotification', {
+                    action: 'showPopupNotification:success',
+                    message: t('Successfully applied for creator plan')
+                });
+            } else {
+                doAction('showPopupNotification', {
+                    action: 'showPopupNotification:failed',
+                    message: t('Failed to apply for creator plan')
+                });
+            }
+        } catch (error) {
+            doAction('showPopupNotification', {
+                action: 'showPopupNotification:failed',
+                message: error?.message || t('An error occurred')
+            });
+        } finally {
+            setIsJoining(false);
+        }
     };
 
     return (
@@ -131,8 +132,9 @@ ${email || "[Email Address]"}
                         data-test-button="edit-profile"
                         className="gh-portal-btn gh-portal-btn-list"
                         onClick={handleJoinCreatorPlan}
+                        disabled={isJoining}
                     >
-                        {t("Join")}
+                        {isJoining ? <LoaderIcon className='gh-portal-billing-button-loader' /> : t('Join')}
                     </button>
                 </section>
             </div>
