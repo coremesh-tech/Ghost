@@ -1,4 +1,5 @@
 import Component from '@glimmer/component';
+import RejectSubmissionModal from '../modals/reject-submission';
 import {action} from '@ember/object';
 import {formatPostTime} from 'ghost-admin/helpers/gh-format-post-time';
 import {inject} from 'ghost-admin/decorators/inject';
@@ -10,6 +11,11 @@ export default class PostsListItemClicks extends Component {
     @service session;
     @service settings;
     @service postAnalytics;
+    @service predictMixin;
+    @service ajax;
+    @service ghostPaths;
+    @service router;
+    @service modals;
 
     @tracked isHovered = false;
 
@@ -61,6 +67,49 @@ export default class PostsListItemClicks extends Component {
         return this.memberCounts.free + this.memberCounts.paid;
     }
 
+    get predictSubmission() {
+        if (!this.session.user.isContributor && !this.session.user.isAdmin) {
+            return null;
+        }
+        return this.predictMixin.getSubmission(this.post.id);
+    }
+
+    get predictStatusColor() {
+        const submission = this.predictSubmission;
+        if (!submission || !submission.submission_status) {
+            return '';
+        }
+        
+        switch (submission.submission_status) {
+        case 'IDLE':
+            return 'color: #738a94;';
+        case 'CHECK':
+            return 'color: #f08a5d;';
+        case 'PASSED':
+            return 'color: #30cf43;';
+        default:
+            return 'color: #738a94;';
+        }
+    }
+
+    get predictStatusText() {
+        const submission = this.predictSubmission;
+        if (!submission || !submission.submission_status) {
+            return '';
+        }
+        
+        switch (submission.submission_status) {
+        case 'IDLE':
+            return 'Idle';
+        case 'CHECK':
+            return 'Checking';
+        case 'PASSED':
+            return 'Passed';
+        default:
+            return '';
+        }
+    }
+
     @action
     mouseOver() {
         this.isHovered = true;
@@ -69,5 +118,75 @@ export default class PostsListItemClicks extends Component {
     @action
     mouseLeave() {
         this.isHovered = false;
+    }
+
+    @action
+    async approveSubmission(post) {
+        try {
+            const url = this.ghostPaths.url.api('predict_mixin/admin_approve');
+            const res = await this.ajax.request(url, {
+                method: 'POST',
+                data: {ghost_post_id: post.id}
+            });
+            if (!res.predict_mixin?.[0]?.ghost_post_id) {
+                this.notifications.error('Failed to approve submission');   
+                return;
+            }
+            post.set('status', 'published');
+            await post.save();
+            this.router.transitionTo(this.router.currentRouteName, {
+                queryParams: {refresh: new Date().getTime()}
+            });
+        } catch (error) {
+            this.notifications.error('Failed to approve submission');   
+        }
+    }
+
+    @action
+    async rejectSubmission(post) {
+        try {
+            const reviewComment = await this.modals.open(RejectSubmissionModal);
+            if (!reviewComment || typeof reviewComment !== 'string') {
+                return;
+            }
+
+            const url = this.ghostPaths.url.api('predict_mixin/admin_reject');
+            const res = await this.ajax.request(url, {
+                method: 'POST',
+                data: {
+                    ghost_post_id: post.id,
+                    review_comment: reviewComment
+                }
+            });
+            if (!res.predict_mixin?.[0]?.ghost_post_id) {
+                this.notifications.error('Failed to reject submission');   
+                return;
+            }
+            this.router.transitionTo(this.router.currentRouteName, {
+                queryParams: {refresh: new Date().getTime()}
+            });
+        } catch (error) {
+            this.notifications.error('Failed to reject submission');   
+        }
+    }
+
+    @action
+    async withdrawSubmission(post) {
+        try {
+            const url = this.ghostPaths.url.api('predict_mixin/staff_withdraw');
+            const res = await this.ajax.request(url, {
+                method: 'POST',
+                data: {ghost_post_id: post.id}
+            });
+            if (!res.predict_mixin?.[0]?.ghost_post_id) {
+                this.notifications.error('Failed to withdraw submission');   
+                return;
+            }
+            this.router.transitionTo(this.router.currentRouteName, {
+                queryParams: {refresh: new Date().getTime()}
+            });
+        } catch (error) {
+            this.notifications.error('Failed to withdraw submission');   
+        }
     }
 }

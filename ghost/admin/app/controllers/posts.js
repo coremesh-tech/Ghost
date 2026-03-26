@@ -53,6 +53,20 @@ const ORDERS = [{
     value: 'updated_at desc'
 }];
 
+const PREDICT_STATUSES = [{
+    name: 'All Predict Statuses',
+    value: null
+}, {
+    name: 'Idle',
+    value: 'IDLE'
+}, {
+    name: 'Check',
+    value: 'CHECK'
+}, {
+    name: 'Passed',
+    value: 'PASSED'
+}];
+
 export default class PostsController extends Controller {
     @service feature;
     @service router;
@@ -63,18 +77,21 @@ export default class PostsController extends Controller {
     @inject config;
 
     // default values for these are set in constructor and defined in `helpers/reset-query-params`
-    queryParams = ['type', 'visibility', 'author', 'tag', 'order'];
+    queryParams = ['type', 'visibility', 'author', 'tag', 'order', 'predictStatus', 'refresh'];
 
     @tracked type = null;
     @tracked visibility = null;
     @tracked author = null;
     @tracked tag = null;
     @tracked order = null;
+    @tracked predictStatus = null;
+    @tracked refresh = null;
     @tracked selectionList = new SelectionList(this.postsInfinityModel);
 
     availableTypes = TYPES;
     availableVisibilities = VISIBILITIES;
     availableOrders = ORDERS;
+    availablePredictStatuses = PREDICT_STATUSES;
 
     _availableAuthors = this.store.peekAll('user');
 
@@ -111,6 +128,10 @@ export default class PostsController extends Controller {
 
     get selectedOrder() {
         return this.availableOrders.findBy('value', this.order) || {value: '!unknown'};
+    }
+
+    get selectedPredictStatus() {
+        return this.availablePredictStatuses.findBy('value', this.predictStatus) || {value: '!unknown'};
     }
 
     get availableTags() {
@@ -222,6 +243,11 @@ export default class PostsController extends Controller {
     @action
     changeOrder(order) {
         this.order = order.value;
+    }
+
+    @action
+    changePredictStatus(status) {
+        this.predictStatus = status.value;
     }
 
     @action

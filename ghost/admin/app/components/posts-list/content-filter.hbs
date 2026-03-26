@@ -98,6 +98,25 @@
         </PowerSelect>
     </div>
 
+    {{#if (or @currentUser.isContributor @currentUser.isAdmin)}}
+        <div class="gh-contentfilter-menu gh-contentfilter-predict-status {{if @selectedPredictStatus.value "gh-contentfilter-selected"}}" data-test-predict-status-select="true">
+            <PowerSelect
+                @selected={{@selectedPredictStatus}}
+                @options={{@availablePredictStatuses}}
+                @searchEnabled={{false}}
+                @onChange={{this.changePredictStatus}}
+                @triggerComponent={{component "gh-power-select/trigger"}}
+                @triggerClass="gh-contentfilter-menu-trigger"
+                @dropdownClass="gh-contentfilter-menu-dropdown"
+                @matchTriggerWidth={{false}}
+                aria-label="Predict Status filter"
+                as |status|
+            >
+                {{#if status.name}}{{status.name}}{{else}}<span class="red">Unknown status</span>{{/if}}
+            </PowerSelect>
+        </div>
+    {{/if}}
+
     {{#if this.showCustomViewManagement}}
         <div class="dropdown gh-contentfilter-menu gh-contentfilter-actions">
             {{#if this.customViews.activeView}}

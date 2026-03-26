@@ -44,4 +44,11 @@ export default class PostsListContentFilter extends Component {
         const search = this.tagsPowerSelectApi?.searchText;
         this.args.loadMoreTagsTask.perform(!!search);
     }
+
+    @action
+    changePredictStatus(status) {
+        if (this.args.onPredictStatusChange) {
+            this.args.onPredictStatusChange(status);
+        }
+    }
 }
