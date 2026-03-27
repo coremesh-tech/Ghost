@@ -24,23 +24,27 @@ const Withdrawal = ({ paginatedData }: Props) => {
     return (
         <Table
             className="bg-transparent border-none"
+            horizontalScroll={true}
             header={
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
-                        className="flex-2 flex items-center justify-start font-bold text-grey-700"
+                        className="flex items-center justify-start font-bold text-grey-700"
+                        style={{ minWidth: "150px", flex: 2 }}
                         valign="center"
                     >
                         Date
                     </TableCell>
                     <TableCell
-                        className="flex-1 flex items-center justify-start font-bold text-grey-700"
+                        className="flex items-center justify-start font-bold text-grey-700"
+                        style={{ minWidth: "100px", flex: 1 }}
                         align="center"
                         valign="center"
                     >
                         Amount
                     </TableCell>
                     <TableCell
-                        className="flex-1 flex items-center justify-end font-bold text-grey-700"
+                        className="flex items-center justify-end font-bold text-grey-700"
+                        style={{ minWidth: "100px", flex: 1 }}
                         align="right"
                         valign="center"
                     >
@@ -53,20 +57,23 @@ const Withdrawal = ({ paginatedData }: Props) => {
                 <TableRow key={item.id} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell
-                            className="flex-2 items-center justify-start"
+                            className="items-center justify-start"
+                            style={{ minWidth: "150px", flex: 2 }}
                             valign="center"
                         >
                             {item.date}
                         </TableCell>
                         <TableCell
-                            className="flex-1 flex items-center justify-start"
+                            className="flex items-center justify-start"
+                            style={{ minWidth: "100px", flex: 1 }}
                             align="center"
                             valign="center"
                         >
                             {item.amount}
                         </TableCell>
                         <TableCell
-                            className="flex-1 flex items-center justify-end"
+                            className="flex items-center justify-end"
+                            style={{ minWidth: "100px", flex: 1 }}
                             align="right"
                             valign="center"
                         >

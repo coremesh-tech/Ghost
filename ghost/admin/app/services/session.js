@@ -78,7 +78,7 @@ export default class SessionService extends ESASessionService {
         await this.fetchAccountState();
 
         if (this.user?.role?.name === 'Contributor') {
-            const bindState = this.accountState?.[0]?.bind_state;
+            const bindState = this.accountState?.[0]?.view_state;
             if (bindState !== 'ACTIVE') {
                 if (!this.pollAccountStateTask.isRunning) {
                     this.pollAccountStateTask.perform();
@@ -196,7 +196,7 @@ export default class SessionService extends ESASessionService {
                     this.accountState = data;
                 }
                 this.stateBridge.triggerAccountStateChange(this.accountState);
-                const bindState = this.accountState?.[0]?.bind_state;
+                const bindState = this.accountState?.[0]?.view_state;
                 if (bindState === 'ACTIVE') {
                     return;
                 }

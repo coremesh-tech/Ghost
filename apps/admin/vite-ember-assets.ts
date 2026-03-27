@@ -5,7 +5,6 @@ import sirv from 'sirv';
 
 const GHOST_ADMIN_PATH = path.resolve(__dirname, '../../ghost/core/core/built/admin');
 const GHOST_ADMIN_DIST = path.resolve(__dirname, '../../ghost/admin/dist');
-const EMBER_DEV_SERVER = process.env.GHOST_ADMIN_DEV_SERVER ?? 'http://localhost:4200';
 
 function isAbsoluteUrl(url: string): boolean {
     return url.startsWith('http://') ||
@@ -19,27 +18,6 @@ function prefixUrl(url: string, base: string): string {
     return `${normalizedBase}/${url}`;
 }
 
-async function readGhostAdminIndex() {
-    try {
-        const response = await fetch(EMBER_DEV_SERVER);
-
-        if (!response.ok) {
-            throw new Error(`Unexpected response: ${response.status}`);
-        }
-
-        return await response.text();
-    } catch (error) {
-        const indexPath = path.resolve(GHOST_ADMIN_DIST, 'index.html');
-
-        try {
-            return fs.readFileSync(indexPath, 'utf-8');
-        } catch (fallbackError) {
-            console.warn('Failed to read Ghost admin index.html:', fallbackError);
-            throw error;
-        }
-    }
-}
-
 // Vite plugin to extract styles and scripts from Ghost admin index.html
 export function emberAssetsPlugin() {
     let config: ResolvedConfig;
@@ -51,9 +29,13 @@ export function emberAssetsPlugin() {
         },
         transformIndexHtml: {
             order: 'post',
-            async handler() {
+            handler() {
+                // Read from Ember's own build output (not the combined output
+                // in built/admin which gets overwritten by closeBundle and would
+                // accumulate duplicate path prefixes on repeated builds)
+                const indexPath = path.resolve(GHOST_ADMIN_DIST, 'index.html');
                 try {
-                    const indexContent = await readGhostAdminIndex();
+                    const indexContent = fs.readFileSync(indexPath, 'utf-8');
                     const base = config.base || '/';
 
                     // Extract stylesheets
@@ -100,7 +82,7 @@ export function emberAssetsPlugin() {
                     // Generate the virtual module content
                     return [...styles, ...scripts, ...metaTags];
                 } catch (error) {
-                    console.warn('Failed to resolve Ghost admin HTML:', error);
+                    console.warn('Failed to read Ghost admin index.html:', error);
                     return;
                 }
             }
@@ -116,42 +98,16 @@ export function emberAssetsPlugin() {
             const assetsPrefix = `${base}/assets/`;
 
             server.middlewares.use((req, res, next) => {
-                if (!req.url?.startsWith(assetsPrefix)) {
-                    next();
-                    return;
-                }
-
-                const originalUrl = req.url;
-                const emberAssetPath = req.url.replace(base, '');
-
-                fetch(new URL(emberAssetPath, EMBER_DEV_SERVER))
-                    .then(async (response) => {
-                        if (!response.ok) {
-                            throw new Error(`Unexpected response: ${response.status}`);
-                        }
-
-                        res.statusCode = response.status;
-
-                        const contentType = response.headers.get('content-type');
-                        if (contentType) {
-                            res.setHeader('content-type', contentType);
-                        }
-
-                        const cacheControl = response.headers.get('cache-control');
-                        if (cacheControl) {
-                            res.setHeader('cache-control', cacheControl);
-                        }
-
-                        const body = Buffer.from(await response.arrayBuffer());
-                        res.end(body);
-                    })
-                    .catch(() => {
-                        req.url = req.url.replace(assetsPrefix, '/');
-                        assetsMiddleware(req, res, () => {
-                            req.url = originalUrl;
-                            next();
-                        });
+                if (req.url?.startsWith(assetsPrefix)) {
+                    const originalUrl = req.url;
+                    req.url = req.url.replace(assetsPrefix, '/');
+                    assetsMiddleware(req, res, () => {
+                        req.url = originalUrl;
+                        next();
                     });
+                } else {
+                    next();
+                }
             });
         },
         closeBundle() {

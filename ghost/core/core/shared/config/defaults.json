@@ -239,7 +239,7 @@
         "clickTrackingLastSeenAtUpdater": true
     },
     "portal": {
-        "url": "https://cdn.jsdelivr.net/ghost/portal@~{version}/umd/portal.min.js",
+        "url": "/assets/umd/portal.min.js",
         "version": "2.66"
     },
     "sodoSearch": {

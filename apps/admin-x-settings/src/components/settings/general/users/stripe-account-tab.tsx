@@ -15,7 +15,7 @@ import Withdrawal from "./stripe-account/withdrawal";
 const ACCOUNT_STATUS = {
     PENDING: "PENDING",
     ACTIVE: "ACTIVE",
-    INCOMPLETE: "INCOMPLETE",
+    COMPLETE: "COMPLETE",
     DISABLED: "DISABLED",
 };
 
@@ -23,6 +23,10 @@ const MOCK_STRIPE_DATA = () => {
     return Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+        time1: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+        time2: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+        time3: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+        time4: new Date(Date.now() - i * 86400000).toLocaleDateString(),
         amount: `$${(Math.random() * 1000).toFixed(2)}`,
         status: i % 3 === 0 ? "pending" : "succeeded",
     }));
@@ -69,7 +73,7 @@ const ArrowRightIcon = () => {
 
 const StripeAccountTab: React.FC = () => {
     const accountState: any = useAccountState();
-    const status = accountState?.bind_state;
+    const status = accountState?.view_state;
     const [activeTab, setActiveTab] = useState("income");
     const [currentPage, setCurrentPage] = useState(1);
     const [stripeData, setStripeData] = useState<any>([]);
@@ -110,7 +114,7 @@ const StripeAccountTab: React.FC = () => {
         },
         enabled:
             status === ACCOUNT_STATUS.PENDING ||
-            status === ACCOUNT_STATUS.INCOMPLETE,
+            status === ACCOUNT_STATUS.COMPLETE,
     });
 
     const accountUnbind = useCallback(async () => {
@@ -132,8 +136,8 @@ const StripeAccountTab: React.FC = () => {
                 return "Pending";
             case ACCOUNT_STATUS.ACTIVE:
                 return "Active";
-            case ACCOUNT_STATUS.INCOMPLETE:
-                return "Incomplete";
+            case ACCOUNT_STATUS.COMPLETE:
+                return "Complete";
             case ACCOUNT_STATUS.DISABLED:
                 return "Disabled";
             default:
@@ -144,7 +148,7 @@ const StripeAccountTab: React.FC = () => {
     const renderAction = useCallback(() => {
         const isQueryEnabled =
             status === ACCOUNT_STATUS.PENDING ||
-            status === ACCOUNT_STATUS.INCOMPLETE;
+            status === ACCOUNT_STATUS.COMPLETE;
         if (isQueryEnabled && (isLoading || isFetching)) return null;
 
         switch (status) {
@@ -167,7 +171,7 @@ const StripeAccountTab: React.FC = () => {
                         onClick={accountUnbind}
                     />
                 );
-            case ACCOUNT_STATUS.INCOMPLETE:
+            case ACCOUNT_STATUS.COMPLETE:
                 return (
                     <>
                         {connectUrl ? (
