@@ -172,6 +172,21 @@ export default class PostsRoute extends AuthenticatedRoute {
             filterParams.authors = params.author;
         }
 
+        if (params.predictStatus && params.predictStatus !== 'all') {
+            const users = await this.store.query('user', {limit: 'all'});
+            const contributorSlugs = users.filterBy('isContributor', true).mapBy('slug');
+            
+            if (contributorSlugs.length === 0) {
+                filterParams.id = 'none';
+            } else if (filterParams.authors) {
+                if (!contributorSlugs.includes(filterParams.authors)) {
+                    filterParams.id = 'none';
+                }
+            } else {
+                filterParams.authors = `[${contributorSlugs.join(',')}]`;
+            }
+        }
+
         let perPage = this.perPage;
 
         let filterStatuses = filterParams.status;
