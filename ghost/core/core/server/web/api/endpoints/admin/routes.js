@@ -430,5 +430,25 @@ module.exports = function apiRoutes() {
 
     // Member Staff Apply
     router.post('/predict_mixin/member_staff_apply', mw.authAdminApi, http(api.predictMixin.memberStaffApply));
+
+    // Staff Wallet Me
+    router.get('/predict_mixin/staff_wallet_me', mw.authAdminApi, http(api.predictMixin.staffWalletMe));
+    // Staff Income Me
+    router.post('/predict_mixin/staff_income_me', mw.authAdminApi, http(api.predictMixin.staffIncomeMe));
+    // Staff Withdraw Available
+    router.get('/predict_mixin/staff_withdraw_available', mw.authAdminApi, http(api.predictMixin.staffWithdrawAvailable));
+    // Staff Withdraw Apply
+    router.post('/predict_mixin/staff_withdraw_apply', mw.authAdminApi, http(api.predictMixin.staffWithdrawApply));
+    // Staff Payout Me
+    router.post('/predict_mixin/staff_payout_me', mw.authAdminApi, http(api.predictMixin.staffPayoutMe));
+    // Admin Settlement List
+    router.post('/predict_mixin/admin_settlement_list', mw.authAdminApi, http(api.predictMixin.adminSettlementList));
+    // Admin Settlement Items
+    router.post('/predict_mixin/admin_settlement_items', mw.authAdminApi, http(api.predictMixin.adminSettlementItems));
+    // Admin Settlement Transfer
+    router.post('/predict_mixin/admin_settlement_transfer', mw.authAdminApi, http(api.predictMixin.adminSettlementTransfer));
+    // Admin Withdraw List
+    router.post('/predict_mixin/admin_withdraw_list', mw.authAdminApi, http(api.predictMixin.adminWithdrawList));
+
     return router;
 };

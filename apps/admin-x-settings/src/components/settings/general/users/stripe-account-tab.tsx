@@ -1,36 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import {
     SettingGroup,
     SettingGroupContent,
 } from "@tryghost/admin-x-design-system";
-import { useQuery } from "@tanstack/react-query";
-import { useAccountState } from "../../../providers/settings-app-provider";
 import { Button } from "@tryghost/shade";
+
 import stripeLogo from "../../../../assets/images/stripe.webp";
 import logoutBoxRLine from "../../../../assets/images/logout-box-r-line.svg";
 import { Icon } from "@tryghost/admin-x-design-system";
 import Income from "./stripe-account/income";
 import Withdrawal from "./stripe-account/withdrawal";
-
-const ACCOUNT_STATUS = {
-    PENDING: "PENDING",
-    ACTIVE: "ACTIVE",
-    COMPLETE: "COMPLETE",
-    DISABLED: "DISABLED",
-};
-
-const MOCK_STRIPE_DATA = () => {
-    return Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        time1: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        time2: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        time3: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        time4: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        amount: `$${(Math.random() * 1000).toFixed(2)}`,
-        status: i % 3 === 0 ? "pending" : "succeeded",
-    }));
-};
+import useStripeAccount from "@src/hooks/stripe/use-stripe-account";
 
 const RightIcon = () => {
     return (
@@ -72,78 +52,28 @@ const ArrowRightIcon = () => {
 };
 
 const StripeAccountTab: React.FC = () => {
-    const accountState: any = useAccountState();
-    const status = accountState?.view_state;
-    const [activeTab, setActiveTab] = useState("income");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [stripeData, setStripeData] = useState<any>([]);
-    const itemsPerPage = 5;
-
-    const totalPages = Math.ceil(stripeData.length / itemsPerPage);
-    const paginatedData = stripeData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const isPending = status && !(status === ACCOUNT_STATUS.PENDING);
-
-    useEffect(() => {
-        if (isPending) {
-            setStripeData(MOCK_STRIPE_DATA());
-        }
-    }, [isPending]);
-
     const {
-        data: connectUrl,
+        status,
+        isPending,
+        activeTab,
+        page_size,
+        currentPage,
+        total,
+        totalPages,
+        statusText,
+        connectUrl,
         isLoading,
         isFetching,
-    } = useQuery({
-        queryKey: ["stripeConnectUrl"],
-        queryFn: async () => {
-            const response = await fetch(
-                "/ghost/api/admin/predict_mixin/connect_url/",
-                {
-                    method: "GET",
-                }
-            );
-            if (!response.ok) {
-                throw new Error("Failed to get Stripe Connect URL");
-            }
-            const data = await response.json();
-            return data.predict_mixin[0].accountUrl;
-        },
-        enabled:
-            status === ACCOUNT_STATUS.PENDING ||
-            status === ACCOUNT_STATUS.COMPLETE,
-    });
-
-    const accountUnbind = useCallback(async () => {
-        const response = await fetch("/ghost/api/admin/predict_mixin/unbind/", {
-            method: "GET",
-        });
-        if (!response.ok) {
-            throw new Error("Failed to unbind Stripe account");
-        }
-        const data = await response.json();
-        if (data && data.predict_mixin && data.predict_mixin[0].success) {
-            window.location.reload();
-        }
-    }, []);
-
-    const statusText = (() => {
-        switch (status) {
-            case ACCOUNT_STATUS.PENDING:
-                return "Pending";
-            case ACCOUNT_STATUS.ACTIVE:
-                return "Active";
-            case ACCOUNT_STATUS.COMPLETE:
-                return "Complete";
-            case ACCOUNT_STATUS.DISABLED:
-                return "Disabled";
-            default:
-                return "Unknown";
-        }
-    })();
+        staffWalletMe,
+        staffList,
+        cashLoading,
+        ACCOUNT_STATUS,
+        handleNextPage,
+        handlePrevPage,
+        handleTabChange,
+        accountUnbind,
+        handleWithDrawCash,
+    } = useStripeAccount();
 
     const renderAction = useCallback(() => {
         const isQueryEnabled =
@@ -195,29 +125,13 @@ const StripeAccountTab: React.FC = () => {
         }
     }, [isLoading, connectUrl, status]);
 
-    const handleNextPage = () => {
-        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
-    };
-
-    const handleTabChange = (tab: string) => {
-        setActiveTab(tab);
-        setCurrentPage(1);
-        setStripeData(MOCK_STRIPE_DATA());
-    };
-
     return (
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[290px] md:h-[200px] w-full rounded-xl flex flex-col md:flex-row justify-between text-white p-[20px] md:p-[40px] relative ${
-                        isPending ? "md:items-end" : "md:items-start"
-                    }`}
+                    className={`bg-[#000000] h-[250px] md:h-[275px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
                 >
-                    <div className="flex flex-col gap-16 md:gap-6 relative z-[2]">
+                    <div className="flex flex-col gap-12 md:gap-10 relative z-[2]">
                         <div className="flex gap-4 font-medium text-lg">
                             <div>Stripe</div>
                             <div className="flex gap-2 items-center">
@@ -228,11 +142,31 @@ const StripeAccountTab: React.FC = () => {
                             </div>
                         </div>
                         {isPending ? (
-                            <div className="flex flex-col gap-2">
-                                <div className="text-[#9E9E9E] font-medium text-lg">
-                                    Balance
+                            <div className="flex-1 flex gap-6 justify-between items-center md:pr-[60px]">
+                                <div className="flex flex-col gap-2">
+                                    <div className="text-[#9E9E9E] text-lg">
+                                        Balance
+                                    </div>
+                                    <div className="text-[22px] font-medium">
+                                        {staffWalletMe?.available_amount || "0"}
+                                    </div>
                                 </div>
-                                <div className="text-[24px]">$100,000.00</div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="text-[#9E9E9E]">
+                                        Income
+                                    </div>
+                                    <div className="text-[22px] font-medium">
+                                        {staffWalletMe?.income_amount || "0"}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="text-[#9E9E9E]">
+                                        Withdrawn
+                                    </div>
+                                    <div className="text-[22px] font-medium">
+                                        {staffWalletMe?.withdrawal_amount || "0"}
+                                    </div>
+                                </div>
                             </div>
                         ) : null}
                     </div>
@@ -241,6 +175,8 @@ const StripeAccountTab: React.FC = () => {
                             <Button
                                 className="mt-2 dark:bg-gray-925/70 dark:hover:bg-gray-900 relative z-[20] text-[#000000]"
                                 variant="secondary"
+                                onClick={handleWithDrawCash}
+                                disabled={(cashLoading || !(+staffWalletMe?.available_amount))}
                             >
                                 Withdraw Cash
                                 <RightIcon />
@@ -279,18 +215,15 @@ const StripeAccountTab: React.FC = () => {
                 {isPending ? (
                     <div className="mt-[-20px]">
                         {activeTab === "income" ? (
-                            <Income paginatedData={paginatedData} />
+                            <Income paginatedData={staffList} />
                         ) : (
-                            <Withdrawal paginatedData={paginatedData} />
+                            <Withdrawal paginatedData={staffList} />
                         )}
                         <div className="mt-6 flex items-center justify-between text-sm text-grey-700">
                             <div>
-                                Showing {(currentPage - 1) * itemsPerPage + 1}-
-                                {Math.min(
-                                    currentPage * itemsPerPage,
-                                    stripeData.length
-                                )}{" "}
-                                of {stripeData.length}
+                                Showing {(currentPage - 1) * page_size + 1}-
+                                {Math.min(currentPage * page_size, total)} of{" "}
+                                {total}
                             </div>
                             <div className="flex gap-4">
                                 <button

@@ -3,9 +3,10 @@ const logger = require('@tryghost/logging');
 const settingsCache = require('../../../shared/settings-cache');
 const config = require('../../../shared/config');
 const crypto = require('crypto');
+const qs = require('qs');
 
-const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
-// const predictionMarketsApiUrl = "https://test-api.predictionmarkets.org";
+// const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
+const predictionMarketsApiUrl = "https://test-api.predictionmarkets.org";
 
 const generateCookie = (sessionId) => {
     if (!sessionId) {
@@ -37,8 +38,7 @@ const requestWithSession = async (frame, {url, method, body = null}) => {
     if (typeof body === 'string') {
         try {
             parsedBody = JSON.parse(body);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     logger.info(`[PredictMixin] requestWithSession - body: ${JSON.stringify(body)} token: ${parsedBody?.token}`);
@@ -48,7 +48,6 @@ const requestWithSession = async (frame, {url, method, body = null}) => {
     }
 
     const sessionCookie = generateCookie(frame?.original?.session?.id);
-    
     try {
         const options = {};
         if (method !== 'GET' && !parsedBody?.token && body) {
@@ -62,6 +61,7 @@ const requestWithSession = async (frame, {url, method, body = null}) => {
         } else if (sessionCookie) {
             headers.Cookie = sessionCookie;
         }
+
         const response = await externalRequest(url, {
             method,
             headers,
@@ -79,6 +79,7 @@ const requestWithSession = async (frame, {url, method, body = null}) => {
         }
         return response.body?.data;
     } catch (err) {
+        logger.error(`[PredictMixin] requestWithSession - error: ${err.message}`);
         return {error: err.message};
     }
 };
@@ -94,7 +95,16 @@ const api = {
     adminReject: id => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/reject`,
     adminReopen: id => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/reopen`,
     adminQuery: () => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/query`,
-    memberStaffApply: () => `${predictionMarketsApiUrl}/predict-mixin/member/staff-apply`
+    memberStaffApply: () => `${predictionMarketsApiUrl}/predict-mixin/member/staff-apply`,
+    staffWalletMe: () => `${predictionMarketsApiUrl}/predict-mixin/staff/wallet/me`,
+    staffIncomeMe: body => `${predictionMarketsApiUrl}/predict-mixin/staff/income/me?${qs.stringify(body)}`,
+    staffWithdrawAvailable: () => `${predictionMarketsApiUrl}/predict-mixin/staff/withdraw/available`,
+    staffWithdrawApply: () => `${predictionMarketsApiUrl}/predict-mixin/staff/withdraw/apply`,
+    staffPayoutMe: (body) => `${predictionMarketsApiUrl}/predict-mixin/staff/withdraw/me?${qs.stringify(body)}`,
+    adminSettlementList: (body) => `${predictionMarketsApiUrl}/predict-mixin/admin/settlement/list?${qs.stringify(body)}`,
+    adminSettlementItems: (settlement_no, pagination) => `${predictionMarketsApiUrl}/predict-mixin/admin/settlement/items/${settlement_no}?${qs.stringify(pagination)}`,
+    adminSettlementTransfer: () => `${predictionMarketsApiUrl}/predict-mixin/admin/settlement/transfer`,
+    adminWithdrawList: (body) => `${predictionMarketsApiUrl}/predict-mixin/admin/withdraw/list?${qs.stringify(body)}`,
 };
 
 /** @type {import('@tryghost/api-framework').Controller} */
@@ -190,7 +200,81 @@ const controller = {
             method: 'POST',
             body: JSON.stringify(frame.original.body)
         })
-    }
+    },
+
+    staffWalletMe: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffWalletMe(),
+            method: 'GET'
+        })
+    },
+
+    staffIncomeMe: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffIncomeMe(frame.original.body),
+            method: 'GET'
+        })
+    },
+
+    staffWithdrawAvailable: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffWithdrawAvailable(),
+            method: 'GET'
+        })
+    },
+
+    staffWithdrawApply: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffWithdrawApply(),
+            method: 'POST',
+            body: JSON.stringify(frame.original.body)
+        })
+    },
+
+    staffPayoutMe: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffPayoutMe(frame.original.body),
+            method: 'GET'
+        })
+    },
+
+    adminSettlementList: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.adminSettlementList(frame.original.body),
+            method: 'GET'
+        })
+    },
+
+    adminSettlementItems: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.adminSettlementItems(frame.original.body.settlement_no, frame.original.body.pagination),
+            method: 'GET'
+        })
+    },
+
+    adminSettlementTransfer: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.adminSettlementTransfer(),
+            method: 'POST',
+            body: JSON.stringify(frame.original.body)
+        })
+    },
+
+    adminWithdrawList: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.adminWithdrawList(frame.original.body),
+            method: 'GET'
+        })
+    },
 };
 
 module.exports = controller;

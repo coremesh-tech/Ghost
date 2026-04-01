@@ -19,5 +19,5 @@
             }
         }
     },
-    "PREDICTIONMARKETS_API_URL": "http://10.100.15.106:8086"
+    "PREDICTIONMARKETS_API_URL": "http://10.100.10.240:8086"
 }

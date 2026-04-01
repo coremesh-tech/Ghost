@@ -28,27 +28,51 @@ const Withdrawal = ({ paginatedData }: Props) => {
             header={
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
-                        className="flex items-center justify-start font-bold text-grey-700"
-                        style={{ minWidth: "150px", flex: 2 }}
+                        className="font-bold text-grey-700"
+                        style={{ width: 150 }}
                         valign="center"
                     >
-                        Date
+                        Withdraw No
                     </TableCell>
                     <TableCell
-                        className="flex items-center justify-start font-bold text-grey-700"
-                        style={{ minWidth: "100px", flex: 1 }}
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 100 }}
                         align="center"
                         valign="center"
                     >
                         Amount
                     </TableCell>
                     <TableCell
-                        className="flex items-center justify-end font-bold text-grey-700"
-                        style={{ minWidth: "100px", flex: 1 }}
-                        align="right"
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 100 }}
+                        align="center"
                         valign="center"
                     >
-                        Status
+                        Currency
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 150 }}
+                        align="center"
+                        valign="center"
+                    >
+                        State
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 150 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Remark
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 200 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Created At
                     </TableCell>
                 </div>
             }
@@ -57,27 +81,50 @@ const Withdrawal = ({ paginatedData }: Props) => {
                 <TableRow key={item.id} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell
-                            className="items-center justify-start"
-                            style={{ minWidth: "150px", flex: 2 }}
+                            style={{ width: 150 }}
                             valign="center"
                         >
-                            {item.date}
+                            {item.withdraw_no}
                         </TableCell>
                         <TableCell
-                            className="flex items-center justify-start"
-                            style={{ minWidth: "100px", flex: 1 }}
+                            className="text-center"
+                            style={{ width: 100 }}
                             align="center"
                             valign="center"
                         >
                             {item.amount}
                         </TableCell>
                         <TableCell
-                            className="flex items-center justify-end"
-                            style={{ minWidth: "100px", flex: 1 }}
-                            align="right"
+                            className="text-center"
+                            style={{ width: 100 }}
+                            align="center"
                             valign="center"
                         >
-                            {renderStatus(item.status)}
+                            {item.currency}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 150 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.state}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 150 }}
+                            align="center"
+                            valign="center"
+                        >
+                            <div className="text-left break-all">{item.remark}</div>
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 200 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.created_at}
                         </TableCell>
                     </div>
                 </TableRow>

@@ -4,7 +4,7 @@ interface Props {
     paginatedData?: any;
 }
 
-const Income = ({ paginatedData }: Props) => {
+const Payout = ({ paginatedData }: Props) => {
     return (
         <Table
             className="bg-transparent border-none"
@@ -16,7 +16,39 @@ const Income = ({ paginatedData }: Props) => {
                         style={{ width: 150 }}
                         valign="center"
                     >
-                        Flow No
+                        Withdraw No
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 150 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Payout No
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 220 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Ghost User Id
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 200 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Vendor Account Id
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 200 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Apply Available Amount
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -36,27 +68,11 @@ const Income = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 170 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
-                        Available Amount
-                    </TableCell>
-                    <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
-                        align="center"
-                        valign="center"
-                    >
-                        Fees
-                    </TableCell>
-                    <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
-                        align="center"
-                        valign="center"
-                    >
-                        Created At
+                        state
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -64,7 +80,7 @@ const Income = ({ paginatedData }: Props) => {
                         align="center"
                         valign="center"
                     >
-                        Source Type
+                        remark
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -72,15 +88,15 @@ const Income = ({ paginatedData }: Props) => {
                         align="center"
                         valign="center"
                     >
-                        Source No
+                        Created At
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 150 }}
+                        style={{ width: 200 }}
                         align="center"
                         valign="center"
                     >
-                        Remark
+                        Updated At
                     </TableCell>
                 </div>
             }
@@ -92,7 +108,39 @@ const Income = ({ paginatedData }: Props) => {
                             style={{ width: 150 }}
                             valign="center"
                         >
-                            {item.flow_no}
+                            {item.withdraw_no}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 150 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.payout_no}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 220 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.ghost_user_id}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 200 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.vendor_account_id}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 200 }}
+                            align="center"
+                            valign="center"
+                        >
+                            {item.apply_available_amount}
                         </TableCell>
                         <TableCell
                             className="text-center"
@@ -112,19 +160,19 @@ const Income = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 170 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >
-                            {item.available_amount}
+                            {item.state}
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >
-                            {item.fees}
+                            <div className="text-left break-all">{item.remark}</div>
                         </TableCell>
                         <TableCell
                             className="text-center"
@@ -136,27 +184,11 @@ const Income = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 150 }}
-                            align="center"
-                            valign="center"
-                        >
-                            {item.source_type}
-                        </TableCell>
-                        <TableCell
-                            className="text-center"
                             style={{ width: 200 }}
                             align="center"
                             valign="center"
                         >
-                            {item.source_no}
-                        </TableCell>
-                        <TableCell
-                            className="text-center"
-                            style={{ width: 150 }}
-                            align="center"
-                            valign="center"
-                        >
-                            <div className="text-left break-all">{item.remark}</div>
+                            {item.updated_at}
                         </TableCell>
                     </div>
                 </TableRow>
@@ -165,4 +197,4 @@ const Income = ({ paginatedData }: Props) => {
     );
 };
 
-export default Income;
+export default Payout;

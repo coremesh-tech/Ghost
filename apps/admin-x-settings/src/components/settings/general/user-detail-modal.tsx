@@ -6,6 +6,7 @@ import SocialLinksTab from './users/social-links-tab';
 import clsx from 'clsx';
 import usePinturaEditor from '../../../hooks/use-pintura-editor';
 import StripeAccountTab from './users/stripe-account-tab';
+import StripeAdminTab from './users/stripe-admin-tab';
 import useStaffUsers from '../../../hooks/use-staff-users';
 import validator from 'validator';
 import {APIError} from '@tryghost/admin-x-framework/errors';
@@ -447,6 +448,13 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
             id: 'stripe-account',
             title: 'Stripe Account',
             contents: <StripeAccountTab />
+        });
+    }
+    if (user.roles?.[0].name === "Administrator" || user.roles?.[0].name === "Owner") {
+        tabs.push({
+            id: 'stripe-admin',
+            title: 'Stripe Admin',
+            contents: <StripeAdminTab />
         });
     }
 
