@@ -56,11 +56,11 @@ const useStripeAdmin = () => {
             const data = await res.json();
             if (data && data.predict_mixin && data.predict_mixin[0]) {
                 setStaffList(data.predict_mixin[0]?.records || []);
-                setTotal(data.predict_mixin[0]?.total);
+                setTotal(data.predict_mixin[0]?.total || 0);
                 setTotalPages(
                     Math.ceil(
-                        data.predict_mixin[0]?.total /
-                            data.predict_mixin[0]?.page_size
+                        (data.predict_mixin[0]?.total || 0) /
+                            data.predict_mixin[0]?.page_size || 1
                     )
                 );
                 setCurrentPage(data.predict_mixin[0]?.page_no || 1);

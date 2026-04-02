@@ -10,7 +10,7 @@ import logoutBoxRLine from "../../../../assets/images/logout-box-r-line.svg";
 import { Icon } from "@tryghost/admin-x-design-system";
 import Income from "./stripe-account/income";
 import Withdrawal from "./stripe-account/withdrawal";
-import useStripeAccount from "@src/hooks/stripe/use-stripe-account";
+import useStripeAccount from "../../../../hooks/stripe/use-stripe-account";
 
 const RightIcon = () => {
     return (

@@ -40,7 +40,7 @@ const SettlementItemsModal = NiceModal.create(({ item }: SettlementItemsModalPro
                 throw new Error('Failed to fetch settlement items');
             }
             const data = await res.json();
-            if(data.predict_mixin?.[0].records?.length) {
+            if(data.predict_mixin?.[0]?.records?.length) {
                 setStaffList(data.predict_mixin?.[0].records);
                 setTotal(data.predict_mixin?.[0].total);
                 setTotalPages(Math.ceil(data.predict_mixin?.[0].total / page_size));

@@ -105,15 +105,15 @@ const useStripeAccount = () => {
             }
             const data = await res.json();
             if (data && data.predict_mixin && data.predict_mixin[0]) {
-                setStaffList(data.predict_mixin[0]?.records);
-                setTotal(data.predict_mixin[0]?.total);
+                setStaffList(data.predict_mixin[0]?.records || []);
+                setTotal(data.predict_mixin[0]?.total || 0);
                 setTotalPages(
                     Math.ceil(
-                        data.predict_mixin[0]?.total /
-                            data.predict_mixin[0]?.page_size
+                        (data.predict_mixin[0]?.total || 0) /
+                            data.predict_mixin[0]?.page_size || 1
                     )
                 );
-                setCurrentPage(data.predict_mixin[0]?.page_no);
+                setCurrentPage(data.predict_mixin[0]?.page_no || 1);
             }
         } catch (error) {
             console.log(error);
@@ -172,10 +172,10 @@ const useStripeAccount = () => {
           throw new Error("Failed to withdraw cash");
         }
         const data = await res.json();
-        if (data && data.predict_mixin && data.predict_mixin[0].data) {
+        if (data && data.predict_mixin && data.predict_mixin[0]) {
           showToast({
               title: `Withdraw cash success`,
-              message: `State ${data.predict_mixin[0].data?.state}`,
+              message: `State ${data.predict_mixin[0].state}`,
               type: 'success'
           });
           getStaffWalletMe();

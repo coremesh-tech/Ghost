@@ -7,7 +7,7 @@ import {
 } from "@tryghost/admin-x-design-system";
 import Settlement from "./stripe-admin/settlement";
 import Withdraw from "./stripe-admin/withdraw";
-import useStripeAdmin from "@src/hooks/stripe/use-stripe-admin";
+import useStripeAdmin from "../../../../hooks/stripe/use-stripe-admin";
 
 const StripeAdminTab: React.FC = () => {
     const {
