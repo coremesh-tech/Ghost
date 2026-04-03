@@ -87,6 +87,10 @@ const NotificationStyles = `
         color: var(--red);
     }
 
+    .gh-portal-notification-icon.warning {
+        color: var(--yellow);
+    }
+
     .gh-portal-notification-closeicon {
         color: var(--grey8);
         cursor: pointer;

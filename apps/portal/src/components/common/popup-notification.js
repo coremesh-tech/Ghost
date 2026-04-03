@@ -126,7 +126,9 @@ export default class PopupNotification extends React.Component {
 
         return (
             <div className={`gh-portal-notification gh-portal-popupnotification ${statusClass}${slideClass}`} onAnimationEnd={e => this.onAnimationEnd(e)}>
-                {(status === 'error' ? <WarningIcon className='gh-portal-notification-icon error' alt=''/> : <CheckmarkIcon className='gh-portal-notification-icon success' alt=''/>)}
+                {status === 'error' ? <WarningIcon className='gh-portal-notification-icon error' alt=''/> : 
+                    status === 'warning' ? <WarningIcon className='gh-portal-notification-icon warning' alt=''/> : 
+                        <CheckmarkIcon className='gh-portal-notification-icon success' alt=''/>}
                 <NotificationText type={type} status={status} message={message} site={site} />
                 <CloseButton hide={!closeable} onClose={e => this.closeNotification(e)}/>
             </div>

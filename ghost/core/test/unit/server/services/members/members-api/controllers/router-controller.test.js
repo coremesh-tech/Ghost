@@ -1081,6 +1081,18 @@ describe('RouterController', function () {
                 sinon.assert.calledWith(res.writeHead, 201);
                 sinon.assert.calledWith(res.end, '{}');
             });
+            
+            it('should throw BadRequestError if member not found', async function () {
+                handleSigninStub.rejects(new errors.BadRequestError({message: 'No member exists with this e-mail address.'}));
+                
+                try {
+                    await routerController.sendMagicLink(req, res);
+                    assert.fail('Expected function to throw BadRequestError');
+                } catch (error) {
+                    assert(error instanceof errors.BadRequestError, 'Error should be an instance of BadRequestError');
+                    assert.equal(error.message, 'No member exists with this e-mail address.');
+                }
+            });
         });
     });
 

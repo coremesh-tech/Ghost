@@ -1,6 +1,6 @@
-import { t } from "../../../../utils/i18n";
+import {t} from '../../../../utils/i18n';
 
-const AccountFooter = ({ handleSignout, supportAddress = "" }) => {
+const AccountFooter = ({handleSignout, supportAddress = ''}) => {
     const supportAddressMail = `mailto:${supportAddress}`;
     return (
         <footer className="gh-portal-account-footer">
@@ -11,9 +11,9 @@ const AccountFooter = ({ handleSignout, supportAddress = "" }) => {
                         className="gh-portal-btn"
                         name="logout"
                         aria-label="logout"
-                        onClick={(e) => handleSignout(e)}
+                        onClick={e => handleSignout(e)}
                     >
-                        {t("Sign out")}
+                        {t('Sign out')}
                     </button>
                 </li>
             </ul>
@@ -29,7 +29,7 @@ const AccountFooter = ({ handleSignout, supportAddress = "" }) => {
                                     window.open(supportAddressMail);
                             }}
                         >
-                            {t("Contact support")}
+                            {t('Contact support')}
                         </a>
                     </li>
                 </ul>

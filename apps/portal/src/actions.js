@@ -100,11 +100,27 @@ async function signin({data, api, state}) {
             }
         };
     } catch (e) {
+        const message = chooseBestErrorMessage(e, t('Failed to log in, please try again'));
+        
+        if (e.message === 'No member exists with this e-mail address.') {
+            return {
+                page: 'signup',
+                pageData: {
+                    ...(state.pageData || {}),
+                    email: (data?.email || '').trim()
+                },
+                popupNotification: createPopupNotification({
+                    type: 'signin:failed', autoHide: true, closeable: true, state, status: 'warning',
+                    message: t('This email is not registered. Please sign up instead.')
+                })
+            };
+        }
+
         return {
             action: 'signin:failed',
             popupNotification: createPopupNotification({
                 type: 'signin:failed', autoHide: false, closeable: true, state, status: 'error',
-                message: chooseBestErrorMessage(e, t('Failed to log in, please try again'))
+                message: message
             })
         };
     }
