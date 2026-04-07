@@ -129,9 +129,9 @@ const StripeAccountTab: React.FC = () => {
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[250px] md:h-[275px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
+                    className={`bg-[#000000] h-[275px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
                 >
-                    <div className="flex flex-col gap-12 md:gap-10 relative z-[2]">
+                    <div className="flex flex-col gap-6 md:gap-12 relative z-[2]">
                         <div className="flex gap-4 font-medium text-lg">
                             <div>Stripe</div>
                             <div className="flex gap-2 items-center">
@@ -142,28 +142,28 @@ const StripeAccountTab: React.FC = () => {
                             </div>
                         </div>
                         {isPending ? (
-                            <div className="flex-1 flex gap-6 justify-between items-center md:pr-[60px]">
-                                <div className="flex flex-col gap-2">
+                            <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-4 items-start md:grid-cols-3">
+                                <div className="col-span-2 flex min-w-0 flex-col gap-2 md:col-span-1">
                                     <div className="text-[#9E9E9E] text-lg">
                                         Balance
                                     </div>
-                                    <div className="text-[22px] font-medium">
+                                    <div className="truncate text-[22px] font-medium">
                                         {staffWalletMe?.available_amount || "0"}
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex min-w-0 flex-col gap-2">
                                     <div className="text-[#9E9E9E]">
                                         Income
                                     </div>
-                                    <div className="text-[22px] font-medium">
+                                    <div className="truncate text-[14px] md:text-[22px] font-medium">
                                         {staffWalletMe?.income_amount || "0"}
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div className="flex min-w-0 flex-col gap-2">
                                     <div className="text-[#9E9E9E]">
                                         Withdrawn
                                     </div>
-                                    <div className="text-[22px] font-medium">
+                                    <div className="truncate text-[14px] md:text-[22px] font-medium">
                                         {staffWalletMe?.withdrawal_amount || "0"}
                                     </div>
                                 </div>
