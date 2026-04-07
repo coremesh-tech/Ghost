@@ -89,6 +89,7 @@ async function signin({data, api, state}) {
             includeOTC: true
         };
         const {otc_ref: otcRef, inboxLinks} = await api.member.sendMagicLink(payload);
+        
         return {
             page: 'magiclink',
             lastPage: 'signin',
@@ -101,8 +102,7 @@ async function signin({data, api, state}) {
         };
     } catch (e) {
         const message = chooseBestErrorMessage(e, t('Failed to log in, please try again'));
-        
-        if (e.message === 'No member exists with this e-mail address.') {
+        if (e.message === 'No member exists with this e-mail address.' || message === t('No member exists with this e-mail address.')) {
             return {
                 page: 'signup',
                 pageData: {
