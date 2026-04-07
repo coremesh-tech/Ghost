@@ -411,6 +411,7 @@ module.exports = function apiRoutes() {
     router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
     router.get('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
     router.get('/predict_mixin/unbind', mw.authAdminApi, http(api.predictMixin.accountUnbind));
+    router.get('/predict_mixin/account_bind_sync', mw.authAdminApi, http(api.predictMixin.accountbindSync));
 
     // Staff Submit
     router.get('/predict_mixin/staff_submit', mw.authAdminApi, http(api.predictMixin.staffSubmit));

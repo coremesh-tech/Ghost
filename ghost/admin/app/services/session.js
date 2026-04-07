@@ -29,6 +29,7 @@ export default class SessionService extends ESASessionService {
     @tracked accountState = null;
 
     skipAuthSuccessHandler = false;
+    handledOnboardingSuccess = false;
 
     async populateUser(options = {}) {
         if (this.user) {
@@ -78,7 +79,7 @@ export default class SessionService extends ESASessionService {
         await this.fetchAccountState();
 
         if (this.user?.role?.name === 'Contributor') {
-            const bindState = this.accountState?.[0]?.view_state;
+            const bindState = this.accountState?.view_state;
             if (bindState !== 'ACTIVE') {
                 if (!this.pollAccountStateTask.isRunning) {
                     this.pollAccountStateTask.perform();
@@ -158,6 +159,35 @@ export default class SessionService extends ESASessionService {
         }
     }
 
+    shouldSyncAccountBinding() {
+        if (this.handledOnboardingSuccess || typeof window === 'undefined') {
+            return false;
+        }
+
+        const url = new URL(window.location.href);
+
+        return url.searchParams.get('onboarding') === 'success';
+    }
+
+    clearOnboardingSuccessParam() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete('onboarding');
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    normalizeAccountStateResponse(data) {
+        if (data?.predict_mixin && Array.isArray(data.predict_mixin) && data.predict_mixin.length > 0) {
+            return data.predict_mixin[0];
+        }
+
+        return data;
+    }
+
     @task({drop: true})
     *handleAuthenticationTask(callback) {
         if (!this.user) {
@@ -178,9 +208,13 @@ export default class SessionService extends ESASessionService {
         if (!this.user || this.user.role?.name !== 'Contributor') {
             return;
         }
+
+        const shouldSyncAccountBinding = this.shouldSyncAccountBinding();
+
         try {
             const ghostPaths = this.configManager.get('ghostPaths');
-            const url = `${ghostPaths.url.api('predict_mixin/account_state')}`;
+            const endpoint = shouldSyncAccountBinding ? 'predict_mixin/account_bind_sync' : 'predict_mixin/account_state';
+            const url = `${ghostPaths.url.api(endpoint)}`;
             const res = await fetch(url, {
                 method: 'GET',
                 credentials: 'same-origin'
@@ -190,13 +224,13 @@ export default class SessionService extends ESASessionService {
             }
             if (res.ok) {
                 const data = await res.json().catch(() => null);
-                if (data && data.predict_mixin && Array.isArray(data.predict_mixin) && data.predict_mixin.length > 0) {
-                    this.accountState = data.predict_mixin[0];
-                } else {
-                    this.accountState = data;
+                this.accountState = this.normalizeAccountStateResponse(data);
+                if (shouldSyncAccountBinding) {
+                    this.handledOnboardingSuccess = true;
+                    this.clearOnboardingSuccessParam();
                 }
                 this.stateBridge.triggerAccountStateChange(this.accountState);
-                const bindState = this.accountState?.[0]?.view_state;
+                const bindState = this.accountState?.view_state;
                 if (bindState === 'ACTIVE') {
                     return;
                 }

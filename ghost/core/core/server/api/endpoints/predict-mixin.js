@@ -88,6 +88,7 @@ const api = {
     accountState: () => `${predictionMarketsApiUrl}/predict-mixin/pay/account_state`,
     accountBind: () => `${predictionMarketsApiUrl}/predict-mixin/pay/account_bind`,
     accountUnbind: () => `${predictionMarketsApiUrl}/predict-mixin/pay/account_unbind`,
+    accountbindSync: () => `${predictionMarketsApiUrl}/predict-mixin/pay/account_bind_sync`,
     staffSubmit: id => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/submit`,
     staffWithdraw: id => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/withdraw`,
     staffQuery: () => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/query`,
@@ -131,6 +132,14 @@ const controller = {
         ...controllerConfig,
         query: frame => requestWithSession(frame, {
             url: api.accountUnbind(),
+            method: 'POST'
+        })
+    },
+    
+    accountbindSync: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.accountbindSync(),
             method: 'POST'
         })
     },
