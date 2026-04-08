@@ -1,4 +1,5 @@
 import { Table, TableRow, TableCell } from "@tryghost/admin-x-design-system";
+import OverflowTooltip from "./overflow-tooltip";
 
 interface Props {
     paginatedData?: any;
@@ -16,7 +17,15 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         style={{ width: 150 }}
                         valign="center"
                     >
-                        Settlement No
+                        Settlement ID
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 160 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Settlement Item ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -24,15 +33,31 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         align="center"
                         valign="center"
                     >
-                        Settlement Item No
+                        Transfer ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 150 }}
+                        style={{ width: 160 }}
                         align="center"
                         valign="center"
                     >
-                        Transfer No
+                        Settlement Month
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 220 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Ghost User ID
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 220 }}
+                        align="center"
+                        valign="center"
+                    >
+                        Vendor Account ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -40,35 +65,11 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         align="center"
                         valign="center"
                     >
-                        Period Month
-                    </TableCell>
-                    <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 220 }}
-                        align="center"
-                        valign="center"
-                    >
-                        Ghost User Id
-                    </TableCell>
-                    <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 220 }}
-                        align="center"
-                        valign="center"
-                    >
-                        Vendor Account Id
-                    </TableCell>
-                    <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 220 }}
-                        align="center"
-                        valign="center"
-                    >
                         Amount
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 120 }}
                         align="center"
                         valign="center"
                     >
@@ -120,7 +121,7 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 150 }}
+                            style={{ width: 160 }}
                             valign="center"
                         >
                             {item.settlement_item_no}
@@ -134,7 +135,7 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 160 }}
                             valign="center"
                         >
                             {item.period_month}
@@ -155,18 +156,18 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
-                            valign="center"
-                        >
-                            {item.currency}
-                        </TableCell>
-                        <TableCell
-                            className="text-center"
                             style={{ width: 120 }}
                             align="center"
                             valign="center"
                         >
                             {item.amount}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 120 }}
+                            valign="center"
+                        >
+                            {item.currency}
                         </TableCell>
                         <TableCell
                             className="text-center"
@@ -182,7 +183,7 @@ const SettlementItems = ({ paginatedData }: Props) => {
                             align="center"
                             valign="center"
                         >
-                            <div className="text-left break-all">{item.remark}</div>
+                            <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
                         <TableCell
                             className="text-center"

@@ -1,4 +1,5 @@
 import { Table, TableRow, TableCell, Button } from "@tryghost/admin-x-design-system";
+import OverflowTooltip from "./overflow-tooltip";
 
 interface Props {
     paginatedData?: any;
@@ -18,15 +19,15 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         style={{ width: "150px"}}
                         valign="center"
                     >
-                        Settlement No
+                        Settlement ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: "120px"}}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
-                        Period Month
+                        Settlement Month
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -98,7 +99,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: "120px"}}
+                            style={{ width: 150 }}
                             valign="center"
                         >
                             {item.period_month}
@@ -132,7 +133,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             align="center"
                             valign="center"
                         >
-                            <div className="text-left break-all">{item.remark}</div>
+                            <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
                         <TableCell
                             className="text-center"

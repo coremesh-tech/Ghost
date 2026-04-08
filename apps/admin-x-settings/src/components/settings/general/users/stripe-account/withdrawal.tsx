@@ -1,4 +1,5 @@
 import { Table, TableRow, TableCell } from "@tryghost/admin-x-design-system";
+import OverflowTooltip from "../stripe-admin/overflow-tooltip";
 interface Props {
     paginatedData?: any;
 }
@@ -15,7 +16,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         style={{ width: 150 }}
                         valign="center"
                     >
-                        Withdraw No
+                        Withdraw ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -99,7 +100,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             align="center"
                             valign="center"
                         >
-                            <div className="text-left break-all">{item.remark}</div>
+                            <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
                         <TableCell
                             className="text-center"
