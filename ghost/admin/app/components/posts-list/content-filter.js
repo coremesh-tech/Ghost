@@ -21,6 +21,10 @@ export default class PostsListContentFilter extends Component {
         return isAdmin && onPostsScreen && !isDefaultView && hasFilter;
     }
 
+    get isPostsPage() {
+        return this.router.currentRouteName === 'posts';
+    }
+
     calculateActionsDropdownPosition(trigger, content) {
         let {top, left, width, height} = trigger.getBoundingClientRect();
         // content.firstElementChild is required because we use .dropdown-menu which is absolute positioned

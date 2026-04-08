@@ -98,7 +98,7 @@
         </PowerSelect>
     </div>
 
-    {{#if (or @currentUser.isContributor @currentUser.isAdmin)}}
+    {{#if (and (or @currentUser.isContributor @currentUser.isAdmin) this.isPostsPage) }}
         <div class="gh-contentfilter-menu gh-contentfilter-predict-status {{if @selectedPredictStatus.value "gh-contentfilter-selected"}}" data-test-predict-status-select="true">
             <PowerSelect
                 @selected={{@selectedPredictStatus}}
