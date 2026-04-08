@@ -165,8 +165,20 @@ export default class SessionService extends ESASessionService {
         }
 
         const url = new URL(window.location.href);
+        const searchValue = url.searchParams.get('onboarding');
 
-        return url.searchParams.get('onboarding') === 'success';
+        if (searchValue === 'success') {
+            return true;
+        }
+
+        const [hashPath, hashQuery = ''] = url.hash.split('?');
+        const hashParams = new URLSearchParams(hashQuery);
+
+        if (!hashPath) {
+            return false;
+        }
+
+        return hashParams.get('onboarding') === 'success';
     }
 
     clearOnboardingSuccessParam() {
@@ -175,9 +187,16 @@ export default class SessionService extends ESASessionService {
         }
 
         const url = new URL(window.location.href);
+        const [hashPath, hashQuery = ''] = url.hash.split('?');
+        const hashParams = new URLSearchParams(hashQuery);
 
         url.searchParams.delete('onboarding');
-        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+        hashParams.delete('onboarding');
+
+        const nextHashQuery = hashParams.toString();
+        const nextHash = hashPath ? `${hashPath}${nextHashQuery ? `?${nextHashQuery}` : ''}` : '';
+
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${nextHash}`);
     }
 
     normalizeAccountStateResponse(data) {
