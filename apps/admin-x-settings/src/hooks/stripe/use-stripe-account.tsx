@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAccountState } from "../../components/providers/settings-app-provider";
 import { showToast } from '@tryghost/admin-x-design-system';
 
@@ -20,6 +19,8 @@ const useStripeAccount = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [cashLoading, setCashLoading] = useState(false);
+    const [connecting, setConnecting] = useState(false);
+    const [loginLoading, setLoginLoading] = useState(false);
 
     const page_size = 10;
     const isPending = status && !(status === ACCOUNT_STATUS.PENDING);
@@ -46,29 +47,40 @@ const useStripeAccount = () => {
         }
     })();
 
-    const {
-        data: connectUrl,
-        isLoading,
-        isFetching,
-    } = useQuery({
-        queryKey: ["stripeConnectUrl"],
-        queryFn: async () => {
+    const handleConnect = useCallback(async (country: string) => {
+        setConnecting(true);
+        try {
             const response = await fetch(
                 "/ghost/api/admin/predict_mixin/connect_url/",
                 {
-                    method: "GET",
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ country }),
                 }
             );
             if (!response.ok) {
                 throw new Error("Failed to get Stripe Connect URL");
             }
             const data = await response.json();
-            return data.predict_mixin[0].accountUrl;
-        },
-        enabled:
-            status === ACCOUNT_STATUS.PENDING ||
-            status === ACCOUNT_STATUS.COMPLETE,
-    });
+            const accountUrl = data.predict_mixin[0]?.accountUrl;
+            if (accountUrl) {
+                window.location.href = accountUrl;
+            } else {
+                throw new Error("No accountUrl received");
+            }
+        } catch (error: any) {
+            console.error(error);
+            showToast({
+                title: "Failed to connect",
+                message: error.message,
+                type: "error",
+            });
+        } finally {
+            setConnecting(false);
+        }
+    }, []);
 
     const getStaffWalletMe = async () => {
         try {
@@ -191,6 +203,30 @@ const useStripeAccount = () => {
       }
     }
 
+    const handleLoginStripe = async () => {
+        setLoginLoading(true);
+        try {
+            const res = await fetch("/ghost/api/admin/predict_mixin/vendor_login_links", {
+                method: "GET",
+            })
+            if (!res.ok) {
+                throw new Error("Failed to login Stripe account");
+            }
+            const data = await res.json();
+            if (data && data.predict_mixin && data.predict_mixin[0]) {
+                window.open(data.predict_mixin[0].vendor_login_links, '_blank');
+            }
+        } catch(error: any) {
+            showToast({
+              title: `Login Stripe account failed`,
+              message: `Error ${error.message}`,
+              type: 'error'
+            });
+        } finally {
+            setLoginLoading(false);
+        }
+    }
+
     return {
         status,
         isPending,
@@ -200,18 +236,19 @@ const useStripeAccount = () => {
         total,
         totalPages,
         statusText,
-        connectUrl,
-        isLoading,
-        isFetching,
+        connecting,
         staffWalletMe,
         staffList,
         cashLoading,
+        loginLoading,
         ACCOUNT_STATUS,
+        handleConnect,
         handleNextPage,
         handlePrevPage,
         handleTabChange,
         accountUnbind,
         handleWithDrawCash,
+        handleLoginStripe
     };
 };
 

@@ -409,7 +409,7 @@ module.exports = function apiRoutes() {
 
     // Stripe Account
     router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
-    router.get('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
+    router.post('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
     router.get('/predict_mixin/unbind', mw.authAdminApi, http(api.predictMixin.accountUnbind));
     router.get('/predict_mixin/account_bind_sync', mw.authAdminApi, http(api.predictMixin.accountbindSync));
 
@@ -419,6 +419,8 @@ module.exports = function apiRoutes() {
     router.post('/predict_mixin/staff_withdraw', mw.authAdminApi, http(api.predictMixin.staffWithdraw));
     // Get Post Submissions
     router.post('/predict_mixin/post_submissions', mw.authAdminApi, http(api.predictMixin.getStaffPostSubmissions));
+    // Get Vendor Login Links
+    router.get('/predict_mixin/vendor_login_links', mw.authAdminApi, http(api.predictMixin.getVendorLoginLinks));
 
     // Admin Approve
     router.post('/predict_mixin/admin_approve', mw.authAdminApi, http(api.predictMixin.adminApprove));

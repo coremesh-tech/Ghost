@@ -92,6 +92,7 @@ const api = {
     staffSubmit: id => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/submit`,
     staffWithdraw: id => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/${id}/withdraw`,
     staffQuery: () => `${predictionMarketsApiUrl}/predict-mixin/staff/post-submissions/query`,
+    staffVendorLoginLinks: () => `${predictionMarketsApiUrl}/predict-mixin/staff/wallet/vendor_login_links`,
     adminApprove: id => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/approve`,
     adminReject: id => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/reject`,
     adminReopen: id => `${predictionMarketsApiUrl}/predict-mixin/admin/post-submissions/${id}/reopen`,
@@ -124,7 +125,8 @@ const controller = {
         ...controllerConfig,
         query: frame => requestWithSession(frame, {
             url: api.accountBind(),
-            method: 'POST'
+            method: 'POST',
+            body: JSON.stringify(frame.original.body)
         })
     },
 
@@ -159,6 +161,15 @@ const controller = {
             method: 'POST'
         })
     },
+
+    getVendorLoginLinks: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.staffVendorLoginLinks(),
+            method: 'GET'
+        })
+    },
+
 
     getStaffPostSubmissions: {
         ...controllerConfig,

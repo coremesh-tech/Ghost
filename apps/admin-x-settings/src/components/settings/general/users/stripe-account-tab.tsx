@@ -11,6 +11,8 @@ import { Icon } from "@tryghost/admin-x-design-system";
 import Income from "./stripe-account/income";
 import Withdrawal from "./stripe-account/withdrawal";
 import useStripeAccount from "../../../../hooks/stripe/use-stripe-account";
+import NiceModal from '@ebay/nice-modal-react';
+import CountrySelectModal from "./stripe-account/country-select-modal";
 
 const RightIcon = () => {
     return (
@@ -61,69 +63,73 @@ const StripeAccountTab: React.FC = () => {
         total,
         totalPages,
         statusText,
-        connectUrl,
-        isLoading,
-        isFetching,
+        handleConnect,
+        connecting,
         staffWalletMe,
         staffList,
         cashLoading,
+        loginLoading,
         ACCOUNT_STATUS,
         handleNextPage,
         handlePrevPage,
         handleTabChange,
         accountUnbind,
         handleWithDrawCash,
+        handleLoginStripe,
     } = useStripeAccount();
 
-    const renderAction = useCallback(() => {
-        const isQueryEnabled =
-            status === ACCOUNT_STATUS.PENDING ||
-            status === ACCOUNT_STATUS.COMPLETE;
-        if (isQueryEnabled && (isLoading || isFetching)) return null;
+    const openCountrySelect = useCallback(() => {
+        NiceModal.show(CountrySelectModal, {
+            onConfirm: (country: string) => {
+                handleConnect(country);
+            }
+        });
+    }, [handleConnect]);
 
+    const renderAction = useCallback(() => {
         switch (status) {
             case ACCOUNT_STATUS.PENDING:
-                if (!connectUrl) return null;
                 return (
-                    <a
-                        className="text-primary-600 hover:text-primary-500 cursor-pointer font-medium"
-                        href={connectUrl}
-                        rel="noopener noreferrer"
+                    <span
+                        className={`flex gap-2 items-center text-primary-600 hover:text-primary-500 cursor-pointer font-medium ${connecting ? 'opacity-50' : ''}`}
+                        onClick={connecting ? undefined : openCountrySelect}
                     >
+                        <span>{statusText}</span>
                         <ArrowRightIcon />
-                    </a>
+                    </span>
                 );
             case ACCOUNT_STATUS.ACTIVE:
                 return (
-                    <img
-                        src={logoutBoxRLine}
-                        className="w-[16px] cursor-pointer"
-                        onClick={accountUnbind}
-                    />
-                );
-            case ACCOUNT_STATUS.COMPLETE:
-                return (
-                    <>
-                        {connectUrl ? (
-                            <a
-                                className="text-primary-600 hover:text-primary-500 cursor-pointer font-medium"
-                                href={connectUrl}
-                                rel="noopener noreferrer"
-                            >
-                                <ArrowRightIcon />
-                            </a>
-                        ) : null}
+                    <div className="flex gap-2 items-center">
+                        <span className="font-medium">{statusText}</span>
                         <img
                             src={logoutBoxRLine}
                             className="w-[16px] cursor-pointer"
                             onClick={accountUnbind}
                         />
-                    </>
+                    </div>
+                );
+            case ACCOUNT_STATUS.COMPLETE:
+                return (
+                    <div className="flex gap-2 items-center">
+                        <span
+                            className={`flex gap-2 items-center text-primary-600 hover:text-primary-500 cursor-pointer font-medium ${connecting ? 'opacity-50' : ''}`}
+                            onClick={connecting ? undefined : openCountrySelect}
+                        >
+                            <span>{statusText}</span>
+                            <ArrowRightIcon />
+                        </span>
+                        <img
+                            src={logoutBoxRLine}
+                            className="w-[16px] cursor-pointer"
+                            onClick={accountUnbind}
+                        />
+                    </div>
                 );
             default:
-                return null;
+                return <span className="font-medium">{statusText}</span>;
         }
-    }, [isLoading, connectUrl, status]);
+    }, [status, statusText, connecting, openCountrySelect, accountUnbind]);
 
     return (
         <SettingGroup border={false}>
@@ -134,12 +140,7 @@ const StripeAccountTab: React.FC = () => {
                     <div className="flex flex-col gap-6 md:gap-12 relative z-[2]">
                         <div className="flex gap-4 font-medium text-lg">
                             <div>Stripe</div>
-                            <div className="flex gap-2 items-center">
-                                <span className="font-medium">
-                                    {statusText}
-                                </span>
-                                {renderAction()}
-                            </div>
+                            {renderAction()}
                         </div>
                         {isPending ? (
                             <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-4 items-start md:grid-cols-3">
@@ -172,15 +173,21 @@ const StripeAccountTab: React.FC = () => {
                     </div>
                     <div>
                         {isPending ? (
-                            <Button
-                                className="mt-2 dark:bg-gray-925/70 dark:hover:bg-gray-900 relative z-[20] text-[#000000]"
-                                variant="secondary"
-                                onClick={handleWithDrawCash}
-                                disabled={(cashLoading || !(+staffWalletMe?.available_amount))}
-                            >
-                                Withdraw Cash
-                                <RightIcon />
-                            </Button>
+                            <div className="flex flex-row justify-between items-center">
+                                <Button
+                                    className="mt-2 dark:bg-gray-925/70 dark:hover:bg-gray-900 relative z-[20] text-[#000000]"
+                                    variant="secondary"
+                                    onClick={handleWithDrawCash}
+                                    disabled={(cashLoading || !(+staffWalletMe?.available_amount))}
+                                >
+                                    Withdraw Cash
+                                    <RightIcon />
+                                </Button>
+                                <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
+                                    <div className={`font-medium ${loginLoading ? 'opacity-50' : ''}`}>Login stripe for more</div>
+                                    <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
+                                </div>
+                            </div>
                         ) : null}
                         <img
                             src={stripeLogo}
