@@ -8,7 +8,3 @@ declare module '*.svg' {
     const src: string;
     export default src;
   }
-  
-  module 'country-list' {
-    export const getData: () => Country[];
-  }

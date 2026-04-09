@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import { Modal, Select } from '@tryghost/admin-x-design-system';
-import { getData } from 'country-list';
+import { countries } from "./countries";
 
-const countries = getData().map(country => ({
+const countryOptions: any[] | null = countries.map(country => ({
     value: country.code,
     label: country.name,
 }));
@@ -35,9 +35,9 @@ const CountrySelectModal = NiceModal.create(({ onConfirm }: CountrySelectModalPr
         >
             <div className="flex flex-col gap-4 mt-6">
                 <Select
-                    options={countries}
+                    options={countryOptions}
                     prompt="Select country"
-                    selectedOption={countries.find(c => c.value === selectedCountry)}
+                    selectedOption={countryOptions.find((c: any) => c.value === selectedCountry)}
                     onSelect={(option) => setSelectedCountry(option?.value || null)}
                     isSearchable={true}
                     fullWidth
