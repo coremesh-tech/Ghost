@@ -58,6 +58,7 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
+!*ghost-6.21.2.tgz
 
 # Yarn Integrity file
 .yarn-integrity
