@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 import { Modal, Select } from '@tryghost/admin-x-design-system';
 import { getData } from 'country-list';
