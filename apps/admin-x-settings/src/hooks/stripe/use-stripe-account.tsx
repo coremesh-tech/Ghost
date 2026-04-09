@@ -213,7 +213,7 @@ const useStripeAccount = () => {
                 throw new Error("Failed to login Stripe account");
             }
             const data = await res.json();
-            if (data && data.predict_mixin && data.predict_mixin[0]) {
+            if (data && data.predict_mixin && data.predict_mixin[0]?.vendor_login_links) {
                 window.open(data.predict_mixin[0].vendor_login_links, '_blank');
             }
         } catch(error: any) {

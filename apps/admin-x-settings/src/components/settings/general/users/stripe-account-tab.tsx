@@ -183,10 +183,10 @@ const StripeAccountTab: React.FC = () => {
                                     Withdraw Cash
                                     <RightIcon />
                                 </Button>
-                                <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
+                                {status === ACCOUNT_STATUS.ACTIVE ? <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
                                     <div className={`font-medium ${loginLoading ? 'opacity-50' : ''}`}>Login stripe for more</div>
                                     <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
-                                </div>
+                                </div> : null}
                             </div>
                         ) : null}
                         <img
