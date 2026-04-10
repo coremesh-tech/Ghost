@@ -158,9 +158,9 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             valign="center"
                         >
                             <Button
-                                label="执行转账"
+                                label="Funds Sharing"
                                 loading={item.loading || false}
-                                disabled={item.state !== "SUCCESS"}
+                                disabled={item.state !== "INIT"}
                                 color="black"
                                 onClick={(e: any) => {
                                     e.stopPropagation();
