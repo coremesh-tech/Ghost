@@ -33,5 +33,6 @@
         "admin": {
             "maxAge": 0
         }
-    }
+    },
+    "PREDICTIONMARKETS_API_URL": "https://test-api.predictionmarkets.org"
 }
