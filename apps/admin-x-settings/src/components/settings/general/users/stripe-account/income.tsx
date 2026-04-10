@@ -53,7 +53,7 @@ const Income = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 200 }}
                         align="center"
                         valign="center"
                     >
@@ -87,7 +87,7 @@ const Income = ({ paginatedData }: Props) => {
             }
         >
             {paginatedData.map((item: any) => (
-                <TableRow key={item.id} separator={true} bgOnHover={false}>
+                <TableRow key={item.flow_no} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             style={{ width: 150 }}
@@ -98,7 +98,6 @@ const Income = ({ paginatedData }: Props) => {
                         <TableCell
                             className="text-center"
                             style={{ width: 100 }}
-                            align="center"
                             valign="center"
                         >
                             {item.amount}

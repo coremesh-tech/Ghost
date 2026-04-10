@@ -103,7 +103,7 @@ const Payout = ({ paginatedData }: Props) => {
             }
         >
             {paginatedData.map((item: any) => (
-                <TableRow key={item.id} separator={true} bgOnHover={false}>
+                <TableRow key={item.withdraw_no} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             style={{ width: 150 }}

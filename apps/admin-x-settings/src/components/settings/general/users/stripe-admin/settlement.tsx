@@ -89,7 +89,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
             }
         >
             {paginatedData.map((item: any) => (
-                <TableRow key={item.id} separator={true} bgOnHover={false} onClick={() => handleCheckDetail(item)}>
+                <TableRow key={item.settlement_no} separator={true} bgOnHover={false} onClick={() => handleCheckDetail(item)}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             style={{ width: "150px"}}
