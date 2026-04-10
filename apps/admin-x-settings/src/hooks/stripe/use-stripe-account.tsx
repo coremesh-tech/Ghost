@@ -29,21 +29,6 @@ const useStripeAccount = () => {
         getStaffList({ page_no: currentPage, page_size });
     }, []);
 
-    const statusText = (() => {
-        switch (status) {
-            case ACCOUNT_STATUS.PENDING:
-                return "Pending";
-            case ACCOUNT_STATUS.ACTIVE:
-                return "Active";
-            case ACCOUNT_STATUS.COMPLETE:
-                return "Complete";
-            case ACCOUNT_STATUS.DISABLED:
-                return "Disabled";
-            default:
-                return "Unknown";
-        }
-    })();
-
     const handleConnect = useCallback(async (country: string) => {
         setConnecting(true);
         try {
@@ -231,7 +216,6 @@ const useStripeAccount = () => {
         currentPage,
         total,
         totalPages,
-        statusText,
         connecting,
         staffWalletMe,
         staffList,

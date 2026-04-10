@@ -6,7 +6,6 @@ const crypto = require('crypto');
 const qs = require('qs');
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
-// const predictionMarketsApiUrl = "https://test-api.predictionmarkets.org";
 
 const generateCookie = (sessionId) => {
     if (!sessionId) {

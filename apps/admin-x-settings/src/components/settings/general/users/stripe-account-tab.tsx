@@ -61,7 +61,6 @@ const StripeAccountTab: React.FC = () => {
         currentPage,
         total,
         totalPages,
-        statusText,
         handleConnect,
         connecting,
         staffWalletMe,
@@ -85,87 +84,46 @@ const StripeAccountTab: React.FC = () => {
         });
     }, [handleConnect]);
 
-    const renderAction = useCallback(() => {
-        switch (status) {
-            case ACCOUNT_STATUS.PENDING:
-                return (
-                    <span
-                        className={`flex gap-2 items-center text-primary-600 hover:text-primary-500 cursor-pointer font-medium ${connecting ? 'opacity-50' : ''}`}
-                        onClick={connecting ? undefined : openCountrySelect}
-                    >
-                        <span>{statusText}</span>
-                        <ArrowRightIcon />
-                    </span>
-                );
-            case ACCOUNT_STATUS.ACTIVE:
-                return (
-                    <div className="flex gap-2 items-center">
-                        <span className="font-medium">{statusText}</span>
-                        <img
-                            src={logoutBoxRLine}
-                            className="w-[16px] cursor-pointer"
-                            onClick={accountUnbind}
-                        />
-                    </div>
-                );
-            case ACCOUNT_STATUS.COMPLETE:
-                return (
-                    <div className="flex gap-2 items-center">
-                        <span
-                            className={`flex gap-2 items-center text-primary-600 hover:text-primary-500 cursor-pointer font-medium ${connecting ? 'opacity-50' : ''}`}
-                            onClick={connecting ? undefined : openCountrySelect}
-                        >
-                            <span>{statusText}</span>
-                            <ArrowRightIcon />
-                        </span>
-                        <img
-                            src={logoutBoxRLine}
-                            className="w-[16px] cursor-pointer"
-                            onClick={accountUnbind}
-                        />
-                    </div>
-                );
-            default:
-                return <span className="font-medium">{statusText}</span>;
-        }
-    }, [status, statusText, connecting, openCountrySelect, accountUnbind]);
-
     return (
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[200px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
+                    className={`bg-[#000000] h-[224px] w-full rounded-xl flex flex-col text-white p-[30px] md:p-[40px] relative justify-between`}
                 >
-                    <div className="flex flex-col gap-6 md:gap-12 relative z-[2]">
-                        <div className="flex gap-4 font-medium text-lg">
-                            <div>Stripe</div>
-                            {renderAction()}
-                        </div>
-                        <div className="flex flex-row justify-between items-end">
-                            <div className="flex min-w-0 flex-col gap-2">
-                                <div className="text-[#9E9E9E]">
-                                    Income
-                                </div>
-                                <div className="truncate text-[22px] font-medium">
-                                    {staffWalletMe?.income_amount || "0"}
-                                </div>
+                    <div className="flex flex-col gap-8 relative z-[2] justify-between">
+                        <div className="flex min-w-0 flex-col gap-2">
+                            <div className="text-[#9E9E9E]">
+                                Income
                             </div>
-                            {status === ACCOUNT_STATUS.ACTIVE ? (
+                            <div className="truncate text-[22px] font-medium">
+                                {staffWalletMe?.income_amount || "0"}
+                            </div>
+                        </div>
+                        {status === ACCOUNT_STATUS.PENDING ? (
+                            <div className="flex flex-col gap-4">
+                                <div className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer" onClick={connecting ? undefined : openCountrySelect}>
+                                    <div className={`font-medium text-[18px] ${connecting ? 'opacity-50' : ''}`}>Connect With Stripe</div>
+                                    <div className={`${connecting ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
+                                </div>
+                                <div className="text-[#9E9E9E] text-[12px] font-medium">To receive payouts, connect your Stripe account.</div>
+                            </div>
+                        ) : ((status === ACCOUNT_STATUS.ACTIVE || status === ACCOUNT_STATUS.COMPLETE)? 
+                            <div className="flex flex-col gap-4">
                                 <div className="flex flex-row justify-between items-center">
-                                    <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
-                                        <div className={`font-medium ${loginLoading ? 'opacity-50' : ''}`}>Login stripe for more</div>
+                                    <div className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
+                                        <div className={`font-medium text-[18px] ${loginLoading ? 'opacity-50' : ''}`}>Goto Stripe</div>
                                         <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
                                     </div>
+                                    {status === ACCOUNT_STATUS.ACTIVE ? <div className="flex flex-row justify-center items-center gap-4 cursor-pointer" onClick={accountUnbind}>
+                                    <div className="text-[16px] font-medium">Unbind</div>
+                                    <img src={logoutBoxRLine} className="w-[16px]"/>
+                                </div> : null}
                                 </div>
-                            ) : null}
-                        </div>
+                                <div className="text-[#9E9E9E] text-[12px] font-medium">Goto your Stripe account to receive payouts.</div>
+                            </div> : null
+                        )}
                     </div>
-                    <div>
-                        <img
-                            src={stripeLogo}
-                            className="w-[200px] h-[200px] absolute top-0 md:bottom-0 right-[10px]"
-                        />
-                    </div>
+                    <img src={stripeLogo} className="w-[200px] h-[200px] absolute top-0 md:bottom-0 right-[10px]"/>
                 </div>
                 <div className="flex items-center gap-2">
                     <div
@@ -178,16 +136,6 @@ const StripeAccountTab: React.FC = () => {
                     >
                         Income
                     </div>
-                    {/* <div
-                        className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
-                            activeTab === "withdrawal"
-                                ? "bg-[#1F1F1F] text-white"
-                                : "bg-[rgba(31,31,31,0.12)]"
-                        }`}
-                        onClick={() => handleTabChange("withdrawal")}
-                    >
-                        Withdrawal
-                    </div> */}
                 </div>
                 <div className="mt-[-20px]">
                     {activeTab === "income" ? (
