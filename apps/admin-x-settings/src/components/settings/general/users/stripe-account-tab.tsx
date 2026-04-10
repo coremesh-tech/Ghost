@@ -3,7 +3,7 @@ import {
     SettingGroup,
     SettingGroupContent,
 } from "@tryghost/admin-x-design-system";
-import { Button } from "@tryghost/shade";
+// import { Button } from "@tryghost/shade";
 
 import stripeLogo from "../../../../assets/images/stripe.webp";
 import logoutBoxRLine from "../../../../assets/images/logout-box-r-line.svg";
@@ -14,25 +14,25 @@ import useStripeAccount from "../../../../hooks/stripe/use-stripe-account";
 import NiceModal from '@ebay/nice-modal-react';
 import CountrySelectModal from "./stripe-account/country-select-modal";
 
-const RightIcon = () => {
-    return (
-        <svg
-            className="icon"
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            p-id="1251"
-            width="20"
-            height="20"
-        >
-            <path
-                d="M689.984 469.312L461.12 240.448l60.352-60.352L853.376 512l-331.904 331.84-60.352-60.288 228.864-228.864H170.688V469.312h519.296z"
-                fill="#000000"
-                p-id="1252"
-            ></path>
-        </svg>
-    );
-};
+// const RightIcon = () => {
+//     return (
+//         <svg
+//             className="icon"
+//             viewBox="0 0 1024 1024"
+//             version="1.1"
+//             xmlns="http://www.w3.org/2000/svg"
+//             p-id="1251"
+//             width="20"
+//             height="20"
+//         >
+//             <path
+//                 d="M689.984 469.312L461.12 240.448l60.352-60.352L853.376 512l-331.904 331.84-60.352-60.288 228.864-228.864H170.688V469.312h519.296z"
+//                 fill="#000000"
+//                 p-id="1252"
+//             ></path>
+//         </svg>
+//     );
+// };
 
 const ArrowRightIcon = () => {
     return (
@@ -56,7 +56,6 @@ const ArrowRightIcon = () => {
 const StripeAccountTab: React.FC = () => {
     const {
         status,
-        isPending,
         activeTab,
         page_size,
         currentPage,
@@ -67,14 +66,14 @@ const StripeAccountTab: React.FC = () => {
         connecting,
         staffWalletMe,
         staffList,
-        cashLoading,
+        // cashLoading,
         loginLoading,
         ACCOUNT_STATUS,
         handleNextPage,
         handlePrevPage,
         handleTabChange,
         accountUnbind,
-        handleWithDrawCash,
+        // handleWithDrawCash,
         handleLoginStripe,
     } = useStripeAccount();
 
@@ -135,141 +134,110 @@ const StripeAccountTab: React.FC = () => {
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[275px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
+                    className={`bg-[#000000] h-[200px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[40px] relative justify-between`}
                 >
                     <div className="flex flex-col gap-6 md:gap-12 relative z-[2]">
                         <div className="flex gap-4 font-medium text-lg">
                             <div>Stripe</div>
                             {renderAction()}
                         </div>
-                        {isPending ? (
-                            <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-4 items-start md:grid-cols-3">
-                                <div className="col-span-2 flex min-w-0 flex-col gap-2 md:col-span-1">
-                                    <div className="text-[#9E9E9E] text-lg">
-                                        Balance
-                                    </div>
-                                    <div className="truncate text-[22px] font-medium">
-                                        {staffWalletMe?.available_amount || "0"}
-                                    </div>
+                        <div className="flex flex-row justify-between items-end">
+                            <div className="flex min-w-0 flex-col gap-2">
+                                <div className="text-[#9E9E9E]">
+                                    Income
                                 </div>
-                                <div className="flex min-w-0 flex-col gap-2">
-                                    <div className="text-[#9E9E9E]">
-                                        Income
-                                    </div>
-                                    <div className="truncate text-[14px] md:text-[22px] font-medium">
-                                        {staffWalletMe?.income_amount || "0"}
-                                    </div>
-                                </div>
-                                <div className="flex min-w-0 flex-col gap-2">
-                                    <div className="text-[#9E9E9E]">
-                                        Withdrawn
-                                    </div>
-                                    <div className="truncate text-[14px] md:text-[22px] font-medium">
-                                        {staffWalletMe?.withdrawal_amount || "0"}
-                                    </div>
+                                <div className="truncate text-[22px] font-medium">
+                                    {staffWalletMe?.income_amount || "0"}
                                 </div>
                             </div>
-                        ) : null}
+                            {status === ACCOUNT_STATUS.ACTIVE ? (
+                                <div className="flex flex-row justify-between items-center">
+                                    <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
+                                        <div className={`font-medium ${loginLoading ? 'opacity-50' : ''}`}>Login stripe for more</div>
+                                        <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                     <div>
-                        {isPending ? (
-                            <div className="flex flex-row justify-between items-center">
-                                <Button
-                                    className="mt-2 dark:bg-gray-925/70 dark:hover:bg-gray-900 relative z-[20] text-[#000000]"
-                                    variant="secondary"
-                                    onClick={handleWithDrawCash}
-                                    disabled={(cashLoading || !(+staffWalletMe?.available_amount))}
-                                >
-                                    Withdraw Cash
-                                    <RightIcon />
-                                </Button>
-                                {status === ACCOUNT_STATUS.ACTIVE ? <div className="text-[#ffffff] hidden md:flex flex-row items-center gap-2 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
-                                    <div className={`font-medium ${loginLoading ? 'opacity-50' : ''}`}>Login stripe for more</div>
-                                    <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
-                                </div> : null}
-                            </div>
-                        ) : null}
                         <img
                             src={stripeLogo}
                             className="w-[200px] h-[200px] absolute top-0 md:bottom-0 right-[10px]"
                         />
                     </div>
                 </div>
-                {isPending ? (
-                    <div className="flex items-center gap-2">
-                        <div
-                            className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
-                                activeTab === "income"
-                                    ? "bg-[#1F1F1F] text-white"
-                                    : "bg-[rgba(31,31,31,0.12)]"
-                            }`}
-                            onClick={() => handleTabChange("income")}
-                        >
-                            Income
+                <div className="flex items-center gap-2">
+                    <div
+                        className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
+                            activeTab === "income"
+                                ? "bg-[#1F1F1F] text-white"
+                                : "bg-[rgba(31,31,31,0.12)]"
+                        }`}
+                        onClick={() => handleTabChange("income")}
+                    >
+                        Income
+                    </div>
+                    {/* <div
+                        className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
+                            activeTab === "withdrawal"
+                                ? "bg-[#1F1F1F] text-white"
+                                : "bg-[rgba(31,31,31,0.12)]"
+                        }`}
+                        onClick={() => handleTabChange("withdrawal")}
+                    >
+                        Withdrawal
+                    </div> */}
+                </div>
+                <div className="mt-[-20px]">
+                    {activeTab === "income" ? (
+                        <Income paginatedData={staffList} />
+                    ) : (
+                        <Withdrawal paginatedData={staffList} />
+                    )}
+                    <div className="mt-6 flex items-center justify-between text-sm text-grey-700">
+                        <div>
+                            Showing {(currentPage - 1) * page_size + 1}-
+                            {Math.min(currentPage * page_size, total)} of{" "}
+                            {total}
                         </div>
-                        <div
-                            className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
-                                activeTab === "withdrawal"
-                                    ? "bg-[#1F1F1F] text-white"
-                                    : "bg-[rgba(31,31,31,0.12)]"
-                            }`}
-                            onClick={() => handleTabChange("withdrawal")}
-                        >
-                            Withdrawal
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 1}
+                                className={`p-1 ${
+                                    currentPage === 1
+                                        ? "text-black/30 dark:text-white/30 cursor-not-allowed"
+                                        : "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80 cursor-pointer"
+                                }`}
+                            >
+                                <Icon
+                                    name="chevron-left"
+                                    className="w-3 h-3 [&>path]:stroke-[3px]"
+                                />
+                            </button>
+                            <span>
+                                {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                                className={`p-1 ${
+                                    currentPage === totalPages
+                                        ? "text-black/30 dark:text-white/30 cursor-not-allowed"
+                                        : "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80 cursor-pointer"
+                                }`}
+                            >
+                                <Icon
+                                    name="chevron-right"
+                                    className="w-3 h-3 [&>path]:stroke-[3px]"
+                                />
+                            </button>
                         </div>
                     </div>
-                ) : null}
-                {isPending ? (
-                    <div className="mt-[-20px]">
-                        {activeTab === "income" ? (
-                            <Income paginatedData={staffList} />
-                        ) : (
-                            <Withdrawal paginatedData={staffList} />
-                        )}
-                        <div className="mt-6 flex items-center justify-between text-sm text-grey-700">
-                            <div>
-                                Showing {(currentPage - 1) * page_size + 1}-
-                                {Math.min(currentPage * page_size, total)} of{" "}
-                                {total}
-                            </div>
-                            <div className="flex gap-4">
-                                <button
-                                    type="button"
-                                    onClick={handlePrevPage}
-                                    disabled={currentPage === 1}
-                                    className={`p-1 ${
-                                        currentPage === 1
-                                            ? "text-black/30 dark:text-white/30 cursor-not-allowed"
-                                            : "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80 cursor-pointer"
-                                    }`}
-                                >
-                                    <Icon
-                                        name="chevron-left"
-                                        className="w-3 h-3 [&>path]:stroke-[3px]"
-                                    />
-                                </button>
-                                <span>
-                                    {currentPage} of {totalPages}
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={handleNextPage}
-                                    disabled={currentPage === totalPages}
-                                    className={`p-1 ${
-                                        currentPage === totalPages
-                                            ? "text-black/30 dark:text-white/30 cursor-not-allowed"
-                                            : "text-black dark:text-white hover:text-black/80 dark:hover:text-white/80 cursor-pointer"
-                                    }`}
-                                >
-                                    <Icon
-                                        name="chevron-right"
-                                        className="w-3 h-3 [&>path]:stroke-[3px]"
-                                    />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : null}
+                </div>
             </SettingGroupContent>
         </SettingGroup>
     );

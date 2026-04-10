@@ -23,14 +23,11 @@ const useStripeAccount = () => {
     const [loginLoading, setLoginLoading] = useState(false);
 
     const page_size = 10;
-    const isPending = status && !(status === ACCOUNT_STATUS.PENDING);
 
     useEffect(() => {
-        if (isPending) {
-            getStaffWalletMe();
-            getStaffList({ page_no: currentPage, page_size });
-        }
-    }, [isPending]);
+        getStaffWalletMe();
+        getStaffList({ page_no: currentPage, page_size });
+    }, []);
 
     const statusText = (() => {
         switch (status) {
@@ -229,7 +226,6 @@ const useStripeAccount = () => {
 
     return {
         status,
-        isPending,
         activeTab,
         page_size,
         currentPage,
