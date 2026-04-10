@@ -14,14 +14,14 @@ const Payout = ({ paginatedData }: Props) => {
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
                         className="font-bold text-grey-700"
-                        style={{ width: 150 }}
+                        style={{ width: 180 }}
                         valign="center"
                     >
                         Withdraw ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 150 }}
+                        style={{ width: 200 }}
                         align="center"
                         valign="center"
                     >
@@ -29,7 +29,7 @@ const Payout = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 220 }}
+                        style={{ width: 240 }}
                         align="center"
                         valign="center"
                     >
@@ -53,7 +53,7 @@ const Payout = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
@@ -106,14 +106,14 @@ const Payout = ({ paginatedData }: Props) => {
                 <TableRow key={item.withdraw_no} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
-                            style={{ width: 150 }}
+                            style={{ width: 180 }}
                             valign="center"
                         >
                             {item.withdraw_no}
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 150 }}
+                            style={{ width: 200 }}
                             align="center"
                             valign="center"
                         >
@@ -121,7 +121,7 @@ const Payout = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 220 }}
+                            style={{ width: 240 }}
                             align="center"
                             valign="center"
                         >
@@ -145,7 +145,7 @@ const Payout = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >

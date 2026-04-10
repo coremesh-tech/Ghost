@@ -20,7 +20,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
@@ -28,7 +28,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
@@ -72,7 +72,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >
@@ -80,7 +80,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >

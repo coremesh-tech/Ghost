@@ -21,7 +21,7 @@ const Income = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
@@ -29,7 +29,7 @@ const Income = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100 }}
+                        style={{ width: 150 }}
                         align="center"
                         valign="center"
                     >
@@ -37,7 +37,7 @@ const Income = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 170 }}
+                        style={{ width: 180 }}
                         align="center"
                         valign="center"
                     >
@@ -97,14 +97,14 @@ const Income = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             valign="center"
                         >
                             {item.amount}
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 100 }}
+                            style={{ width: 150 }}
                             align="center"
                             valign="center"
                         >
@@ -112,7 +112,7 @@ const Income = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 170 }}
+                            style={{ width: 180 }}
                             align="center"
                             valign="center"
                         >

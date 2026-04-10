@@ -31,7 +31,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: "100px"}}
+                        style={{ width: "150px"}}
                         align="center"
                         valign="center"
                     >
@@ -39,7 +39,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: "120px"}}
+                        style={{ width: 160 }}
                         align="center"
                         valign="center"
                     >
@@ -79,7 +79,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 100}}
+                        style={{ width: 130}}
                         align="center"
                         valign="center"
                     >
@@ -106,14 +106,14 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: "100px"}}
+                            style={{ width: "150px"}}
                             valign="center"
                         >
                             {item.currency}
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: "120px"}}
+                            style={{ width: 160 }}
                             align="center"
                             valign="center"
                         >
@@ -153,7 +153,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: "100px"}}
+                            style={{ width: "130px"}}
                             align="center"
                             valign="center"
                         >
