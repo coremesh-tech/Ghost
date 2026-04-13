@@ -72,14 +72,14 @@ const AccountActions = () => {
             } else {
                 doAction("showPopupNotification", {
                     action: "showPopupNotification:failed",
-                    message: t("Failed to apply for creator plan"),
+                    message: data?.predict_mixin?.error || t("Failed to apply for creator plan"),
                     status: "error",
                 });
             }
         } catch (error) {
             doAction("showPopupNotification", {
                 action: "showPopupNotification:failed",
-                message: error?.message || t("An error occurred"),
+                message: t("An error occurred"),
                 status: "error",
             });
         } finally {
