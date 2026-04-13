@@ -100,7 +100,7 @@ const StripeAccountTab: React.FC = () => {
                             </div>
                         </div>
                         {status === ACCOUNT_STATUS.PENDING ? (
-                            <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-2">
                                 <div
                                     className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
                                     onClick={
@@ -131,7 +131,7 @@ const StripeAccountTab: React.FC = () => {
                             </div>
                         ) : status === ACCOUNT_STATUS.ACTIVE ||
                           status === ACCOUNT_STATUS.COMPLETE ? (
-                            <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-2">
                                 <div className="flex flex-row justify-between items-center">
                                     <div
                                         className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
@@ -202,7 +202,7 @@ const StripeAccountTab: React.FC = () => {
                                 className="cursor-pointer"
                                 onClick={() => setShowNotice(false)}
                             >
-                                <Icon name="close" size={12} className="[&>line]:stroke-[3.5px]" />
+                                <Icon name="close" size={8} className="[&>line]:stroke-[3.5px]" />
                             </div>
                         </div>
                         <div className="text-[rgba(0,0,0,0.6)] text-[12px]">
