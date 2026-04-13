@@ -6,7 +6,7 @@ import {
 // import { Button } from "@tryghost/shade";
 
 import stripeLogo from "../../../../assets/images/stripe.webp";
-import logoutBoxRLine from "../../../../assets/images/logout-box-r-line.svg";
+// import logoutBoxRLine from "../../../../assets/images/logout-box-r-line.svg";
 import { Icon } from "@tryghost/admin-x-design-system";
 import Income from "./stripe-account/income";
 import Withdrawal from "./stripe-account/withdrawal";
@@ -73,7 +73,7 @@ const StripeAccountTab: React.FC = () => {
         handleNextPage,
         handlePrevPage,
         // handleTabChange,
-        accountUnbind,
+        // accountUnbind,
         // handleWithDrawCash,
         handleLoginStripe,
     } = useStripeAccount();
