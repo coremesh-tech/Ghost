@@ -15,8 +15,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
             header={
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
-                        className="font-bold text-grey-700"
-                        style={{ width: "150px"}}
+                        className="font-bold text-grey-700 w-[130px] md:w-[150px]"
                         valign="center"
                     >
                         Settlement ID
@@ -30,8 +29,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         Settlement Month
                     </TableCell>
                     <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: "150px"}}
+                        className="font-bold text-grey-700 text-center w-[120px] md:w-[150px]"
                         align="center"
                         valign="center"
                     >
@@ -92,7 +90,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                 <TableRow key={item.settlement_no} separator={true} bgOnHover={false} onClick={() => handleCheckDetail(item)}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
-                            style={{ width: "150px"}}
+                            className="w-[130px] md:w-[150px]"
                             valign="center"
                         >
                             {item.settlement_no}
@@ -105,8 +103,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             {item.period_month}
                         </TableCell>
                         <TableCell
-                            className="text-center"
-                            style={{ width: "150px"}}
+                            className="text-center w-[120px] md:w-[150px]"
                             valign="center"
                         >
                             {item.currency}

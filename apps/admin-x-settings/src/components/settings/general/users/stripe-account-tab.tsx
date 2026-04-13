@@ -93,7 +93,7 @@ const StripeAccountTab: React.FC = () => {
                     <div className="flex flex-col gap-8 relative z-[2] justify-between">
                         <div className="flex min-w-0 flex-col gap-2">
                             <div className="text-[#9E9E9E]">
-                                Income
+                                Earnings
                             </div>
                             <div className="truncate text-[22px] font-medium">
                                 {staffWalletMe?.income_amount || "0"}
@@ -134,7 +134,7 @@ const StripeAccountTab: React.FC = () => {
                         }`}
                         onClick={() => handleTabChange("income")}
                     >
-                        Income
+                        Earnings
                     </div>
                 </div>
                 <div className="mt-[-20px]">

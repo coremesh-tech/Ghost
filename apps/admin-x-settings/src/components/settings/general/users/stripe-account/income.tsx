@@ -13,15 +13,13 @@ const Income = ({ paginatedData }: Props) => {
             header={
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
-                        className="font-bold text-grey-700"
-                        style={{ width: 150 }}
+                        className="font-bold text-grey-700 w-[150px]"
                         valign="center"
                     >
                         Flow ID
                     </TableCell>
                     <TableCell
-                        className="font-bold text-grey-700 text-center"
-                        style={{ width: 150 }}
+                        className="font-bold text-grey-700 text-center w-[120px] md:w-[150px]"
                         align="center"
                         valign="center"
                     >
@@ -90,14 +88,13 @@ const Income = ({ paginatedData }: Props) => {
                 <TableRow key={item.flow_no} separator={true} bgOnHover={false}>
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
-                            style={{ width: 150 }}
+                            className="w-[150px]"
                             valign="center"
                         >
                             {item.flow_no}
                         </TableCell>
                         <TableCell
-                            className="text-center"
-                            style={{ width: 150 }}
+                            className="text-center w-[120px] md:w-[150px]"
                             valign="center"
                         >
                             {item.amount}
