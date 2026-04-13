@@ -63,7 +63,7 @@ const AccountActions = () => {
                 credentials: "same-origin",
             });
             const data = await response.json();
-            if (data?.predict_mixin?.[0]?.id) {
+            if (data?.predict_mixin?.id) {
                 doAction("showPopupNotification", {
                     action: "showPopupNotification:success",
                     message: t("Successfully applied for creator plan"),
