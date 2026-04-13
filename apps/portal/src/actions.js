@@ -390,7 +390,7 @@ async function clearPopupNotification() {
 }
 
 async function showPopupNotification({data, state}) {
-    let {action, message = ''} = data;
+    let {action, message = '', status = 'success'} = data;
     action = action || 'showPopupNotification:success';
     return {
         popupNotification: createPopupNotification({
@@ -398,7 +398,7 @@ async function showPopupNotification({data, state}) {
             autoHide: true,
             closeable: true,
             state,
-            status: 'success',
+            status,
             message
         })
     };

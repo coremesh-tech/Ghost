@@ -68,28 +68,29 @@ const AccountActions = () => {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    token
-                })
             });
             const data = await response.json();
             if (data?.predict_mixin?.[0]?.id) {
                 doAction('showPopupNotification', {
                     action: 'showPopupNotification:success',
-                    message: t('Successfully applied for creator plan')
+                    message: t('Successfully applied for creator plan'),
+                    status: 'success'
                 });
             } else {
                 doAction('showPopupNotification', {
                     action: 'showPopupNotification:failed',
-                    message: t('Failed to apply for creator plan')
+                    message: t('Failed to apply for creator plan'),
+                    status: 'error'
                 });
             }
         } catch (error) {
             doAction('showPopupNotification', {
                 action: 'showPopupNotification:failed',
-                message: error?.message || t('An error occurred')
+                message: error?.message || t('An error occurred'),
+                status: 'error'
             });
         } finally {
             setIsJoining(false);
