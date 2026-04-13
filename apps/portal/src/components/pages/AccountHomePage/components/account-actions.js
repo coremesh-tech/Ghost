@@ -1,12 +1,12 @@
-import AppContext from '../../../../app-context';
-import {useContext, useState} from 'react';
+import AppContext from "../../../../app-context";
+import { useContext, useState } from "react";
 import {
     hasCommentsEnabled,
     hasMultipleNewsletters,
     isEmailSuppressed,
-    hasNewsletterSendingEnabled
-} from '../../../../utils/helpers';
-import {ReactComponent as LoaderIcon} from '../../../../images/icons/loader.svg';
+    hasNewsletterSendingEnabled,
+} from "../../../../utils/helpers";
+import { ReactComponent as LoaderIcon } from "../../../../images/icons/loader.svg";
 
 import PaidAccountActions from "./paid-account-actions";
 import TransistorPodcastsAction from "./transistor-podcasts-action";
@@ -55,7 +55,7 @@ const AccountActions = () => {
         setIsJoining(true);
         try {
             const tokenResponse = await fetch(`/members/api/session`, {
-                credentials: 'same-origin'
+                credentials: "same-origin",
             });
             const token = await tokenResponse.text();
             if (!token) {
@@ -63,34 +63,37 @@ const AccountActions = () => {
             }
             const url = `${site.url.replace(
                 /\/$/,
-                ''
+                ""
             )}/ghost/api/admin/predict_mixin/member_staff_apply`;
             const response = await fetch(url, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
+                body: JSON.stringify({
+                    token,
+                }),
             });
             const data = await response.json();
             if (data?.predict_mixin?.[0]?.id) {
-                doAction('showPopupNotification', {
-                    action: 'showPopupNotification:success',
-                    message: t('Successfully applied for creator plan'),
-                    status: 'success'
+                doAction("showPopupNotification", {
+                    action: "showPopupNotification:success",
+                    message: t("Successfully applied for creator plan"),
+                    status: "success",
                 });
             } else {
-                doAction('showPopupNotification', {
-                    action: 'showPopupNotification:failed',
-                    message: t('Failed to apply for creator plan'),
-                    status: 'error'
+                doAction("showPopupNotification", {
+                    action: "showPopupNotification:failed",
+                    message: t("Failed to apply for creator plan"),
+                    status: "error",
                 });
             }
         } catch (error) {
-            doAction('showPopupNotification', {
-                action: 'showPopupNotification:failed',
-                message: error?.message || t('An error occurred'),
-                status: 'error'
+            doAction("showPopupNotification", {
+                action: "showPopupNotification:failed",
+                message: error?.message || t("An error occurred"),
+                status: "error",
             });
         } finally {
             setIsJoining(false);
@@ -135,7 +138,11 @@ const AccountActions = () => {
                         onClick={handleJoinCreatorPlan}
                         disabled={isJoining}
                     >
-                        {isJoining ? <LoaderIcon className='gh-portal-billing-button-loader' /> : t('Join')}
+                        {isJoining ? (
+                            <LoaderIcon className="gh-portal-billing-button-loader" />
+                        ) : (
+                            t("Join")
+                        )}
                     </button>
                 </section>
             </div>
