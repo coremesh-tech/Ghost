@@ -156,7 +156,7 @@ const StripeAccountTab: React.FC = () => {
                                             <ArrowRightIcon />
                                         </div>
                                     </div>
-                                    {status === ACCOUNT_STATUS.ACTIVE ? (
+                                    {/* {status === ACCOUNT_STATUS.ACTIVE ? (
                                         <div
                                             className="flex flex-row justify-center items-center gap-4 cursor-pointer"
                                             onClick={accountUnbind}
@@ -169,7 +169,7 @@ const StripeAccountTab: React.FC = () => {
                                                 className="w-[16px]"
                                             />
                                         </div>
-                                    ) : null}
+                                    ) : null} */}
                                 </div>
                                 <div className="text-[#9E9E9E] text-[12px] font-medium">
                                     Goto your Stripe account to receive payouts.
