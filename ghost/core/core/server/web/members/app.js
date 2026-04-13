@@ -7,6 +7,7 @@ const stripeService = require('../../services/stripe');
 const middleware = membersService.middleware;
 const shared = require('../shared');
 const errorHandler = require('@tryghost/mw-error-handler');
+const errors = require('@tryghost/errors');
 const config = require('../../../shared/config');
 const {http} = require('@tryghost/api-framework');
 const api = require('../../api').endpoints;
@@ -76,6 +77,34 @@ module.exports = function setupMembersApp() {
     
     membersApp.get('/api/entitlements', middleware.getEntitlementToken);
     membersApp.get('/api/integrity-token', middleware.createIntegrityToken);
+
+    membersApp.post(
+        '/api/predict_mixin/member_staff_apply',
+        bodyParser.json({limit: '5mb'}),
+        middleware.loadMemberSession,
+        async function memberStaffApply(req, res, next) {
+            try {
+                if (!req.member) {
+                    throw new errors.UnauthorizedError({
+                        message: 'Member not authenticated'
+                    });
+                }
+
+                const token = await membersService.ssr.getIdentityTokenForMemberFromSession(req, res);
+                const data = await api.predictMixin.memberStaffApply.query({
+                    original: {
+                        body: {token}
+                    }
+                });
+
+                res.json({
+                    predict_mixin: data
+                });
+            } catch (err) {
+                next(err);
+            }
+        }
+    );
 
     membersApp.post(
         '/api/send-magic-link',

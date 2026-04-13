@@ -54,25 +54,13 @@ const AccountActions = () => {
         }
         setIsJoining(true);
         try {
-            const tokenResponse = await fetch(`/members/api/session`, {
-                credentials: "same-origin",
-            });
-            const token = await tokenResponse.text();
-            if (!token) {
-                return;
-            }
-            const url = `${site.url.replace(
-                /\/$/,
-                ""
-            )}/ghost/api/admin/predict_mixin/member_staff_apply`;
+            const url = `/members/api/predict_mixin/member_staff_apply`;
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    token,
-                }),
+                credentials: "same-origin",
             });
             const data = await response.json();
             if (data?.predict_mixin?.[0]?.id) {

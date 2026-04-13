@@ -90,7 +90,7 @@ const StripeAccountTab: React.FC = () => {
         <SettingGroup border={false}>
             <SettingGroupContent>
                 <div
-                    className={`bg-[#000000] h-[224px] w-full rounded-xl flex flex-col text-white p-[30px] md:p-[40px] relative justify-between`}
+                    className={`bg-[#000000] h-[224px] w-full rounded-xl flex flex-col text-white p-[20px] md:p-[30px] relative justify-between`}
                 >
                     <div className="flex flex-col gap-8 relative z-[2] justify-between">
                         <div className="flex min-w-0 flex-col gap-2">
@@ -99,7 +99,7 @@ const StripeAccountTab: React.FC = () => {
                                 {staffWalletMe?.income_amount || "0"}
                             </div>
                         </div>
-                        {(status === ACCOUNT_STATUS.PENDING || status === ACCOUNT_STATUS.COMPLETE) ? (
+                        {(status === ACCOUNT_STATUS.PENDING) ? (
                             <div className="flex flex-col gap-2">
                                 <div
                                     className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
@@ -194,7 +194,7 @@ const StripeAccountTab: React.FC = () => {
                     </div>
                 </div> */}
                 {(showNotice && status === ACCOUNT_STATUS.ACTIVE) && (
-                    <div className="px-[12px] py-[16px] bg-[rgba(31,31,31,0.04)] rounded-[12px] flex flex-col gap-2 mt-[-20px]">
+                    <div className="px-[16px] py-[16px] bg-[rgba(31,31,31,0.04)] rounded-[12px] flex flex-col gap-2 mt-[-20px]">
                         <div className="flex justify-between items-center font-medium">
                             <div>Stripe account connected!</div>
                             <div
