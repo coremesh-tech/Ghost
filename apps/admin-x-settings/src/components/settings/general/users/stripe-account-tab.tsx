@@ -99,7 +99,7 @@ const StripeAccountTab: React.FC = () => {
                                 {staffWalletMe?.income_amount || "0"}
                             </div>
                         </div>
-                        {status === ACCOUNT_STATUS.PENDING ? (
+                        {(status === ACCOUNT_STATUS.PENDING || status === ACCOUNT_STATUS.COMPLETE) ? (
                             <div className="flex flex-col gap-2">
                                 <div
                                     className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
@@ -129,8 +129,7 @@ const StripeAccountTab: React.FC = () => {
                                     account.
                                 </div>
                             </div>
-                        ) : status === ACCOUNT_STATUS.ACTIVE ||
-                          status === ACCOUNT_STATUS.COMPLETE ? (
+                        ) : status === ACCOUNT_STATUS.ACTIVE ? (
                             <div className="flex flex-col gap-2">
                                 <div className="flex flex-row justify-between items-center">
                                     <div
