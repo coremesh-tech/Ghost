@@ -21,6 +21,7 @@ const useStripeAccount = () => {
     const [cashLoading, setCashLoading] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const [loginLoading, setLoginLoading] = useState(false);
+    const [showNotice, setShowNotice] = useState(true);
 
     const page_size = 10;
 
@@ -221,7 +222,9 @@ const useStripeAccount = () => {
         staffList,
         cashLoading,
         loginLoading,
+        showNotice,
         ACCOUNT_STATUS,
+        setShowNotice,
         handleConnect,
         handleNextPage,
         handlePrevPage,

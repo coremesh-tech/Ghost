@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
     SettingGroup,
     SettingGroupContent,
@@ -11,7 +11,7 @@ import { Icon } from "@tryghost/admin-x-design-system";
 import Income from "./stripe-account/income";
 import Withdrawal from "./stripe-account/withdrawal";
 import useStripeAccount from "../../../../hooks/stripe/use-stripe-account";
-import NiceModal from '@ebay/nice-modal-react';
+import NiceModal from "@ebay/nice-modal-react";
 import CountrySelectModal from "./stripe-account/country-select-modal";
 
 // const RightIcon = () => {
@@ -67,10 +67,12 @@ const StripeAccountTab: React.FC = () => {
         staffList,
         // cashLoading,
         loginLoading,
+        showNotice,
         ACCOUNT_STATUS,
+        setShowNotice,
         handleNextPage,
         handlePrevPage,
-        handleTabChange,
+        // handleTabChange,
         accountUnbind,
         // handleWithDrawCash,
         handleLoginStripe,
@@ -80,7 +82,7 @@ const StripeAccountTab: React.FC = () => {
         NiceModal.show(CountrySelectModal, {
             onConfirm: (country: string) => {
                 handleConnect(country);
-            }
+            },
         });
     }, [handleConnect]);
 
@@ -92,40 +94,95 @@ const StripeAccountTab: React.FC = () => {
                 >
                     <div className="flex flex-col gap-8 relative z-[2] justify-between">
                         <div className="flex min-w-0 flex-col gap-2">
-                            <div className="text-[#9E9E9E]">
-                                Earnings
-                            </div>
+                            <div className="text-[#9E9E9E]">Earnings</div>
                             <div className="truncate text-[22px] font-medium">
                                 {staffWalletMe?.income_amount || "0"}
                             </div>
                         </div>
                         {status === ACCOUNT_STATUS.PENDING ? (
                             <div className="flex flex-col gap-4">
-                                <div className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer" onClick={connecting ? undefined : openCountrySelect}>
-                                    <div className={`font-medium text-[18px] ${connecting ? 'opacity-50' : ''}`}>Connect With Stripe</div>
-                                    <div className={`${connecting ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
+                                <div
+                                    className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
+                                    onClick={
+                                        connecting
+                                            ? undefined
+                                            : openCountrySelect
+                                    }
+                                >
+                                    <div
+                                        className={`font-medium text-[18px] ${
+                                            connecting ? "opacity-50" : ""
+                                        }`}
+                                    >
+                                        Connect With Stripe
+                                    </div>
+                                    <div
+                                        className={`${
+                                            connecting ? "opacity-50" : ""
+                                        }`}
+                                    >
+                                        <ArrowRightIcon />
+                                    </div>
                                 </div>
-                                <div className="text-[#9E9E9E] text-[12px] font-medium">To receive payouts, connect your Stripe account.</div>
+                                <div className="text-[#9E9E9E] text-[12px] font-medium">
+                                    To receive payouts, connect your Stripe
+                                    account.
+                                </div>
                             </div>
-                        ) : ((status === ACCOUNT_STATUS.ACTIVE || status === ACCOUNT_STATUS.COMPLETE)? 
+                        ) : status === ACCOUNT_STATUS.ACTIVE ||
+                          status === ACCOUNT_STATUS.COMPLETE ? (
                             <div className="flex flex-col gap-4">
                                 <div className="flex flex-row justify-between items-center">
-                                    <div className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer" onClick={loginLoading ? undefined : handleLoginStripe}>
-                                        <div className={`font-medium text-[18px] ${loginLoading ? 'opacity-50' : ''}`}>Goto Stripe</div>
-                                        <div className={`mt-[2px] ${loginLoading ? 'opacity-50' : ''}`}><ArrowRightIcon /></div>
+                                    <div
+                                        className="text-[#ffffff] flex flex-row items-center gap-4 cursor-pointer"
+                                        onClick={
+                                            loginLoading
+                                                ? undefined
+                                                : handleLoginStripe
+                                        }
+                                    >
+                                        <div
+                                            className={`font-medium text-[18px] ${
+                                                loginLoading ? "opacity-50" : ""
+                                            }`}
+                                        >
+                                            Goto Stripe
+                                        </div>
+                                        <div
+                                            className={`mt-[2px] ${
+                                                loginLoading ? "opacity-50" : ""
+                                            }`}
+                                        >
+                                            <ArrowRightIcon />
+                                        </div>
                                     </div>
-                                    {status === ACCOUNT_STATUS.ACTIVE ? <div className="flex flex-row justify-center items-center gap-4 cursor-pointer" onClick={accountUnbind}>
-                                    <div className="text-[16px] font-medium">Unbind</div>
-                                    <img src={logoutBoxRLine} className="w-[16px]"/>
-                                </div> : null}
+                                    {status === ACCOUNT_STATUS.ACTIVE ? (
+                                        <div
+                                            className="flex flex-row justify-center items-center gap-4 cursor-pointer"
+                                            onClick={accountUnbind}
+                                        >
+                                            <div className="text-[16px] font-medium">
+                                                Unbind
+                                            </div>
+                                            <img
+                                                src={logoutBoxRLine}
+                                                className="w-[16px]"
+                                            />
+                                        </div>
+                                    ) : null}
                                 </div>
-                                <div className="text-[#9E9E9E] text-[12px] font-medium">Goto your Stripe account to receive payouts.</div>
-                            </div> : null
-                        )}
+                                <div className="text-[#9E9E9E] text-[12px] font-medium">
+                                    Goto your Stripe account to receive payouts.
+                                </div>
+                            </div>
+                        ) : null}
                     </div>
-                    <img src={stripeLogo} className="w-[200px] h-[200px] absolute top-0 md:bottom-0 right-[10px]"/>
+                    <img
+                        src={stripeLogo}
+                        className="w-[200px] h-[200px] absolute top-0 md:bottom-0 right-[10px]"
+                    />
                 </div>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                     <div
                         className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
                             activeTab === "income"
@@ -136,7 +193,27 @@ const StripeAccountTab: React.FC = () => {
                     >
                         Earnings
                     </div>
-                </div>
+                </div> */}
+                {(showNotice && status === ACCOUNT_STATUS.ACTIVE) && (
+                    <div className="px-[12px] py-[16px] bg-[rgba(31,31,31,0.04)] rounded-[12px] flex flex-col gap-2 mt-[-20px]">
+                        <div className="flex justify-between items-center font-medium">
+                            <div>Stripe account connected!</div>
+                            <div
+                                className="cursor-pointer"
+                                onClick={() => setShowNotice(false)}
+                            >
+                                <Icon name="close" size={12} className="[&>line]:stroke-[3.5px]" />
+                            </div>
+                        </div>
+                        <div className="text-[rgba(0,0,0,0.6)] text-[12px]">
+                            Your earnings will begin syncing to your Stripe account
+                            shortly. Please allow up to 3–5 business days for your
+                            current balance to appear. Future payouts will be
+                            deposited automatically.<br /> If you have any questions,
+                            please contact <span className="text-[#2A69FC]">help@mails.predictionmarkets.org</span>
+                        </div>
+                    </div>
+                )}
                 <div className="mt-[-20px]">
                     {activeTab === "income" ? (
                         <Income paginatedData={staffList} />
