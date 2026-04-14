@@ -21,7 +21,7 @@ const SettlementItems = ({ paginatedData }: Props) => {
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
-                        style={{ width: 160 }}
+                        style={{ width: 200 }}
                         align="center"
                         valign="center"
                     >
@@ -42,6 +42,14 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         valign="center"
                     >
                         Settlement Month
+                    </TableCell>
+                    <TableCell
+                        className="font-bold text-grey-700 text-center"
+                        style={{ width: 160 }}
+                        align="center"
+                        valign="center"
+                    >
+                        User Name
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center"
@@ -121,7 +129,7 @@ const SettlementItems = ({ paginatedData }: Props) => {
                         </TableCell>
                         <TableCell
                             className="text-center"
-                            style={{ width: 160 }}
+                            style={{ width: 200 }}
                             valign="center"
                         >
                             {item.settlement_item_no}
@@ -139,6 +147,13 @@ const SettlementItems = ({ paginatedData }: Props) => {
                             valign="center"
                         >
                             {item.period_month}
+                        </TableCell>
+                        <TableCell
+                            className="text-center"
+                            style={{ width: 160 }}
+                            valign="center"
+                        >
+                            {item?.username}
                         </TableCell>
                         <TableCell
                             className="text-center"
