@@ -33,16 +33,12 @@ const StripeAdminTab: React.FC = () => {
                 <div className="flex md:flex-row flex-col md:items-center justify-between gap-4 md:gap-2">
                     <div className="flex items-center gap-2">
                         <div
-                            className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
-                                activeTab === "settlement"
-                                    ? "bg-[#1F1F1F] text-white"
-                                    : "bg-[rgba(31,31,31,0.12)]"
-                            }`}
+                            className={`font-medium text-lg rounded-4xl`}
                             onClick={() => handleTabChange("settlement")}
                         >
                             Settlement
                         </div>
-                        <div
+                        {/* <div
                             className={`font-medium text-lg px-4 py-2 rounded-4xl cursor-pointer ${
                                 activeTab === "withdraw"
                                     ? "bg-[#1F1F1F] text-white"
@@ -51,7 +47,7 @@ const StripeAdminTab: React.FC = () => {
                             onClick={() => handleTabChange("withdraw")}
                         >
                             Withdraw
-                        </div>
+                        </div> */}
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-40">
