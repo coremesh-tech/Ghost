@@ -155,7 +155,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             valign="center"
                         >
                             <Button
-                                label="Funds Sharing"
+                                label="Settle"
                                 loading={item.loading || false}
                                 disabled={item.state !== "INIT"}
                                 color="black"

@@ -67,7 +67,7 @@ module.exports = {
 
         if (env !== 'production') {
             if (!webhookSecret) {
-                webhookSecret = 'DEFAULT_WEBHOOK_SECRET';
+                // webhookSecret = 'DEFAULT_WEBHOOK_SECRET';
                 logging.warn(tpl(messages.remoteWebhooksInDevelopment));
             }
         }
