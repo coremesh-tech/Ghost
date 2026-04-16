@@ -117,7 +117,7 @@ const AccountActions = () => {
                 <section>
                     <div className="gh-portal-list-detail">
                         <h3>{t("Analyst Contributor Program")}</h3>
-                        <a>{t("See more")}</a>
+                        {/* <a>{t("See more")}</a> */}
                     </div>
                     <button
                         data-test-button="edit-profile"
