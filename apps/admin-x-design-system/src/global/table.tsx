@@ -48,7 +48,7 @@ const OptionalShowMore = ({showMore}: {showMore?: ShowMoreData}) => {
     }
 
     return (
-        <div className={`text-green mt-1 flex items-center gap-2 text-sm font-bold hover:text-green-400`}>
+        <div className={`mt-1 flex items-center gap-2 text-sm font-bold text-green hover:text-green-400`}>
             <button type='button' onClick={showMore.loadMore}>Show all</button>
         </div>
     );
@@ -97,36 +97,6 @@ const Table: React.FC<TableProps> = ({
         }
     }, [isLoading, pagination]);
 
-    const mainContainerRef = React.useRef<HTMLDivElement>(null);
-
-    React.useEffect(() => {
-        const handleWheel = (e: WheelEvent) => {
-            if (horizontalScroll && mainContainerRef.current) {
-                // If it's mainly a vertical scroll (e.deltaY != 0 and deltaX == 0)
-                // and the container can actually scroll horizontally
-                const container = mainContainerRef.current;
-                const canScrollHorizontally = container.scrollWidth > container.clientWidth;
-                
-                if (canScrollHorizontally && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                    // Prevent default vertical scroll and scroll horizontally instead
-                    e.preventDefault();
-                    container.scrollLeft += e.deltaY;
-                }
-            }
-        };
-
-        const container = mainContainerRef.current;
-        if (container && horizontalScroll) {
-            container.addEventListener('wheel', handleWheel, {passive: false});
-        }
-
-        return () => {
-            if (container && horizontalScroll) {
-                container.removeEventListener('wheel', handleWheel);
-            }
-        };
-    }, [horizontalScroll]);
-
     const loadingStyle = React.useMemo(() => {
         if (tableHeight === undefined) {
             return {
@@ -152,7 +122,7 @@ const Table: React.FC<TableProps> = ({
     }, [tableHeight]);
 
     const headerClasses = clsx(
-        'border-grey-200 dark:border-grey-600 h-9 border-b'
+        'h-9 border-b border-grey-200 dark:border-grey-600'
     );
 
     /**
@@ -171,7 +141,7 @@ const Table: React.FC<TableProps> = ({
     const tableClasses = clsx(
         'w-full',
         fillContainer ? 'min-w-full' : 'w-full',
-        (borderTop || pageTitle) && 'border-grey-300 border-t',
+        (borderTop || pageTitle) && 'border-t border-grey-300',
         pageTitle ? 'mb-0 mt-14' : 'my-0',
         className
     );
@@ -193,7 +163,7 @@ const Table: React.FC<TableProps> = ({
 
     return (
         <>
-            <div ref={mainContainerRef} className={mainContainerClasses}>
+            <div className={mainContainerClasses}>
                 {pageTitle && <Heading>{pageTitle}</Heading>}
 
                 <div className={tableContainerClasses}>
