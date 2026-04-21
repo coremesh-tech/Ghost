@@ -70,9 +70,9 @@ const PROVIDERS: ReadonlyArray<Provider> = [
         name: 'gmail',
         domains: ['gmail.com', 'googlemail.com', 'google.com'],
         getDesktopLink: ({recipient, sender}) => (
-            `https://mail.google.com/mail/u/${encodeRecipientForGmailUrl(
+            `https://mail.google.com/mail/u/0/?authuser=${encodeRecipientForGmailUrl(
                 recipient
-            )}/#search/from%3A(${encodeURIComponent(
+            )}#search/from%3A(${encodeURIComponent(
                 sender
             )})+in%3Aanywhere+newer_than%3A1h`
         ),
