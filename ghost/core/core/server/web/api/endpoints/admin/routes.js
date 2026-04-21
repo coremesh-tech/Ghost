@@ -409,7 +409,12 @@ module.exports = function apiRoutes() {
 
     // Stripe Account
     router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
-    router.post('/predict_mixin/connect_url', mw.authAdminApi, http(api.predictMixin.getConnectUrl));
+    router.post('/predict_mixin/connect_url', mw.authAdminApi, (req, res, next) => {
+        // 单独处理该接口的超时时间，设置为 20s (20000 ms)
+        req.setTimeout(20000);
+        res.setTimeout(20000);
+        next();
+    }, http(api.predictMixin.getConnectUrl));
     router.get('/predict_mixin/unbind', mw.authAdminApi, http(api.predictMixin.accountUnbind));
     router.get('/predict_mixin/account_bind_sync', mw.authAdminApi, http(api.predictMixin.accountbindSync));
 
