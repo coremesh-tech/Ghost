@@ -17,6 +17,8 @@ const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
 const requestExternal = require('../../lib/request-external');
 
+const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
+
 /**
  * @returns {import('express').Application}
  */
@@ -150,7 +152,7 @@ module.exports = function setupMembersApp() {
     // Custom tracking endpoint to proxy tracking requests
     membersApp.post('/api/track/events', bodyParser.json(), async function trackEvents(req, res) {
         try {
-            const trackingUrl = 'https://api.predictionmarkets.org/market-topic';
+            const trackingUrl = `${predictionMarketsApiUrl}/market-topic`;
             const response = await requestExternal(`${trackingUrl}/api/v1/track/events`, {
                 method: 'POST',
                 headers: {
