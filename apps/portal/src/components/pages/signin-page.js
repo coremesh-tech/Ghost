@@ -8,6 +8,7 @@ import {ValidateInputForm} from '../../utils/form';
 import {hasAvailablePrices, isSigninAllowed, isSignupAllowed} from '../../utils/helpers';
 import {ReactComponent as InvitationIcon} from '../../images/icons/invitation.svg';
 import {t} from '../../utils/i18n';
+import {trackEvent} from '../../utils/tracker';
 
 export default class SigninPage extends React.Component {
     static contextType = AppContext;
@@ -125,7 +126,13 @@ export default class SigninPage extends React.Component {
                     data-test-button='signup-switch'
                     className='gh-portal-btn gh-portal-btn-link'
                     style={{color: brandColor}}
-                    onClick={() => this.context.doAction('switchPage', {page: 'signup'})}
+                    onClick={(e) => {
+                        trackEvent('signup_trigger', {
+                            source: e.currentTarget.className || 'ghost_portal_btn',
+                            text: e.currentTarget.innerText || e.currentTarget.getAttribute('aria-label') || ''
+                        });
+                        this.context.doAction('switchPage', {page: 'signup'});
+                    }}
                 >
                     <span>{t('Sign up')}</span>
                 </button>

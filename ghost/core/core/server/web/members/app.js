@@ -15,6 +15,7 @@ const api = require('../../api').endpoints;
 const commentRouter = require('../comments');
 const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
+const requestExternal = require('../../lib/request-external');
 
 /**
  * @returns {import('express').Application}
@@ -144,6 +145,29 @@ module.exports = function setupMembersApp() {
     });
     membersApp.post('/api/subscriptions/:id/apply-offer', function lazyApplyOfferMw(req, res, next) {
         return membersService.api.middleware.applyOfferToSubscription(req, res, next);
+    });
+
+    // Custom tracking endpoint to proxy tracking requests
+    membersApp.post('/api/track/events', bodyParser.json(), async function trackEvents(req, res) {
+        try {
+            const trackingUrl = 'https://test-api.predictionmarkets.org/market-topic';
+            const response = await requestExternal(`${trackingUrl}/api/v1/track/events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(req.headers['x-user-role'] ? {'X-User-Role': req.headers['x-user-role']} : {}),
+                    ...(req.headers['x-user-id'] ? {'X-User-Id': req.headers['x-user-id']} : {}),
+                    ...(req.headers['authorization'] ? {'Authorization': req.headers['authorization']} : {})
+                },
+                body: JSON.stringify(req.body)
+            });
+            
+            res.status(response.statusCode).send(response.body);
+        } catch (err) {
+            const logging = require('@tryghost/logging');
+            logging.error(err);
+            res.status(500).send('Failed to proxy tracking event');
+        }
     });
 
     // Comments

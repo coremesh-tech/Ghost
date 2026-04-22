@@ -239,8 +239,8 @@
         "clickTrackingLastSeenAtUpdater": true
     },
     "portal": {
-        "url": "/assets/umd/portal.min.js?v=2.74",
-        "version": "2.74"
+        "url": "/assets/umd/portal.min.js?v=2.75",
+        "version": "2.75"
     },
     "sodoSearch": {
         "url": "https://cdn.jsdelivr.net/ghost/sodo-search@~{version}/umd/sodo-search.min.js",
