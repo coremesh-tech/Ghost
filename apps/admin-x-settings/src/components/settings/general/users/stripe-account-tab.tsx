@@ -126,7 +126,7 @@ const StripeAccountTab: React.FC = () => {
                                 </div>
                                 <div className="text-[#9E9E9E] text-[12px] font-medium">
                                     To receive payouts, connect your Stripe
-                                    account.
+                                    account.(Supports Singapore only.)
                                 </div>
                             </div>
                         ) : status === ACCOUNT_STATUS.ACTIVE ? (

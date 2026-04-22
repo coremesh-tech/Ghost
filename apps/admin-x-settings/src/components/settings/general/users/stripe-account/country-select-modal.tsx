@@ -14,7 +14,7 @@ interface CountrySelectModalProps {
 
 const CountrySelectModal = NiceModal.create(({ onConfirm }: CountrySelectModalProps) => {
     const modal = useModal();
-    const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+    const [selectedCountry, setSelectedCountry] = useState<string | null>('SG');
 
     const handleConfirm = () => {
         if (selectedCountry) {
@@ -33,7 +33,8 @@ const CountrySelectModal = NiceModal.create(({ onConfirm }: CountrySelectModalPr
             onCancel={() => modal.remove()}
             scrolling={false}
         >
-            <div className="flex flex-col gap-4 mt-6">
+            <div className="flex flex-col gap-6 mt-2">
+                <div className="text-sm text-[rgba(0,0,0,0.8)]">Supports Singapore only</div>
                 <Select
                     options={countryOptions}
                     prompt="Select country"
