@@ -237,7 +237,7 @@ function ContributorUserMenu() {
                 <UserMenuItem>
                     <a href={boardGuidanceUrl} target="_blank" rel="noopener noreferrer">
                         <LucideIcon.Compass />
-                        <UserMenuItem.Label>Onboard guidance</UserMenuItem.Label>
+                        <UserMenuItem.Label>Onboarding</UserMenuItem.Label>
                     </a>
                 </UserMenuItem>
                 <DropdownMenuSeparator />
