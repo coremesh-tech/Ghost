@@ -15,7 +15,7 @@
     "@tryghost/activitypub": "*",
     "@tryghost/admin-x-framework": "*",
     "@tryghost/admin-x-settings": "*",
-    "@tryghost/koenig-lexical": "1.7.20",
+    "@tryghost/koenig-lexical": "https://test.predictionmarkets.org/assets/koeing/tryghost-koenig-lexical-1.8.1.tgz",
     "@tryghost/posts": "*",
     "@tryghost/shade": "*",
     "@tryghost/stats": "*",
