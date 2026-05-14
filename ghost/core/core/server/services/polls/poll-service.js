@@ -52,7 +52,7 @@ function buildPollViewerHeaders(member) {
 async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {}) {
     const header = {}
     if(token) {
-        header['Authorization'] = token;
+        header['Authorization'] = `Bearer ${token}`;
     }
     const response = await requestExternal(`${getPollApiBaseUrl()}${path}`, {
         method,
