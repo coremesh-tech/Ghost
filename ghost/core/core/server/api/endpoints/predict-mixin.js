@@ -106,6 +106,7 @@ const api = {
     adminSettlementItems: (settlement_no, pagination) => `${predictionMarketsApiUrl}/predict-mixin/admin/settlement/items/${settlement_no}?${qs.stringify(pagination)}`,
     adminSettlementTransfer: () => `${predictionMarketsApiUrl}/predict-mixin/admin/settlement/transfer`,
     adminWithdrawList: (body) => `${predictionMarketsApiUrl}/predict-mixin/admin/withdraw/list?${qs.stringify(body)}`,
+    adminTrackingPostEventCounts: () => `${predictionMarketsApiUrl}/predict-mixin/admin/tracking/post-event-counts/query`,
 };
 
 /** @type {import('@tryghost/api-framework').Controller} */
@@ -292,6 +293,15 @@ const controller = {
         query: frame => requestWithSession(frame, {
             url: api.adminWithdrawList(frame.original.body),
             method: 'GET'
+        })
+    },
+
+    adminTrackingPostEventCounts: {
+        ...controllerConfig,
+        query: frame => requestWithSession(frame, {
+            url: api.adminTrackingPostEventCounts(),
+            method: 'POST',
+            body: JSON.stringify(frame.original.body)
         })
     },
 };

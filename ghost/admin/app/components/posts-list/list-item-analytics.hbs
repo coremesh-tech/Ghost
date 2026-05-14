@@ -460,6 +460,39 @@
                     </LinkTo>
                 {{/if}}
             {{/if}}
+
+            {{#if @post.isPublished}}
+                <div class="gh-list-data gh-post-list-metrics gh-post-list-analytics-tt-container">
+                    <div class="gh-post-list-analytics-tooltip {{this.tooltipPosition}}">
+                        <h3>Reads</h3>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="data">
+                                    {{svg-jar "analytics-visitors"}}
+                                    Reading volume
+                                </div>
+                                <span>
+                                    {{#if this.hasReadData}}
+                                        {{format-number this.readCount}}
+                                    {{else}}
+                                        0
+                                    {{/if}}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gh-post-list-analytics-metric" data-test-analytics-reads>
+                        {{svg-jar "analytics-visitors" class="gh-list-analytics-icon"}}
+                        <span class="gh-content-email-stats-value">
+                            {{#if this.hasReadData}}
+                                {{abbreviate-number this.readCount}}
+                            {{else}}
+                                0
+                            {{/if}}
+                        </span>
+                    </div>
+                </div>
+            {{/if}}
         </div>
 
         {{!-- Button column --}}

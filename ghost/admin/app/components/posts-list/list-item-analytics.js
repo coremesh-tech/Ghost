@@ -62,6 +62,14 @@ export default class PostsListItemClicks extends Component {
         return this.memberCounts !== null;
     }
 
+    get readCount() {
+        return this.postAnalytics.getReadCount(this.post.id);
+    }
+
+    get hasReadData() {
+        return this.readCount !== null;
+    }
+
     get totalMemberConversions() {
         if (!this.memberCounts) {
             return 0;

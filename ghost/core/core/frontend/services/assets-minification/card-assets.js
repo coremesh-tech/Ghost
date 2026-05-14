@@ -5,6 +5,10 @@ const config = require('../../../shared/config');
 const Minifier = require('./minifier');
 const AssetsMinificationBase = require('./assets-minification-base');
 
+const CARD_JS_DEPENDENCIES = {
+    poll: ['poll-lightweight-charts']
+};
+
 module.exports = class CardAssets extends AssetsMinificationBase {
     constructor(options = {}) {
         super(options);
@@ -35,23 +39,39 @@ module.exports = class CardAssets extends AssetsMinificationBase {
         // CASE: the theme has declared an include directive, we should include exactly these assets
         // Include rules take precedence over exclude rules.
         if (_.has(this.config, 'include')) {
+            const include = this.expandCardNames(this.config.include);
             return {
                 'cards.min.css': `css/@(${this.config.include.join('|')}).css`,
-                'cards.min.js': `js/@(${this.config.include.join('|')}).js`
+                'cards.min.js': `js/@(${include.join('|')}).js`
             };
         }
 
         // CASE: the theme has declared an exclude directive, we should include exactly these assets
         if (_.has(this.config, 'exclude')) {
+            const exclude = this.expandCardNames(this.config.exclude);
             return {
                 'cards.min.css': `css/!(${this.config.exclude.join('|')}).css`,
-                'cards.min.js': `js/!(${this.config.exclude.join('|')}).js`
+                'cards.min.js': `js/!(${exclude.join('|')}).js`
             };
         }
 
         // CASE: theme has asked that no assets be included
         // CASE: we didn't understand config, don't do anything
         return {};
+    }
+
+    expandCardNames(names = []) {
+        const expanded = new Set(names);
+
+        for (const name of names) {
+            const dependencies = CARD_JS_DEPENDENCIES[name] || [];
+
+            for (const dependency of dependencies) {
+                expanded.add(dependency);
+            }
+        }
+
+        return Array.from(expanded);
     }
 
     hasFile(type) {

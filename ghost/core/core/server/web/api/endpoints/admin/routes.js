@@ -457,6 +457,8 @@ module.exports = function apiRoutes() {
     router.post('/predict_mixin/admin_settlement_transfer', mw.authAdminApi, http(api.predictMixin.adminSettlementTransfer));
     // Admin Withdraw List
     router.post('/predict_mixin/admin_withdraw_list', mw.authAdminApi, http(api.predictMixin.adminWithdrawList));
+    // Admin Tracking Post Event Counts
+    router.post('/predict_mixin/admin_tracking_post_event_counts', mw.authAdminApi, http(api.predictMixin.adminTrackingPostEventCounts));
 
     return router;
 };

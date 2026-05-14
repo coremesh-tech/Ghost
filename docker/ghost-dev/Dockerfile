@@ -27,6 +27,7 @@ COPY ghost/parse-email-address/package.json ghost/parse-email-address/package.js
 # Note: Dependencies are installed at build time, but source code is mounted at runtime
 COPY .github/scripts/install-deps.sh .github/scripts/install-deps.sh
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn,id=yarn-cache \
+    --mount=type=secret,id=npmrc,target=/root/.npmrc,required=false \
     bash .github/scripts/install-deps.sh
 
 # Copy entrypoint script that optionally loads Tinybird config

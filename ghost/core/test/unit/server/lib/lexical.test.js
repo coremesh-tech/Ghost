@@ -51,6 +51,43 @@ describe('lib/lexical', function () {
             assert(rendered.includes('<div class="kg-card kg-audio-card">'));
         });
 
+        it('renders custom poll cards', async function () {
+            const lexicalState = JSON.stringify({
+                root: {
+                    children: [
+                        {
+                            type: 'poll',
+                            version: 1,
+                            pollId: 'poll_123',
+                            title: 'What should we ship next?',
+                            description: 'Choose the feature you want first.',
+                            pollType: 'single',
+                            status: 'published',
+                            answerRevealed: false,
+                            selectedOptionIds: ['option_b'],
+                            correctOptionIds: [],
+                            options: [
+                                {id: 'option_a', text: 'Native polls', voteCount: 8, voteRate: 40},
+                                {id: 'option_b', text: 'Theme hydration', voteCount: 12, voteRate: 60}
+                            ],
+                            totalVotes: 20
+                        }
+                    ],
+                    direction: null,
+                    format: '',
+                    indent: 0,
+                    type: 'root',
+                    version: 1
+                }
+            });
+
+            const rendered = await lexicalLib.render(lexicalState);
+
+            assert(rendered.includes('kg-poll-card'));
+            assert(rendered.includes('data-poll-id="poll_123"'));
+            assert(rendered.includes('Theme hydration'));
+        });
+
         it(`calls custom renderers`, async function () {
             const {JSDOM} = jsdom;
             const dom = new JSDOM();

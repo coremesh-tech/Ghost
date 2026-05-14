@@ -36,6 +36,8 @@ class PostsInfinityModel extends InfinityModel {
             if (this.settings.membersTrackSources) {
                 promises.push(this.postAnalytics.loadMemberCounts(publishedPosts));
             }
+
+            promises.push(this.postAnalytics.loadReadCounts(publishedPosts));
         }
 
         if (promises.length > 0) {
@@ -305,6 +307,8 @@ export default class PostsRoute extends AuthenticatedRoute {
         if (this.settings.membersTrackSources) {
             promises.push(this.postAnalytics.loadMemberCounts(posts));
         }
+
+        promises.push(this.postAnalytics.loadReadCounts(posts));
 
         if (promises.length > 0) {
             await Promise.all(promises);

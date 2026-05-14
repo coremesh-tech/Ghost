@@ -56,6 +56,10 @@ services:
     build:
       context: ./
       dockerfile: docker/ghost-dev/Dockerfile
+      extra_hosts:
+        - "verdaccio.local:host-gateway"
+      secrets:
+        - npmrc
     container_name: ghost-dev
     working_dir: /home/ghost/ghost/core
     command: ["yarn", "dev"]
@@ -145,6 +149,10 @@ volumes:
   ghost-dev-media:
   ghost-dev-files:
   ghost-dev-logs:
+
+secrets:
+  npmrc:
+    file: ./.npmrc
 
 networks:
   default:

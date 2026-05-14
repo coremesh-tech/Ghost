@@ -16,6 +16,7 @@ const commentRouter = require('../comments');
 const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
 const requestExternal = require('../../lib/request-external');
+const pollsService = require('../../services/polls/poll-service');
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 
@@ -65,6 +66,107 @@ module.exports = function setupMembersApp() {
 
     membersApp.put('/api/member', bodyParser.json({limit: '50mb'}), middleware.updateMemberData);
     membersApp.post('/api/member/email', bodyParser.json({limit: '50mb'}), (req, res, next) => membersService.api.middleware.updateEmailAddress(req, res, next));
+
+    membersApp.get('/api/polls/:id',
+        middleware.loadMemberSession,
+        async function getPoll(req, res, next) {
+            try {
+                const response = await pollsService.getContentPoll(req.params.id, req.member);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    membersApp.get('/api/polls/:id/votes',
+        middleware.loadMemberSession,
+        async function getPollVotes(req, res, next) {
+            try {
+                const response = await pollsService.getContentPollVotes(req.params.id, req.member);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    // 趋势接口 (代理到外部 prediction-markets 的 /admin/polls/:id/trends)
+    // 给 reading mode 的图表组件用 — 接受可选 from/to/resolution query 参数.
+    membersApp.get('/api/polls/:id/trends',
+        middleware.loadMemberSession,
+        async function getPollTrends(req, res, next) {
+            try {
+                const response = await pollsService.getContentPollTrends(
+                    req.params.id,
+                    {
+                        from: req.query.from,
+                        to: req.query.to,
+                        resolution: req.query.resolution
+                    },
+                    req.member
+                );
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    membersApp.post('/api/polls/:id/votes',
+        bodyParser.json({limit: '5mb'}),
+        middleware.loadMemberSession,
+        async function postPollVote(req, res, next) {
+            try {
+                if (!req.member) {
+                    return res.status(401).json({
+                        ok: false,
+                        error: {
+                            code: 'LOGIN_REQUIRED',
+                            message: 'Sign in to vote'
+                        },
+                        meta: {
+                            logged_in: false,
+                            member_uuid: null
+                        }
+                    });
+                }
+
+                const response = await pollsService.submitPollVote(req.params.id, req.body, req.member);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: true,
+                        member_uuid: req.member.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
 
     // Member offers (retention etc.)
     membersApp.post('/api/member/offers', bodyParser.json(), function lazyGetMemberOffersMw(req, res, next) {

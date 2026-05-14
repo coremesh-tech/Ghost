@@ -15,7 +15,8 @@ let serializePosts;
 
 function populateNodes() {
     const {DEFAULT_NODES} = require('@tryghost/kg-default-nodes');
-    nodes = DEFAULT_NODES;
+    const PollNode = require('./lexical-nodes/poll-node');
+    nodes = [...DEFAULT_NODES, PollNode];
 }
 
 module.exports = {
