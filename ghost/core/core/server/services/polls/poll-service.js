@@ -59,6 +59,7 @@ async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {
         headers: {
             'Content-Type': 'application/json',
             "Accept": "application/json",
+            ...buildPollViewerHeaders(member),
             ...header,
         },
         body: body ? JSON.stringify(body) : undefined
