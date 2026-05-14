@@ -547,9 +547,6 @@
             ? formatHoverDateTime(new Date(activeBucket.chartMs))
             : '';
 
-        controller.crosshairElement.hidden = !isHovering;
-        controller.crosshairElement.style.left = `${activeX}px`;
-
         const labelMinY = 10;
         const labelMaxY = Math.max(labelMinY, height - 10);
 
@@ -565,6 +562,18 @@
                 color: seriesRef.color
             };
         });
+
+        const crosshairTop = Math.round(Math.max(0, Math.min.apply(null, activePositions.map(function (position) {
+            return position.y;
+        }))));
+        const crosshairBottom = Math.round(Math.min(height, Math.max.apply(null, activePositions.map(function (position) {
+            return position.y;
+        }))));
+
+        controller.crosshairElement.hidden = !isHovering;
+        controller.crosshairElement.style.left = `${activeX}px`;
+        controller.crosshairElement.style.top = `${crosshairTop}px`;
+        controller.crosshairElement.style.bottom = `${Math.max(height - crosshairBottom, 0)}px`;
 
         const labelLayout = resolveLabelLayout(activePositions.map(function (position) {
             return {
