@@ -50,17 +50,13 @@ function buildPollViewerHeaders(member) {
 }
 
 async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {}) {
-    const header = {}
-    if(token) {
-        header['Authorization'] = `Bearer ${token}`;
-    }
     const response = await requestExternal(`${getPollApiBaseUrl()}${path}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
             "Accept": "application/json",
             ...buildPollViewerHeaders(member),
-            ...header,
+            ...(token ? {Authorization: `Bearer ${token}`} : {})
         },
         body: body ? JSON.stringify(body) : undefined
     });
@@ -106,11 +102,14 @@ async function getContentPollTrends(pollId, params = {}, member) {
 }
 
 async function submitPollVote(pollId, payload, member, req) {
+    const authorization = req?.headers?.authorization || '';
+    const token = authorization.replace(/^Bearer\s+/i, '').trim();
+
     return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {
         method: 'POST',
         body: payload,
         member,
-        token: req.headers['Authorization'] || ''
+        token
     });
 }
 
