@@ -460,5 +460,15 @@ module.exports = function apiRoutes() {
     // Admin Tracking Post Event Counts
     router.post('/predict_mixin/admin_tracking_post_event_counts', mw.authAdminApi, http(api.predictMixin.adminTrackingPostEventCounts));
 
+    // Polls
+    router.post('/polls_mixin/admin/polls', mw.authAdminApi, http(api.pollsMixin.saveAdminPoll));
+    router.get('/polls_mixin/admin/polls/:poll_id', mw.authAdminApi, http(api.pollsMixin.getAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/publish', mw.authAdminApi, http(api.pollsMixin.publishAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/unpublish', mw.authAdminApi, http(api.pollsMixin.unpublishAdminPoll));
+    router.del('/polls_mixin/admin/polls/:poll_id', mw.authAdminApi, http(api.pollsMixin.deleteAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/reveal-answer', mw.authAdminApi, http(api.pollsMixin.revealAdminPollAnswer));
+    router.get('/polls_mixin/admin/polls/:poll_id/votes', mw.authAdminApi, http(api.pollsMixin.getAdminPollVotes));
+    router.get('/polls_mixin/admin/polls/:poll_id/trends', mw.authAdminApi, http(api.pollsMixin.getAdminPollTrends));
+
     return router;
 };

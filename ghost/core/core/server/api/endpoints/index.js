@@ -181,6 +181,10 @@ module.exports = {
         return apiFramework.pipeline(require('./predict-mixin'), localUtils);
     },
 
+    get pollsMixin() {
+        return apiFramework.pipeline(require('./polls-mixin'), localUtils);
+    },
+
     get snippets() {
         return apiFramework.pipeline(require('./snippets'), localUtils);
     },
