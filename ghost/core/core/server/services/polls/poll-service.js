@@ -49,14 +49,17 @@ function buildPollViewerHeaders(member) {
     };
 }
 
-async function proxyPollApi(path, {method = 'GET', body, member, headers = {}} = {}) {
+async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {}) {
+    const header = {}
+    if(token) {
+        header['Authorization'] = token;
+    }
     const response = await requestExternal(`${getPollApiBaseUrl()}${path}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
             "Accept": "application/json",
-            ...buildPollViewerHeaders(member),
-            ...headers
+            ...header,
         },
         body: body ? JSON.stringify(body) : undefined
     });
@@ -106,7 +109,7 @@ async function submitPollVote(pollId, payload, member, req) {
         method: 'POST',
         body: payload,
         member,
-        headers: req.headers
+        token: req.headers['Authorization'] || ''
     });
 }
 
