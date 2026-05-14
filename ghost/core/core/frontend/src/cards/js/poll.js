@@ -22,7 +22,7 @@
         }
 
         if (percent >= 100) {
-            return 'calc(100% - 36px)';
+            return '100% ';
         }
 
         return `calc(${percent}% - ${(36 * percent / 100).toFixed(2)}px)`;
