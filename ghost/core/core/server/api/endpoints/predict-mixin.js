@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const qs = require('qs');
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
+// const predictionMarketsApiUrl = "http://host.docker.internal:3000";
 
 const generateCookie = (sessionId) => {
     if (!sessionId) {

@@ -7,7 +7,7 @@
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    padding: 32px;
+    padding: 32px !important;
     border-radius: 20px;
     background: #232120;
     color: #fff;
@@ -120,19 +120,18 @@
     align-items: center;
     gap: 8px;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 1.5rem;
-    line-height: 1;
 }
 
 .kg-poll-card-chart-legend-dot {
     display: inline-block;
-    width: 0.9rem;
-    height: 0.9rem;
+    width: 10px;
+    height: 10px;
     border-radius: 999px;
 }
 
 .kg-poll-card-chart-legend-text {
     display: inline-block;
+    font-size: 16px;
 }
 
 .kg-poll-card-chart-plot {
@@ -208,8 +207,8 @@
     display: flex;
     align-items: center;
     min-height: 14px;
-    font-size: 1.2rem;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     line-height: 14px;
     white-space: nowrap;
     text-shadow:
@@ -343,10 +342,10 @@
     flex-shrink: 0;
     margin-left: 8px;
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: 4px;
     background: #0caa27;
     color: #fff;
-    font-size: 1.25rem;
+    font-size: 16px;
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: 0.2px;
@@ -371,8 +370,6 @@
     overflow: hidden;
     border-radius: 12px;
     color: #fff;
-    font-size: 1.85rem;
-    font-weight: 600;
     transition: background-color 180ms ease, color 180ms ease;
 }
 
@@ -393,7 +390,11 @@
     /* 右侧"✓ + 百分比"在任何情况下都不收缩, 由左侧 label 让出空间, 不会被挤换行 */
     flex-shrink: 0;
     color: #fff;
-    font-size: 1.8rem;
+    font-size: 12px;
+}
+
+.kg-poll-card-option-rate {
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -444,7 +445,6 @@
     gap: 16px;
     margin-top: 32px;
     color: rgba(255, 255, 255, 0.42);
-    font-size: 1.55rem;
 }
 
 .kg-poll-card-meta-status {
@@ -623,11 +623,6 @@ body.kg-poll-dialog-open {
         align-items: flex-start;
         flex-direction: column;
         gap: 12px;
-    }
-
-    .kg-poll-card-option-text,
-    .kg-poll-card-option-result {
-        font-size: 1.6rem;
     }
 
     .kg-poll-card-meta {

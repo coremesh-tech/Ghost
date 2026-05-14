@@ -9439,10 +9439,10 @@
   dependencies:
     semver "^7.7.3"
 
-"@tryghost/koenig-lexical@1.7.20-poll.22":
-  version "1.7.20-poll.22"
-  resolved "http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.22.tgz#ec1671681c1b3547457a82c5a41900c02fa6969b"
-  integrity sha1-7BZxaBwbNUdFeoLFpBkAwC+mlps=
+"@tryghost/koenig-lexical@1.7.20-poll.23":
+  version "1.7.20-poll.23"
+  resolved "http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.23.tgz#03c6e0bc26605da7c9b9e7171601611596dc159e"
+  integrity sha1-A8bgvCZgXafJuecXFgFhFZbcFZ4=
 
 "@tryghost/limit-service@1.4.1":
   version "1.4.1"

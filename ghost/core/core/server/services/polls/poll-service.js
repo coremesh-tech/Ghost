@@ -2,6 +2,7 @@ const db = require('../../data/db');
 const errors = require('@tryghost/errors');
 const requestExternal = require('../../lib/request-external');
 const config = require('../../../shared/config');
+const logger = require('@tryghost/logging');
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 // const predictionMarketsApiUrl = "http://host.docker.internal:3000";
@@ -48,13 +49,13 @@ function buildPollViewerHeaders(member) {
     };
 }
 
-async function proxyPollApi(path, {method = 'GET', body, member} = {}) {
+async function proxyPollApi(path, {method = 'GET', body, member, headers = {}} = {}) {
     const response = await requestExternal(`${getPollApiBaseUrl()}${path}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
-            ...buildPollViewerHeaders(member)
+            ...buildPollViewerHeaders(member),
+            ...headers
         },
         body: body ? JSON.stringify(body) : undefined
     });
@@ -99,11 +100,13 @@ async function getContentPollTrends(pollId, params = {}, member) {
     return proxyPollApi(`/admin/polls/${encodeURIComponent(pollId)}/trends${query}`, {member});
 }
 
-async function submitPollVote(pollId, payload, member) {
+async function submitPollVote(pollId, payload, member, req) {
+    logger.info(`submitPollVote: ${pollId}, ${JSON.stringify(payload)}`);
     return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {
         method: 'POST',
         body: payload,
-        member
+        member,
+        headers: req.headers
     });
 }
 

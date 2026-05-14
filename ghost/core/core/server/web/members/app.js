@@ -17,6 +17,7 @@ const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
 const requestExternal = require('../../lib/request-external');
 const pollsService = require('../../services/polls/poll-service');
+const logger = require("@tryghost/logging");
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 
@@ -153,7 +154,7 @@ module.exports = function setupMembersApp() {
                     });
                 }
 
-                const response = await pollsService.submitPollVote(req.params.id, req.body, req.member);
+                const response = await pollsService.submitPollVote(req.params.id, req.body, req.member, req);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),

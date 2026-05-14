@@ -1635,9 +1635,15 @@
         renderPoll(card, state);
 
         try {
+            const res = await fetch(`/members/api/session/`, {credentials: 'include'});
+            const token = await res.text();
             const response = await fetchJson(`/members/api/polls/${encodeURIComponent(state.pollId)}/votes`, {
                 method: 'POST',
-                body: JSON.stringify(voteRequest)
+                body: JSON.stringify(voteRequest),
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
             });
 
             if (!response.ok || !response.payload) {
