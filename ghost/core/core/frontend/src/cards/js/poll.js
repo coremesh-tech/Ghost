@@ -123,8 +123,7 @@
             candidates.push(trimmed);
         };
 
-        pushCandidate(window.__GHOST_POLL_STREAM_BASE_URL__);
-        pushCandidate(`${window.location.origin}/market-topic`);
+        pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');

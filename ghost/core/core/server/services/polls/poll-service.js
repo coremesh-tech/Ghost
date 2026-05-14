@@ -54,6 +54,7 @@ async function proxyPollApi(path, {method = 'GET', body, member, headers = {}} =
         method,
         headers: {
             'Content-Type': 'application/json',
+            "Accept": "application/json",
             ...buildPollViewerHeaders(member),
             ...headers
         },
@@ -101,7 +102,6 @@ async function getContentPollTrends(pollId, params = {}, member) {
 }
 
 async function submitPollVote(pollId, payload, member, req) {
-    logger.info(`submitPollVote: ${pollId}, ${JSON.stringify(payload)}`);
     return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {
         method: 'POST',
         body: payload,
