@@ -138,15 +138,13 @@
     position: relative;
     flex: 1;
     min-height: 0;
-    padding-top: 32px;
-    padding-bottom: 18px;
     cursor: crosshair;
 }
 
 .kg-poll-card-chart-surface,
 .kg-poll-card-chart-overlay {
     position: absolute;
-    inset: 32px 0 18px;
+    inset: 20px 0 10px;
 }
 
 .kg-poll-card-chart-surface {
@@ -161,8 +159,8 @@
 
 .kg-poll-card-chart-crosshair {
     position: absolute;
-    top: 30px;
-    bottom: 30px;
+    top: 18px;
+    bottom: 18px;
     width: 1px;
     background: rgba(255, 255, 255, 0.22);
     transform: translateX(-50%);
@@ -648,8 +646,6 @@ body.kg-poll-dialog-open {
     }
 
     .kg-poll-card-option-content {
-        align-items: flex-start;
-        flex-direction: column;
         gap: 12px;
     }
 

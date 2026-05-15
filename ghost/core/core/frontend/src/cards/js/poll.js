@@ -295,7 +295,7 @@
 
     const CHART_RATE_MIN = 0;
     const CHART_RATE_MAX = 100;
-    const SCALE_MARGIN_TOP = 0.14;
+    const SCALE_MARGIN_TOP = 0.08;
     const SCALE_MARGIN_BOTTOM = 0.1;
 
     const toChartTimestamp = function (value) {
