@@ -124,6 +124,7 @@
         };
 
         pushCandidate(`https://api.predictionmarkets.org/market-topic`);
+        // pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');
@@ -1134,9 +1135,14 @@
         }
     };
 
-    const refreshVotes = async function (card, state) {
-        // 同时刷新 trends, 让图表反映最新一票. 即使 trends 失败也不影响主体投票流程.
-        refreshTrends(card, state);
+    const refreshVotes = async function (card, state, options) {
+        const shouldRefreshTrends = !options || options.refreshTrends !== false;
+
+        // 页面初始化 / reload 时仍然允许带上 trends 刷新;
+        // 但投票、改票、取消投票后的刷新会显式关掉，避免用旧快照覆盖 SSE 的最新 trend_point.
+        if (shouldRefreshTrends) {
+            refreshTrends(card, state);
+        }
 
         const votesResponse = await fetchJson(`/members/api/polls/${encodeURIComponent(state.pollId)}/votes`);
 
@@ -1811,7 +1817,7 @@
 
             if (!response.ok || !response.payload) {
                 const code = response.payload && response.payload.error && response.payload.error.code;
-                const refreshedState = await refreshVotes(card, state).catch(function () {
+                const refreshedState = await refreshVotes(card, state, {refreshTrends: false}).catch(function () {
                     return null;
                 });
                 if (!refreshedState) {
@@ -1854,14 +1860,14 @@
                 } : option;
             });
 
-            const refreshedState = await refreshVotes(card, state).catch(function () {
+            const refreshedState = await refreshVotes(card, state, {refreshTrends: false}).catch(function () {
                 return null;
             });
 
             setFeedback(card, '', '');
             renderPoll(card, refreshedState || card.__kgPollState || state);
         } catch (err) {
-            const refreshedState = await refreshVotes(card, state).catch(function () {
+            const refreshedState = await refreshVotes(card, state, {refreshTrends: false}).catch(function () {
                 return null;
             });
             if (!refreshedState) {
