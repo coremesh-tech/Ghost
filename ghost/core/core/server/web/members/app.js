@@ -75,7 +75,7 @@ module.exports = function setupMembersApp() {
                 const token = req.member
                     ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
                     : '';
-                const response = await pollsService.getContentPoll(req.params.id, req.member, token);
+                const response = await pollsService.getContentPoll(req.params.id, req.member, token, req);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),
@@ -97,7 +97,7 @@ module.exports = function setupMembersApp() {
                 const token = req.member
                     ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
                     : '';
-                const response = await pollsService.getContentPollVotes(req.params.id, req.member, token);
+                const response = await pollsService.getContentPollVotes(req.params.id, req.member, token, req);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),
@@ -125,7 +125,8 @@ module.exports = function setupMembersApp() {
                         to: req.query.to,
                         resolution: req.query.resolution
                     },
-                    req.member
+                    req.member,
+                    req
                 );
 
                 return res.status(response.statusCode).json({
@@ -146,27 +147,13 @@ module.exports = function setupMembersApp() {
         middleware.loadMemberSession,
         async function postPollVote(req, res, next) {
             try {
-                if (!req.member) {
-                    return res.status(401).json({
-                        ok: false,
-                        error: {
-                            code: 'LOGIN_REQUIRED',
-                            message: 'Sign in to vote'
-                        },
-                        meta: {
-                            logged_in: false,
-                            member_uuid: null
-                        }
-                    });
-                }
-
                 const response = await pollsService.submitPollVote(req.params.id, req.body, req.member, req);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),
                     meta: {
-                        logged_in: true,
-                        member_uuid: req.member.uuid || null
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
                     }
                 });
             } catch (err) {

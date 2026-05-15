@@ -49,13 +49,25 @@ function buildPollViewerHeaders(member) {
     };
 }
 
-async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {}) {
+function buildPollGuestHeaders(req) {
+    const guestId = req?.get?.('X-Guest-Id') || req?.headers?.['x-guest-id'] || '';
+    if (!guestId) {
+        return {};
+    }
+
+    return {
+        'X-Guest-Id': String(guestId).trim()
+    };
+}
+
+async function proxyPollApi(path, {method = 'GET', body, member, token = '', req} = {}) {
     const response = await requestExternal(`${getPollApiBaseUrl()}${path}`, {
         method,
         headers: {
             'Content-Type': 'application/json',
             "Accept": "application/json",
             ...buildPollViewerHeaders(member),
+            ...buildPollGuestHeaders(req),
             ...(token ? {Authorization: `Bearer ${token}`} : {})
         },
         body: body ? JSON.stringify(body) : undefined
@@ -67,12 +79,12 @@ async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {
     };
 }
 
-async function getContentPoll(pollId, member, token = '') {
-    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}`, {member, token});
+async function getContentPoll(pollId, member, token = '', req) {
+    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}`, {member, token, req});
 }
 
-async function getContentPollVotes(pollId, member, token = '') {
-    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {member, token});
+async function getContentPollVotes(pollId, member, token = '', req) {
+    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {member, token, req});
 }
 
 /**
@@ -85,7 +97,7 @@ async function getContentPollVotes(pollId, member, token = '') {
  * @param {{from?: string, to?: string, resolution?: string}} [params]
  * @param {object} [member]
  */
-async function getContentPollTrends(pollId, params = {}, member) {
+async function getContentPollTrends(pollId, params = {}, member, req) {
     const search = new URLSearchParams();
     if (params.from) {
         search.set('from', params.from);
@@ -98,7 +110,7 @@ async function getContentPollTrends(pollId, params = {}, member) {
     }
     const query = search.toString() ? `?${search.toString()}` : '';
 
-    return proxyPollApi(`/admin/polls/${encodeURIComponent(pollId)}/trends${query}`, {member});
+    return proxyPollApi(`/admin/polls/${encodeURIComponent(pollId)}/trends${query}`, {member, req});
 }
 
 async function submitPollVote(pollId, payload, member, req) {
@@ -109,7 +121,8 @@ async function submitPollVote(pollId, payload, member, req) {
         method: 'POST',
         body: payload,
         member,
-        token
+        token,
+        req
     });
 }
 

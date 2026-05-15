@@ -1,5 +1,6 @@
 (function () {
     const numberFormatter = new Intl.NumberFormat('en-US');
+    const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
 
     // 与 Koenig 编辑器 PollTrendChart 保持一致的固定调色板
     const TREND_PALETTE = [
@@ -123,8 +124,8 @@
             candidates.push(trimmed);
         };
 
-        pushCandidate(`https://api.predictionmarkets.org/market-topic`);
-        // pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
+        // pushCandidate(`https://api.predictionmarkets.org/market-topic`);
+        pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');
@@ -928,6 +929,43 @@
         return `${numberFormatter.format(Number(value || 0))} Votes`;
     };
 
+    const buildGuestId = function () {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+
+        return `guest-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+    };
+
+    const readStoredGuestId = function () {
+        return localStorage.getItem(POLL_GUEST_ID_STORAGE_KEY) || '';
+    };
+
+    const persistGuestId = function (guestId) {
+        const normalizedGuestId = String(guestId || '').trim();
+        if (!normalizedGuestId) {
+            return '';
+        }
+
+        try {
+            if (window.localStorage) {
+                window.localStorage.setItem(POLL_GUEST_ID_STORAGE_KEY, normalizedGuestId);
+            }
+        } catch (err) {
+            // ignore storage errors
+        }
+        return normalizedGuestId;
+    };
+
+    const ensureGuestId = function () {
+        const existingGuestId = readStoredGuestId();
+        if (existingGuestId) {
+            return persistGuestId(existingGuestId);
+        }
+
+        return persistGuestId(buildGuestId());
+    };
+
     const getSelectionStorageKey = function (pollId, memberUuid) {
         const normalizedPollId = String(pollId || '').trim();
         const normalizedMemberUuid = String(memberUuid || '').trim();
@@ -993,14 +1031,18 @@
     };
 
     const fetchJson = async function (url, options) {
+        const guestId = readStoredGuestId();
+        const requestOptions = options || {};
+        const requestHeaders = requestOptions.headers || {};
         const response = await fetch(url, {
             credentials: 'same-origin',
+            ...requestOptions,
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
-                ...(options && options.headers ? options.headers : {})
-            },
-            ...options
+                ...(guestId ? {'X-Guest-Id': guestId} : {}),
+                ...requestHeaders
+            }
         });
 
         const payload = await response.json().catch(function () {
@@ -1160,6 +1202,7 @@
             publishedAt: state.publishedAt,
             createdAt: state.createdAt,
             pollType: state.pollType,
+            allowAnonymousVote: state.allowAnonymousVote,
             status: state.status,
             answerRevealed: state.answerRevealed,
             options: state.options.map(function (option, index) {
@@ -1168,6 +1211,7 @@
             viewer: {
                 hasVoted: state.hasVoted,
                 canVote: state.canVote,
+                canInteract: state.canInteract,
                 selectedOptionIds: state.selectedOptionIds
             },
             meta: {
@@ -1205,6 +1249,7 @@
             publishedAt: payload && (payload.published_at || payload.publishedAt) || '',
             createdAt: payload && (payload.created_at || payload.createdAt) || '',
             pollType: payload && (payload.poll_type || payload.pollType) || 'single',
+            allowAnonymousVote: Boolean(payload && (payload.allow_anonymous_vote ?? payload.allowAnonymousVote)),
             status: payload && payload.status || 'draft',
             answerRevealed: Boolean(payload && (payload.answer_revealed ?? payload.answerRevealed)),
             options: options.map(normalizeOption).sort(function (left, right) {
@@ -1213,6 +1258,7 @@
             viewer: {
                 hasVoted: Boolean(viewer.has_voted || viewer.hasVoted),
                 canVote: Boolean(viewer.can_vote ?? viewer.canVote),
+                canInteract: Boolean(viewer.can_interact ?? viewer.canInteract),
                 selectedOptionIds: Array.isArray(viewer.selected_option_ids || viewer.selectedOptionIds) ? (viewer.selected_option_ids || viewer.selectedOptionIds).map(String) : []
             },
             meta: payload && payload.meta ? payload.meta : {}
@@ -1229,6 +1275,8 @@
             options: options.map(normalizeOption),
             viewer: {
                 hasVoted: Boolean(viewer.has_voted || viewer.hasVoted),
+                canVote: Boolean(viewer.can_vote ?? viewer.canVote),
+                canInteract: Boolean(viewer.can_interact ?? viewer.canInteract),
                 selectedOptionIds: Array.isArray(viewer.selected_option_ids || viewer.selectedOptionIds) ? (viewer.selected_option_ids || viewer.selectedOptionIds).map(String) : []
             },
             answer: {
@@ -1245,7 +1293,11 @@
 
         const pollId = poll.pollId || card.dataset.pollId || '';
         const loggedIn = Boolean(poll.meta && poll.meta.logged_in);
-        const memberUuid = poll.meta && poll.meta.member_uuid ? String(poll.meta.member_uuid) : '';
+        const memberUuid = poll.meta && poll.meta.member_uuid
+            ? String(poll.meta.member_uuid)
+            : !loggedIn
+                ? ensureGuestId()
+                : '';
         const persistedSelectedOptionIds = readPersistedSelectedOptionIds(pollId, memberUuid);
         const selectedOptionIdsFromApi = votes && votes.viewer && votes.viewer.selectedOptionIds && votes.viewer.selectedOptionIds.length
             ? votes.viewer.selectedOptionIds
@@ -1278,6 +1330,7 @@
             publishedAt: poll.publishedAt,
             createdAt: poll.createdAt,
             pollType: poll.pollType,
+            allowAnonymousVote: Boolean(poll.allowAnonymousVote),
             status: poll.status,
             answerRevealed,
             totalVotes,
@@ -1292,13 +1345,13 @@
             submittingOptionId: card.__kgPollState && card.__kgPollState.submittingOptionId
                 ? String(card.__kgPollState.submittingOptionId)
                 : '',
-            // 答案公布后 (answerRevealed) 整张卡片进入"只读"状态: 不再允许任何投票/换票操作.
-            // 之前只看 status === 'published' + canVote/hasVoted, 没考虑公布答案这一档,
-            // 所以公布答案后用户还能点选项触发换票.
             canInteract: Boolean(
                 poll.status === 'published' &&
                 !answerRevealed &&
-                (poll.viewer.canVote || poll.viewer.hasVoted || (votes && votes.viewer && votes.viewer.hasVoted))
+                (
+                    poll.viewer.canInteract ||
+                    (votes && votes.viewer && votes.viewer.canInteract)
+                )
             ),
             options: poll.options.map(function (option) {
                 const voteOption = voteOptionsById.get(option.id);
@@ -1358,6 +1411,7 @@
         const preservedViewer = currentState ? {
             has_voted: currentState.hasVoted,
             can_vote: currentState.canVote,
+            can_interact: currentState.canInteract,
             selected_option_ids: currentState.selectedOptionIds
         } : payload && payload.viewer ? payload.viewer : {};
 
@@ -1449,6 +1503,7 @@
             viewer: {
                 has_voted: state.hasVoted,
                 can_vote: state.canVote,
+                can_interact: state.canInteract,
                 selected_option_ids: state.selectedOptionIds
             },
             meta: {
@@ -1463,6 +1518,7 @@
         state.publishedAt = nextPoll.publishedAt;
         state.createdAt = nextPoll.createdAt;
         state.pollType = nextPoll.pollType;
+        state.allowAnonymousVote = nextPoll.allowAnonymousVote;
         state.status = nextPoll.status;
         state.answerRevealed = nextPoll.answerRevealed;
         state.options = state.options.map(function (option) {
@@ -1805,14 +1861,19 @@
 
         try {
             const res = await fetch(`/members/api/session/`, {credentials: 'include'});
-            const token = await res.text();
+            const token = (await res.text()).trim();
+            const requestHeaders = {
+                'Content-Type': 'application/json'
+            };
+
+            if (res.ok && token && token.split('.').length === 3) {
+                requestHeaders.Authorization = `Bearer ${token}`;
+            }
+
             const response = await fetchJson(`/members/api/polls/${encodeURIComponent(state.pollId)}/votes`, {
                 method: 'POST',
                 body: JSON.stringify(voteRequest),
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                }
+                headers: requestHeaders
             });
 
             if (!response.ok || !response.payload) {
@@ -1840,8 +1901,11 @@
 
             state.hasVoted = Boolean(viewer.has_voted ?? viewer.hasVoted ?? responseAction !== 'cancel');
             state.canVote = Boolean(viewer.can_vote ?? viewer.canVote ?? responseAction === 'cancel');
-            // 兜底: 即使 mergePollState 那一关漏了, 投完票之后若发现答案已公布, 立刻关掉再投权限.
-            state.canInteract = !state.answerRevealed;
+            state.canInteract = Boolean(
+                viewer.can_interact ??
+                viewer.canInteract ??
+                (!state.answerRevealed && state.canInteract)
+            );
             state.selectedOptionIds = resolveConfirmedSelectedOptionIds(state, voteRequest, viewer, previousSelectedOptionIds);
             state.totalVotes = Number(results.total_votes ?? results.totalVotes ?? state.totalVotes ?? 0);
             persistSelectedOptionIds(state);
@@ -1902,13 +1966,20 @@
             const state = card.__kgPollState;
             const nextOptionId = optionElement.dataset.optionId;
 
-            if (!state || !state.canInteract || state.voteSubmitting || !nextOptionId) {
+            if (!state || state.voteSubmitting || !nextOptionId) {
                 return;
             }
 
-            if (!state.loggedIn) {
-                setFeedback(card, '', '');
-                openPortalAccount();
+            if (!state.canInteract) {
+                if (
+                    !state.loggedIn &&
+                    !state.allowAnonymousVote &&
+                    state.status === 'published' &&
+                    !state.answerRevealed
+                ) {
+                    setFeedback(card, '', '');
+                    openPortalAccount();
+                }
                 return;
             }
 
@@ -2166,6 +2237,7 @@
             return;
         }
 
+        ensureGuestId();
         card.dataset.pollHydrated = 'loading';
         bindInteractions(card);
         ensureTrendChartHeightObserver(card);
