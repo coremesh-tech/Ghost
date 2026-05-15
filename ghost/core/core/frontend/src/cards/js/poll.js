@@ -123,7 +123,7 @@
             candidates.push(trimmed);
         };
 
-        pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
+        pushCandidate(`https://api.predictionmarkets.org/market-topic`);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');
