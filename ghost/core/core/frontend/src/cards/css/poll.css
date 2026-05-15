@@ -138,7 +138,7 @@
     position: relative;
     flex: 1;
     min-height: 0;
-    padding-top: 24px;
+    padding-top: 32px;
     padding-bottom: 18px;
     cursor: crosshair;
 }
@@ -146,12 +146,12 @@
 .kg-poll-card-chart-surface,
 .kg-poll-card-chart-overlay {
     position: absolute;
-    inset: 24px 0 18px;
+    inset: 32px 0 18px;
 }
 
 .kg-poll-card-chart-surface {
     z-index: 1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .kg-poll-card-chart-overlay {
@@ -398,8 +398,21 @@
     font-weight: 600;
 }
 
+.kg-poll-card-option-loading {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    border-top-color: #FFFFFF;
+    border-radius: 999px;
+    animation: kg-poll-card-option-spin 700ms linear infinite;
+}
+
 .kg-poll-card-option-correct {
     display: none;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 16px;
     width: 16px;
     height: 16px;
     color: #FFFFFF;
@@ -421,6 +434,14 @@
     display: inline-flex;
 }
 
+.kg-poll-card-option[data-submitting="true"] .kg-poll-card-option-loading {
+    display: inline-flex;
+}
+
+.kg-poll-card[data-poll-submitting="true"] .kg-poll-card-option {
+    pointer-events: none;
+}
+
 .kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option {
     cursor: pointer;
     transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
@@ -436,6 +457,12 @@
 
 .kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option[data-selected="true"] {
     border-color: rgba(255, 255, 255, 0.48);
+}
+
+@keyframes kg-poll-card-option-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .kg-poll-card-meta {

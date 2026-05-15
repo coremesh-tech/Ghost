@@ -295,7 +295,7 @@
 
     const CHART_RATE_MIN = 0;
     const CHART_RATE_MAX = 100;
-    const SCALE_MARGIN_TOP = 0.06;
+    const SCALE_MARGIN_TOP = 0.14;
     const SCALE_MARGIN_BOTTOM = 0.1;
 
     const toChartTimestamp = function (value) {
@@ -887,6 +887,7 @@
                     <span class="kg-poll-card-option-result-badge" aria-hidden="true">Result</span>
                 </div>
                 <div class="kg-poll-card-option-result">
+                    <span class="kg-poll-card-option-loading" aria-hidden="true"></span>
                     <span class="kg-poll-card-option-correct" aria-hidden="true">
                         <svg viewBox="0 0 16 16" fill="none">
                             <circle cx="8" cy="8" r="8" fill="currentColor"></circle>
@@ -902,12 +903,79 @@
         return optionElement;
     };
 
+    const ensureOptionLoadingElement = function (optionElement) {
+        if (!optionElement || optionElement.querySelector('.kg-poll-card-option-loading')) {
+            return;
+        }
+
+        const resultElement = optionElement.querySelector('.kg-poll-card-option-result');
+        if (!resultElement) {
+            return;
+        }
+
+        const loadingElement = document.createElement('span');
+        loadingElement.className = 'kg-poll-card-option-loading';
+        loadingElement.setAttribute('aria-hidden', 'true');
+        resultElement.insertBefore(loadingElement, resultElement.firstChild);
+    };
+
     const formatPercent = function (value) {
         return `${Number(value || 0).toFixed(2)}%`;
     };
 
     const formatVotes = function (value) {
         return `${numberFormatter.format(Number(value || 0))} Votes`;
+    };
+
+    const getSelectionStorageKey = function (pollId, memberUuid) {
+        const normalizedPollId = String(pollId || '').trim();
+        const normalizedMemberUuid = String(memberUuid || '').trim();
+
+        if (!normalizedPollId || !normalizedMemberUuid) {
+            return '';
+        }
+
+        return `kg-poll-selection:${normalizedMemberUuid}:${normalizedPollId}`;
+    };
+
+    const readPersistedSelectedOptionIds = function (pollId, memberUuid) {
+        const storageKey = getSelectionStorageKey(pollId, memberUuid);
+
+        if (!storageKey || !window.localStorage) {
+            return [];
+        }
+
+        try {
+            const raw = window.localStorage.getItem(storageKey);
+            const parsed = raw ? JSON.parse(raw) : [];
+
+            return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+        } catch (err) {
+            return [];
+        }
+    };
+
+    const persistSelectedOptionIds = function (state) {
+        const storageKey = getSelectionStorageKey(state && state.pollId, state && state.memberUuid);
+
+        if (!storageKey || !window.localStorage) {
+            return;
+        }
+
+        try {
+            const selectedOptionIds = Array.isArray(state && state.selectedOptionIds)
+                ? state.selectedOptionIds.map(String).filter(Boolean)
+                : [];
+
+            if (!selectedOptionIds.length || !state.hasVoted) {
+                window.localStorage.removeItem(storageKey);
+                return;
+            }
+
+            window.localStorage.setItem(storageKey, JSON.stringify(selectedOptionIds));
+        } catch (err) {
+            // ignore storage errors
+        }
     };
 
     const formatExpiry = function (value) {
@@ -1083,6 +1151,8 @@
             description: state.description,
             imageSrc: state.imageSrc,
             expiresAt: state.expiresAt,
+            publishedAt: state.publishedAt,
+            createdAt: state.createdAt,
             pollType: state.pollType,
             status: state.status,
             answerRevealed: state.answerRevealed,
@@ -1095,11 +1165,13 @@
                 selectedOptionIds: state.selectedOptionIds
             },
             meta: {
-                logged_in: state.loggedIn
+                logged_in: state.loggedIn,
+                member_uuid: state.memberUuid
             }
         }, votes, card);
 
         card.__kgPollState = mergedState;
+        persistSelectedOptionIds(mergedState);
         return mergedState;
     };
 
@@ -1165,12 +1237,21 @@
             return [option.id, option];
         }));
 
-        const selectedOptionIds = votes && votes.viewer && votes.viewer.selectedOptionIds && votes.viewer.selectedOptionIds.length
+        const pollId = poll.pollId || card.dataset.pollId || '';
+        const loggedIn = Boolean(poll.meta && poll.meta.logged_in);
+        const memberUuid = poll.meta && poll.meta.member_uuid ? String(poll.meta.member_uuid) : '';
+        const persistedSelectedOptionIds = readPersistedSelectedOptionIds(pollId, memberUuid);
+        const selectedOptionIdsFromApi = votes && votes.viewer && votes.viewer.selectedOptionIds && votes.viewer.selectedOptionIds.length
             ? votes.viewer.selectedOptionIds
-            : poll.viewer.selectedOptionIds;
+            : poll.viewer.selectedOptionIds && poll.viewer.selectedOptionIds.length
+                ? poll.viewer.selectedOptionIds
+                : persistedSelectedOptionIds;
+        const selectedOptionIds = poll.pollType === 'multiple' &&
+            persistedSelectedOptionIds.length > selectedOptionIdsFromApi.length
+            ? persistedSelectedOptionIds
+            : selectedOptionIdsFromApi;
         const correctOptionIds = votes && votes.answer && votes.answer.correctOptionIds ? votes.answer.correctOptionIds : [];
         const totalVotes = votes ? votes.totalVotes : 0;
-        const loggedIn = Boolean(poll.meta && poll.meta.logged_in);
         const answerRevealed = Boolean((votes && votes.answer && votes.answer.revealed) || poll.answerRevealed);
         const showResults = Boolean(
             poll.viewer.canVote === false ||
@@ -1183,7 +1264,7 @@
         );
 
         return {
-            pollId: poll.pollId || card.dataset.pollId || '',
+            pollId,
             title: poll.title,
             description: poll.description,
             imageSrc: poll.imageSrc,
@@ -1194,12 +1275,17 @@
             status: poll.status,
             answerRevealed,
             totalVotes,
+            memberUuid,
             selectedOptionIds,
             correctOptionIds,
             canVote: Boolean(poll.viewer.canVote),
             hasVoted: Boolean(poll.viewer.hasVoted || (votes && votes.viewer && votes.viewer.hasVoted)),
             loggedIn,
             showResults,
+            voteSubmitting: Boolean(card.__kgPollState && card.__kgPollState.voteSubmitting),
+            submittingOptionId: card.__kgPollState && card.__kgPollState.submittingOptionId
+                ? String(card.__kgPollState.submittingOptionId)
+                : '',
             // 答案公布后 (answerRevealed) 整张卡片进入"只读"状态: 不再允许任何投票/换票操作.
             // 之前只看 status === 'published' + canVote/hasVoted, 没考虑公布答案这一档,
             // 所以公布答案后用户还能点选项触发换票.
@@ -1273,7 +1359,8 @@
             ...pollPayload,
             viewer: preservedViewer,
             meta: {
-                logged_in: currentState ? currentState.loggedIn : false
+                logged_in: currentState ? currentState.loggedIn : false,
+                member_uuid: currentState ? currentState.memberUuid : ''
             }
         }, currentState ? currentState.pollId : card.dataset.pollId);
 
@@ -1291,6 +1378,7 @@
         }
 
         card.__kgPollState = mergePollState(poll, votes, card);
+        persistSelectedOptionIds(card.__kgPollState);
         renderPoll(card, card.__kgPollState);
     };
 
@@ -1458,14 +1546,33 @@
     };
 
     const renderOption = function (optionElement, option, state, clickable) {
+        ensureOptionLoadingElement(optionElement);
+        const isSelected = state.selectedOptionIds.indexOf(option.id) !== -1;
+        const isSubmitting = state.submittingOptionId === option.id;
+
         optionElement.dataset.optionId = option.id;
         optionElement.dataset.voteCount = String(option.voteCount || 0);
         optionElement.dataset.voteRate = String(option.voteRate || 0);
-        optionElement.dataset.selected = String(state.selectedOptionIds.indexOf(option.id) !== -1);
+        optionElement.dataset.selected = String(isSelected);
         optionElement.dataset.correct = String(state.correctOptionIds.indexOf(option.id) !== -1);
+        optionElement.dataset.submitting = String(isSubmitting);
         optionElement.dataset.interactive = String(Boolean(clickable));
         optionElement.tabIndex = clickable ? 0 : -1;
         optionElement.setAttribute('role', clickable ? 'button' : 'presentation');
+        optionElement.setAttribute('aria-busy', String(isSubmitting));
+        optionElement.setAttribute('aria-disabled', String(!clickable));
+
+        const loadingElement = optionElement.querySelector('.kg-poll-card-option-loading');
+        if (loadingElement) {
+            loadingElement.style.display = isSubmitting ? 'inline-flex' : 'none';
+        }
+
+        const correctElement = optionElement.querySelector('.kg-poll-card-option-correct');
+        if (correctElement) {
+            const shouldShowCorrect = isSelected && !isSubmitting;
+            correctElement.hidden = !shouldShowCorrect;
+            correctElement.style.display = shouldShowCorrect ? 'inline-flex' : 'none';
+        }
 
         const fill = optionElement.querySelector('.kg-poll-card-option-fill');
         if (fill) {
@@ -1501,7 +1608,8 @@
         card.dataset.pollAnswerRevealed = String(Boolean(state.answerRevealed));
         card.dataset.totalVotes = String(state.totalVotes || 0);
         card.dataset.memberLoggedIn = String(Boolean(state.loggedIn));
-        card.dataset.pollClickable = String(Boolean(state.canInteract));
+        card.dataset.pollClickable = String(Boolean(state.canInteract && !state.voteSubmitting));
+        card.dataset.pollSubmitting = String(Boolean(state.voteSubmitting));
 
         const title = card.querySelector('.kg-poll-card-title');
         if (title) {
@@ -1541,7 +1649,7 @@
                     optionsContainer.appendChild(optionElement);
                 }
 
-                renderOption(optionElement, option, state, state.canInteract);
+                renderOption(optionElement, option, state, state.canInteract && !state.voteSubmitting);
             });
 
             currentOptionElements.slice(state.options.length).forEach(function (element) {
@@ -1628,9 +1736,50 @@
         return selectedIds.concat(nextId);
     };
 
-    const submitVote = async function (card, voteRequest) {
+    const resolveConfirmedSelectedOptionIds = function (state, voteRequest, viewer, previousSelectedOptionIds) {
+        const previousSelectedIds = Array.isArray(state && state.selectedOptionIds)
+            ? state.selectedOptionIds.map(String)
+            : [];
+        const baselineSelectedIds = Array.isArray(previousSelectedOptionIds)
+            ? previousSelectedOptionIds.map(String)
+            : previousSelectedIds;
+        const requestedOptionIds = Array.isArray(voteRequest && voteRequest.option_ids)
+            ? voteRequest.option_ids.map(String)
+            : [];
+        const viewerSelectedOptionIds = Array.isArray(viewer && (viewer.selected_option_ids || viewer.selectedOptionIds))
+            ? (viewer.selected_option_ids || viewer.selectedOptionIds).map(String)
+            : [];
+
+        if (!voteRequest) {
+            return viewerSelectedOptionIds.length ? viewerSelectedOptionIds : baselineSelectedIds;
+        }
+
+        if (state && state.pollType === 'multiple') {
+            if (voteRequest.action === 'cancel') {
+                return baselineSelectedIds.filter(function (id) {
+                    return requestedOptionIds.indexOf(id) === -1;
+                });
+            }
+
+            return requestedOptionIds;
+        }
+
+        if (voteRequest.action === 'cancel') {
+            if (state && state.pollType === 'multiple' && requestedOptionIds.length > 0) {
+                return baselineSelectedIds.filter(function (id) {
+                    return requestedOptionIds.indexOf(id) === -1;
+                });
+            }
+
+            return [];
+        }
+
+        return viewerSelectedOptionIds.length ? viewerSelectedOptionIds : requestedOptionIds;
+    };
+
+    const submitVote = async function (card, voteRequest, submittingOptionId) {
         const state = card.__kgPollState;
-        if (!state || !state.pollId || card.dataset.pollSubmitting === 'true') {
+        if (!state || !state.pollId || state.voteSubmitting || card.dataset.pollSubmitting === 'true') {
             return;
         }
 
@@ -1639,6 +1788,12 @@
             return;
         }
 
+        const previousSelectedOptionIds = Array.isArray(state.selectedOptionIds)
+            ? state.selectedOptionIds.map(String)
+            : [];
+
+        state.voteSubmitting = true;
+        state.submittingOptionId = submittingOptionId ? String(submittingOptionId) : '';
         card.dataset.pollSubmitting = 'true';
         renderPoll(card, state);
 
@@ -1656,7 +1811,13 @@
 
             if (!response.ok || !response.payload) {
                 const code = response.payload && response.payload.error && response.payload.error.code;
-                await refreshVotes(card, state).catch(function () {});
+                const refreshedState = await refreshVotes(card, state).catch(function () {
+                    return null;
+                });
+                if (!refreshedState) {
+                    state.selectedOptionIds = previousSelectedOptionIds;
+                    persistSelectedOptionIds(state);
+                }
                 const message = code === 'VOTE_CONFLICT'
                     ? 'Your vote changed in another session. Please try again.'
                     : response.payload && response.payload.error && response.payload.error.message
@@ -1675,10 +1836,9 @@
             state.canVote = Boolean(viewer.can_vote ?? viewer.canVote ?? responseAction === 'cancel');
             // 兜底: 即使 mergePollState 那一关漏了, 投完票之后若发现答案已公布, 立刻关掉再投权限.
             state.canInteract = !state.answerRevealed;
-            state.selectedOptionIds = Array.isArray(viewer.selected_option_ids || viewer.selectedOptionIds)
-                ? (viewer.selected_option_ids || viewer.selectedOptionIds).map(String)
-                : responseAction === 'cancel' ? [] : voteRequest.option_ids.map(String);
+            state.selectedOptionIds = resolveConfirmedSelectedOptionIds(state, voteRequest, viewer, previousSelectedOptionIds);
             state.totalVotes = Number(results.total_votes ?? results.totalVotes ?? state.totalVotes ?? 0);
+            persistSelectedOptionIds(state);
 
             const resultOptionsById = new Map((results.options || []).map(function (option, index) {
                 const normalized = normalizeOption(option, index);
@@ -1701,11 +1861,22 @@
             setFeedback(card, '', '');
             renderPoll(card, refreshedState || card.__kgPollState || state);
         } catch (err) {
-            await refreshVotes(card, state).catch(function () {});
+            const refreshedState = await refreshVotes(card, state).catch(function () {
+                return null;
+            });
+            if (!refreshedState) {
+                state.selectedOptionIds = previousSelectedOptionIds;
+                persistSelectedOptionIds(state);
+            }
             setFeedback(card, 'Failed to submit vote.', 'error');
         } finally {
+            const currentState = card.__kgPollState || state;
+            if (currentState) {
+                currentState.voteSubmitting = false;
+                currentState.submittingOptionId = '';
+            }
             card.dataset.pollSubmitting = 'false';
-            renderPoll(card, card.__kgPollState);
+            renderPoll(card, currentState);
         }
     };
 
@@ -1725,7 +1896,7 @@
             const state = card.__kgPollState;
             const nextOptionId = optionElement.dataset.optionId;
 
-            if (!state || !state.canInteract || !nextOptionId) {
+            if (!state || !state.canInteract || state.voteSubmitting || !nextOptionId) {
                 return;
             }
 
@@ -1736,31 +1907,34 @@
             }
 
             if (state.pollType === 'multiple') {
+                const isSelected = state.selectedOptionIds.indexOf(nextOptionId) !== -1;
                 const nextSelection = buildMultipleSelection(state, nextOptionId);
-                const nextAction = !state.hasVoted
-                    ? 'cast'
-                    : nextSelection.length > 0
-                        ? 'change'
-                        : 'cancel';
+                const nextAction = isSelected
+                    ? 'cancel'
+                    : !state.hasVoted
+                        ? 'cast'
+                        : 'change';
                 const voteRequest = nextAction === 'cancel'
-                    ? {action: 'cancel', option_ids: []}
+                    ? {action: 'cancel', option_ids: [nextOptionId]}
                     : {action: nextAction, option_ids: nextSelection};
 
-                setSelectedOptions(card, nextSelection);
-                await submitVote(card, voteRequest);
+                await submitVote(card, voteRequest, nextOptionId);
                 return;
             }
 
             if (!state.hasVoted) {
-                setSelectedOptions(card, [nextOptionId]);
                 await submitVote(card, {
                     action: 'cast',
                     option_ids: [nextOptionId]
-                });
+                }, nextOptionId);
                 return;
             }
 
             if (state.selectedOptionIds.indexOf(nextOptionId) !== -1) {
+                await submitVote(card, {
+                    action: 'cancel',
+                    option_ids: []
+                }, nextOptionId);
                 return;
             }
 
@@ -1774,11 +1948,10 @@
                 return;
             }
 
-            setSelectedOptions(card, [nextOptionId]);
             await submitVote(card, {
                 action: 'change',
                 option_ids: [nextOptionId]
-            });
+            }, nextOptionId);
         });
 
         card.addEventListener('keydown', function (event) {
@@ -1819,6 +1992,7 @@
         const preservedTrends = card.__kgPollTrends || null;
         card.__kgPollTrends = preservedTrends;
         card.__kgPollState = state;
+        persistSelectedOptionIds(state);
         renderPoll(card, state);
         setFeedback(card, '', '');
         refreshTrends(card, state);

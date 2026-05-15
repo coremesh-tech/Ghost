@@ -67,12 +67,12 @@ async function proxyPollApi(path, {method = 'GET', body, member, token = ''} = {
     };
 }
 
-async function getContentPoll(pollId, member) {
-    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}`, {member});
+async function getContentPoll(pollId, member, token = '') {
+    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}`, {member, token});
 }
 
-async function getContentPollVotes(pollId, member) {
-    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {member});
+async function getContentPollVotes(pollId, member, token = '') {
+    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {member, token});
 }
 
 /**

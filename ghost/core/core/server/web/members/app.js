@@ -72,7 +72,10 @@ module.exports = function setupMembersApp() {
         middleware.loadMemberSession,
         async function getPoll(req, res, next) {
             try {
-                const response = await pollsService.getContentPoll(req.params.id, req.member);
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPoll(req.params.id, req.member, token);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),
@@ -91,7 +94,10 @@ module.exports = function setupMembersApp() {
         middleware.loadMemberSession,
         async function getPollVotes(req, res, next) {
             try {
-                const response = await pollsService.getContentPollVotes(req.params.id, req.member);
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPollVotes(req.params.id, req.member, token);
 
                 return res.status(response.statusCode).json({
                     ...(response.body || {}),
