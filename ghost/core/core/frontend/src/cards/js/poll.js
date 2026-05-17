@@ -1566,47 +1566,6 @@
         }
     };
 
-    const syncTrendChartHeight = function (card) {
-        if (!card) {
-            return;
-        }
-
-        const chartElement = card.querySelector('.kg-poll-card-chart');
-        const optionsContainer = card.querySelector('.kg-poll-card-options');
-
-        if (!chartElement || !optionsContainer) {
-            return;
-        }
-
-        const optionsHeight = Math.round(optionsContainer.getBoundingClientRect().height);
-
-        if (optionsHeight > 0) {
-            chartElement.style.height = `${optionsHeight}px`;
-        } else {
-            chartElement.style.height = '';
-        }
-    };
-
-    const ensureTrendChartHeightObserver = function (card) {
-        if (!card || card.__kgPollChartHeightObserverBound) {
-            return;
-        }
-
-        const optionsContainer = card.querySelector('.kg-poll-card-options');
-
-        if (!optionsContainer || typeof ResizeObserver === 'undefined') {
-            return;
-        }
-
-        const observer = new ResizeObserver(function () {
-            syncTrendChartHeight(card);
-        });
-
-        observer.observe(optionsContainer);
-        card.__kgPollChartHeightObserver = observer;
-        card.__kgPollChartHeightObserverBound = true;
-    };
-
     const renderOption = function (optionElement, option, state, clickable) {
         ensureOptionLoadingElement(optionElement);
         const isSelected = state.selectedOptionIds.indexOf(option.id) !== -1;
@@ -1718,8 +1677,6 @@
                 element.remove();
             });
         }
-
-        syncTrendChartHeight(card);
 
         // 图表只在 trends 接口返回了有效 points 后再显示.
         // 没有 points / 请求失败时直接隐藏, 避免 SSR 快照先占位再重排.
@@ -2240,7 +2197,6 @@
         ensureGuestId();
         card.dataset.pollHydrated = 'loading';
         bindInteractions(card);
-        ensureTrendChartHeightObserver(card);
 
         try {
             if (!await loadPollCardData(card)) {
