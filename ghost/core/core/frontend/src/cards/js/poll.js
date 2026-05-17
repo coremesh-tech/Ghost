@@ -1,3 +1,7 @@
+const config = require('../../../../shared/config');
+
+const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
+
 (function () {
     const numberFormatter = new Intl.NumberFormat('en-US');
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
@@ -124,8 +128,7 @@
             candidates.push(trimmed);
         };
 
-        pushCandidate(`https://api.predictionmarkets.org/market-topic`);
-        // pushCandidate(`https://test-api.predictionmarkets.org/market-topic`);
+        pushCandidate(`${predictionMarketsApiUrl}/market-topic`);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');
