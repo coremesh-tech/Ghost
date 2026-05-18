@@ -138,8 +138,8 @@
 
 .kg-poll-card-chart-plot {
     position: relative;
-    flex: 0 0 200px;
-    height: 200px;
+    /* flex: 0 0 200px; */
+    height: 150px;
     min-height: 0;
     cursor: crosshair;
 }
