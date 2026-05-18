@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const config = require('../../../../../../core/shared/config');
 const {callRenderer} = require('../test-utils');
 
 describe('services/koenig/node-renderers/poll-renderer', function () {
@@ -48,6 +49,10 @@ describe('services/koenig/node-renderers/poll-renderer', function () {
             assert.equal(card.getAttribute('data-poll-answer-revealed'), 'false');
             assert.equal(card.getAttribute('data-total-votes'), '20');
             assert.equal(card.getAttribute('data-expires-at'), '2026-06-01T12:00:00.000Z');
+            assert.equal(
+                card.getAttribute('data-prediction-markets-api-url'),
+                config.get('PREDICTIONMARKETS_API_URL')
+            );
 
             const image = card.querySelector('.kg-poll-card-image');
             assert.ok(image, 'image is rendered');

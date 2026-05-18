@@ -1,5 +1,6 @@
 const {addCreateDocumentOption} = require('../render-utils/add-create-document-option');
 const {renderEmptyContainer} = require('../render-utils/render-empty-container');
+const config = require('../../../../shared/config');
 
 function getValue(data, camelKey, snakeKey, fallback) {
     return data[camelKey] ?? data[snakeKey] ?? fallback;
@@ -67,6 +68,7 @@ function renderPollNode(node, options = {}) {
     addCreateDocumentOption(options);
     const document = options.createDocument();
     const poll = normalizePollData(node);
+    const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 
     if (options.target === 'email') {
         return {element: document.createElement('div')};
@@ -85,6 +87,7 @@ function renderPollNode(node, options = {}) {
     card.setAttribute('data-poll-status', poll.status);
     card.setAttribute('data-poll-answer-revealed', String(poll.answerRevealed));
     card.setAttribute('data-total-votes', String(poll.totalVotes));
+    card.setAttribute('data-prediction-markets-api-url', predictionMarketsApiUrl);
 
     if (poll.pollId) {
         card.setAttribute('data-poll-id', poll.pollId);

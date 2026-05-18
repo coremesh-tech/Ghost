@@ -1,7 +1,3 @@
-const config = require('../../../../shared/config');
-
-const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
-
 (function () {
     const numberFormatter = new Intl.NumberFormat('en-US');
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
@@ -113,8 +109,17 @@ const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
         return `/members/api/polls/${encodeURIComponent(pollId)}/trends?${params.toString()}`;
     };
 
-    const buildPollStreamCandidates = function () {
+    const resolvePredictionMarketsApiUrl = function (card) {
+        const value = card && card.dataset
+            ? card.dataset.predictionMarketsApiUrl
+            : '';
+
+        return typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
+    };
+
+    const buildPollStreamCandidates = function (card) {
         const candidates = [];
+        const predictionMarketsApiUrl = resolvePredictionMarketsApiUrl(card);
         const pushCandidate = function (value) {
             if (typeof value !== 'string') {
                 return;
@@ -128,7 +133,9 @@ const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
             candidates.push(trimmed);
         };
 
-        pushCandidate(`${predictionMarketsApiUrl}/market-topic`);
+        if (predictionMarketsApiUrl) {
+            pushCandidate(`${predictionMarketsApiUrl}/market-topic`);
+        }
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             pushCandidate('http://localhost:3000/market-topic');
@@ -2111,7 +2118,7 @@ const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
             return;
         }
 
-        const candidates = buildPollStreamCandidates();
+        const candidates = buildPollStreamCandidates(card);
 
         if (!candidates.length) {
             return;
