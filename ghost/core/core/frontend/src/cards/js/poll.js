@@ -527,6 +527,7 @@
 
         if (width <= 0 || height <= 0) {
             controller.crosshairElement.hidden = true;
+            controller.detailLabelElement.hidden = true;
             controller.seriesRefs.forEach(function (seriesRef) {
                 seriesRef.dotElement.hidden = true;
                 seriesRef.labelElement.hidden = true;
@@ -538,6 +539,7 @@
 
         if (bucketXs.length === 0) {
             controller.crosshairElement.hidden = true;
+            controller.detailLabelElement.hidden = true;
             controller.seriesRefs.forEach(function (seriesRef) {
                 seriesRef.dotElement.hidden = true;
                 seriesRef.labelElement.hidden = true;
@@ -586,6 +588,10 @@
         controller.crosshairElement.style.left = `${activeX}px`;
         controller.crosshairElement.style.top = `${crosshairTop}px`;
         controller.crosshairElement.style.bottom = `${Math.max(height - crosshairBottom, 0)}px`;
+        controller.detailLabelElement.hidden = !isHovering || !detailText;
+        controller.detailLabelElement.style.left = `${Math.round(clampNumber(activeX, 56, Math.max(width - 56, 56)))}px`;
+        controller.detailLabelElement.style.top = `${Math.round(Math.max(crosshairTop - 8, 0))}px`;
+        controller.detailLabelElement.textContent = detailText;
 
         const labelLayout = resolveLabelLayout(activePositions.map(function (position) {
             return {
@@ -614,7 +620,7 @@
             ref.dotElement.style.top = `${Math.round(position.y)}px`;
             ref.labelElement.style.left = `${Math.round(labelX)}px`;
             ref.labelElement.style.top = `${Math.round(labelY)}px`;
-            ref.labelElement.textContent = `${detailText} ${formatPercent(position.value)}`;
+            ref.labelElement.textContent = formatPercent(position.value);
             ref.labelElement.dataset.align = flipLeft ? 'left' : 'right';
         });
 
@@ -654,6 +660,11 @@
         const crosshairElement = document.createElement('div');
         crosshairElement.className = 'kg-poll-card-chart-crosshair';
         overlayElement.appendChild(crosshairElement);
+
+        const detailLabelElement = document.createElement('div');
+        detailLabelElement.className = 'kg-poll-card-chart-detail-label';
+        detailLabelElement.hidden = true;
+        overlayElement.appendChild(detailLabelElement);
 
         const seriesRefs = preparedTrendModel.series.map(function (series) {
             const dotElement = document.createElement('div');
@@ -771,6 +782,7 @@
             surfaceSize: surfaceSize,
             overlayElement: overlayElement,
             crosshairElement: crosshairElement,
+            detailLabelElement: detailLabelElement,
             seriesRefs: seriesRefs,
             hoverX: null,
             resizeObserver: null,
