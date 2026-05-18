@@ -133,6 +133,7 @@
 .kg-poll-card-chart-legend-text {
     display: inline-block;
     font-size: 16px;
+    word-break: break-word;
 }
 
 .kg-poll-card-chart-plot {
