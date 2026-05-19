@@ -163,7 +163,7 @@
 .kg-poll-card-chart-surface,
 .kg-poll-card-chart-overlay {
     position: absolute;
-    inset: 8px 0;
+    inset: 0;
 }
 
 .kg-poll-card-chart-surface {
@@ -178,8 +178,8 @@
 
 .kg-poll-card-chart-crosshair {
     position: absolute;
-    top: 18px;
-    bottom: 18px;
+    top: 0;
+    bottom: 0;
     width: 1px;
     background: rgba(255, 255, 255, 0.22);
     transform: translateX(-50%);
@@ -522,6 +522,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    font-size: 16px;
 }
 
 /*

@@ -3,6 +3,10 @@
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
     const MOBILE_CHART_PLOT_HEIGHT = 120;
     const DESKTOP_TREND_CHART_BREAKPOINT = 768;
+    const MONTH_NAMES = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
     // 与 Koenig 编辑器 PollTrendChart 保持一致的固定调色板
     const TREND_PALETTE = [
@@ -1048,10 +1052,17 @@
 
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) {
-            return String(value).slice(0, 10);
+            return String(value);
         }
 
-        return date.toISOString().slice(0, 10);
+        const year = String(date.getFullYear());
+        const month = MONTH_NAMES[date.getMonth()] || '';
+        const day = String(date.getDate());
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = date.getHours() < 12 ? 'AM' : 'PM';
+
+        return `${month} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
     };
 
     const fetchJson = async function (url, options) {
