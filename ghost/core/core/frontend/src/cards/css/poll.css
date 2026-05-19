@@ -113,13 +113,26 @@
     flex-wrap: wrap;
     gap: 8px 24px;
     margin-bottom: 10px;
+    min-width: 0;
+}
+
+.kg-poll-card-chart-legend.kg-poll-card-chart-legend--compact {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
 }
 
 .kg-poll-card-chart-legend-item {
-    display: inline-flex;
-    align-items: baseline;
+    display: flex;
+    align-items: center;
     gap: 8px;
     color: rgba(255, 255, 255, 0.9);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.kg-poll-card-chart-legend.kg-poll-card-chart-legend--compact .kg-poll-card-chart-legend-item {
+    width: 100%;
 }
 
 .kg-poll-card-chart-legend-dot {
@@ -131,15 +144,18 @@
 }
 
 .kg-poll-card-chart-legend-text {
-    display: inline-block;
+    display: block;
+    flex: 1 1 auto;
     font-size: 16px;
-    word-break: break-word;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .kg-poll-card-chart-plot {
     position: relative;
-    /* flex: 0 0 200px; */
-    height: 150px;
+    height: 120px;
     min-height: 0;
     cursor: crosshair;
 }
@@ -147,7 +163,7 @@
 .kg-poll-card-chart-surface,
 .kg-poll-card-chart-overlay {
     position: absolute;
-    inset: 20px 0 10px;
+    inset: 8px 0;
 }
 
 .kg-poll-card-chart-surface {
@@ -558,7 +574,7 @@
 @media (min-width: 768px) {
     .kg-poll-card-body {
         flex-direction: row;
-        align-items: stretch;
+        align-items: flex-start;
         gap: 32px;
     }
 
@@ -566,6 +582,7 @@
         order: 1;
         flex: 1 1 0;
         min-width: 0;
+        align-self: flex-start;
     }
 
     .kg-poll-card-chart {

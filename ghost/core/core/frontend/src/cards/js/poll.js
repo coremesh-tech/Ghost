@@ -1,6 +1,8 @@
 (function () {
     const numberFormatter = new Intl.NumberFormat('en-US');
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
+    const MOBILE_CHART_PLOT_HEIGHT = 120;
+    const DESKTOP_TREND_CHART_BREAKPOINT = 768;
 
     // 与 Koenig 编辑器 PollTrendChart 保持一致的固定调色板
     const TREND_PALETTE = [
@@ -1588,6 +1590,129 @@
         }
     };
 
+    const isDesktopTrendChartLayout = function () {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+            return false;
+        }
+
+        return window.matchMedia(`(min-width: ${DESKTOP_TREND_CHART_BREAKPOINT}px)`).matches;
+    };
+
+    const updateTrendChartLegendLayout = function (chartElement) {
+        if (!chartElement) {
+            return;
+        }
+
+        const legendElement = chartElement.querySelector('.kg-poll-card-chart-legend');
+
+        if (!legendElement) {
+            return;
+        }
+
+        legendElement.classList.remove('kg-poll-card-chart-legend--compact');
+
+        const legendWidth = Math.round(legendElement.getBoundingClientRect().width);
+        if (legendWidth <= 0) {
+            return;
+        }
+
+        const compactThreshold = Math.max((legendWidth - 20) / 2, 0);
+        const items = Array.from(legendElement.querySelectorAll('.kg-poll-card-chart-legend-item'));
+        const shouldCompact = items.some(function (item) {
+            return Math.ceil(item.scrollWidth) > compactThreshold;
+        });
+
+        legendElement.classList.toggle('kg-poll-card-chart-legend--compact', shouldCompact);
+    };
+
+    const syncTrendChartLayout = function (card) {
+        if (!card) {
+            return;
+        }
+
+        const chartElement = card.querySelector('.kg-poll-card-chart');
+        const plotWrap = chartElement && chartElement.querySelector('.kg-poll-card-chart-plot');
+
+        if (!chartElement || !plotWrap) {
+            return;
+        }
+
+        let nextHeight = `${MOBILE_CHART_PLOT_HEIGHT}px`;
+
+        if (isDesktopTrendChartLayout()) {
+            const optionsContainer = card.querySelector('.kg-poll-card-options');
+            updateTrendChartLegendLayout(chartElement);
+
+            const legendElement = chartElement.querySelector('.kg-poll-card-chart-legend');
+
+            if (optionsContainer && legendElement) {
+                const optionsHeight = Math.round(optionsContainer.getBoundingClientRect().height);
+                const legendHeight = Math.round(legendElement.getBoundingClientRect().height);
+                const plotHeight = Math.max(optionsHeight - legendHeight, 1);
+
+                nextHeight = `${plotHeight}px`;
+            }
+        } else {
+            updateTrendChartLegendLayout(chartElement);
+        }
+
+        if (plotWrap.style.height !== nextHeight) {
+            plotWrap.style.height = nextHeight;
+        }
+
+        const controller = chartElement.__kgChartController;
+        if (controller) {
+            resizeTrendChart(controller);
+        }
+    };
+
+    const ensureTrendChartLayoutObserver = function (card) {
+        if (!card || card.__kgPollChartLayoutObserverBound || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const optionsContainer = card.querySelector('.kg-poll-card-options');
+        const chartElement = card.querySelector('.kg-poll-card-chart');
+        card.__kgPollChartObservedWidth = chartElement
+            ? Math.round(chartElement.getBoundingClientRect().width)
+            : 0;
+
+        const observer = new ResizeObserver(function (entries) {
+            let shouldSync = false;
+
+            entries.forEach(function (entry) {
+                if (entry.target === optionsContainer) {
+                    shouldSync = true;
+                    return;
+                }
+
+                if (entry.target === chartElement) {
+                    const nextWidth = Math.round(entry.contentRect.width);
+
+                    if (nextWidth !== card.__kgPollChartObservedWidth) {
+                        card.__kgPollChartObservedWidth = nextWidth;
+                        shouldSync = true;
+                    }
+                }
+            });
+
+            if (shouldSync) {
+                syncTrendChartLayout(card);
+            }
+        });
+
+        if (optionsContainer) {
+            observer.observe(optionsContainer);
+        }
+
+        if (chartElement) {
+            observer.observe(chartElement);
+        }
+
+        card.__kgPollChartLayoutObserver = observer;
+        card.__kgPollChartLayoutObserverBound = true;
+    };
+
     const renderOption = function (optionElement, option, state, clickable) {
         ensureOptionLoadingElement(optionElement);
         const isSelected = state.selectedOptionIds.indexOf(option.id) !== -1;
@@ -1713,6 +1838,7 @@
                 if (trendModel) {
                     prepareTrendChartForRender(chartElement);
                     if (renderTrendChart(chartElement, trendModel)) {
+                        syncTrendChartLayout(card);
                         revealTrendChart(chartElement);
                     } else {
                         hideTrendChart(chartElement);
@@ -2219,6 +2345,7 @@
         ensureGuestId();
         card.dataset.pollHydrated = 'loading';
         bindInteractions(card);
+        ensureTrendChartLayoutObserver(card);
 
         try {
             if (!await loadPollCardData(card)) {
