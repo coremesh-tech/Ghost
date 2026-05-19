@@ -222,7 +222,7 @@ function renderPollNode(node, options = {}) {
 
     const votes = document.createElement('div');
     votes.classList.add('kg-poll-card-votes');
-    votes.textContent = `${new Intl.NumberFormat('en-US').format(Number(poll.totalVotes || 0))} Votes`;
+    votes.textContent = `${new Intl.NumberFormat('en-US').format(Number(poll.totalVotes || 0))} Polls`;
     meta.appendChild(votes);
 
     const metaStatus = document.createElement('div');
