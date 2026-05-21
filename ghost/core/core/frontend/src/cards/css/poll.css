@@ -47,7 +47,7 @@
 .kg-poll-card-title {
     margin: 0 !important;
     color: #fff;
-    font-size: 2.8rem;
+    font-size: 24px;
     font-weight: 600;
     line-height: 1.25;
 }
@@ -552,7 +552,6 @@
 .kg-poll-card-feedback {
     margin: 18px 0 0;
     color: rgba(255, 255, 255, 0.52);
-    font-size: 1.45rem;
     line-height: 1.45;
 }
 
@@ -677,10 +676,6 @@ body.kg-poll-dialog-open {
     .kg-poll-card-image {
         height: 180px;
         margin-bottom: 24px;
-    }
-
-    .kg-poll-card-title {
-        font-size: 2.2rem;
     }
 
     .kg-poll-card-option-content {
