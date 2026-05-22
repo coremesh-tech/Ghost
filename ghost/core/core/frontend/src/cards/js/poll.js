@@ -954,7 +954,7 @@
     };
 
     const formatVotes = function (value) {
-        return `${numberFormatter.format(Number(value || 0))} Votes`;
+        return `${numberFormatter.format(Number(value || 0))} Polls`;
     };
 
     const buildGuestId = function () {
