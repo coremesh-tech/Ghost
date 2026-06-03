@@ -61,6 +61,7 @@ typings/
 # Output of 'npm pack'
 *.tgz
 !*ghost-6.21.2.tgz
+!*ghost-6.43.2-rc.0.tgz
 
 # pnpm store
 .pnpm-store
