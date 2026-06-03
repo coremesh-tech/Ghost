@@ -14,7 +14,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                     <TableCell
                         className="font-bold text-grey-700"
                         style={{ width: 150 }}
-                        valign="center"
+                        valign="middle"
                     >
                         Withdraw ID
                     </TableCell>
@@ -22,7 +22,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Amount
                     </TableCell>
@@ -30,7 +30,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Currency
                     </TableCell>
@@ -38,7 +38,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         State
                     </TableCell>
@@ -46,7 +46,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Remark
                     </TableCell>
@@ -54,7 +54,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Created At
                     </TableCell>
@@ -66,7 +66,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell
                             style={{ width: 150 }}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.withdraw_no}
                         </TableCell>
@@ -74,7 +74,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.amount}
                         </TableCell>
@@ -82,7 +82,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.currency}
                         </TableCell>
@@ -90,7 +90,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.state}
                         </TableCell>
@@ -98,7 +98,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
@@ -106,7 +106,7 @@ const Withdrawal = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.created_at}
                         </TableCell>

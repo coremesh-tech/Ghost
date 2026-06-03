@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`page.* events page.added event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -26,6 +26,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -85,6 +86,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -171,7 +173,7 @@ Object {
 
 exports[`page.* events page.deleted event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -196,6 +198,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -258,7 +261,7 @@ Object {
 
 exports[`page.* events page.edited event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -282,6 +285,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -356,6 +360,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -493,7 +498,7 @@ Object {
 
 exports[`page.* events page.published event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -517,6 +522,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -591,6 +597,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -728,7 +735,7 @@ Object {
 
 exports[`page.* events page.published.edited event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -752,6 +759,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -826,6 +834,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -962,7 +971,7 @@ Object {
 
 exports[`page.* events page.rescheduled event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -986,6 +995,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1060,6 +1070,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1196,7 +1207,7 @@ Object {
 
 exports[`page.* events page.scheduled event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -1220,6 +1231,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1294,6 +1306,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1431,7 +1444,7 @@ Object {
 
 exports[`page.* events page.tag.attached event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -1455,6 +1468,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1529,6 +1543,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1710,7 +1725,7 @@ Object {
 
 exports[`page.* events page.tag.detached event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -1734,6 +1749,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1808,6 +1824,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -1929,7 +1946,7 @@ Object {
 
 exports[`page.* events page.unpublished event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -1953,6 +1970,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -2027,6 +2045,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -2163,7 +2182,7 @@ Object {
 
 exports[`page.* events page.unscheduled event is triggered 1: [headers] 1`] = `
 Object {
-  "accept-encoding": "gzip, deflate, br",
+  "accept-encoding": "gzip, deflate, br, zstd",
   "content-length": Any<Number>,
   "content-type": "application/json",
   "content-version": StringMatching /v\\\\d\\+\\\\\\.\\\\d\\+/,
@@ -2187,6 +2206,7 @@ Object {
           "email": "jbloggs@example.com",
           "facebook": null,
           "free_member_signup_notification": true,
+          "gift_subscription_notifications": true,
           "id": "5951f5fc0000000000000000",
           "instagram": null,
           "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,
@@ -2261,6 +2281,7 @@ Object {
         "email": "jbloggs@example.com",
         "facebook": null,
         "free_member_signup_notification": true,
+        "gift_subscription_notifications": true,
         "id": "5951f5fc0000000000000000",
         "instagram": null,
         "last_seen": StringMatching /\\\\d\\{4\\}-\\\\d\\{2\\}-\\\\d\\{2\\}T\\\\d\\{2\\}:\\\\d\\{2\\}:\\\\d\\{2\\}\\\\\\.000Z/,

@@ -15,7 +15,7 @@ const Payout = ({ paginatedData }: Props) => {
                     <TableCell
                         className="font-bold text-grey-700"
                         style={{ width: 180 }}
-                        valign="center"
+                        valign="middle"
                     >
                         Withdraw ID
                     </TableCell>
@@ -23,7 +23,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Payout ID
                     </TableCell>
@@ -31,7 +31,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 240 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Ghost User ID
                     </TableCell>
@@ -39,7 +39,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Vendor Account ID
                     </TableCell>
@@ -47,7 +47,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Apply Available Amount
                     </TableCell>
@@ -55,7 +55,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Amount
                     </TableCell>
@@ -63,7 +63,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 100 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Currency
                     </TableCell>
@@ -71,7 +71,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         state
                     </TableCell>
@@ -79,7 +79,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         remark
                     </TableCell>
@@ -87,7 +87,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Created At
                     </TableCell>
@@ -95,7 +95,7 @@ const Payout = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Updated At
                     </TableCell>
@@ -107,7 +107,7 @@ const Payout = ({ paginatedData }: Props) => {
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             style={{ width: 180 }}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.withdraw_no}
                         </TableCell>
@@ -115,7 +115,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.payout_no}
                         </TableCell>
@@ -123,7 +123,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 240 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.ghost_user_id}
                         </TableCell>
@@ -131,7 +131,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.vendor_account_id}
                         </TableCell>
@@ -139,7 +139,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.apply_available_amount}
                         </TableCell>
@@ -147,7 +147,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.amount}
                         </TableCell>
@@ -155,7 +155,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 100 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.currency}
                         </TableCell>
@@ -163,7 +163,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.state}
                         </TableCell>
@@ -171,7 +171,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
@@ -179,7 +179,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.created_at}
                         </TableCell>
@@ -187,7 +187,7 @@ const Payout = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.updated_at}
                         </TableCell>

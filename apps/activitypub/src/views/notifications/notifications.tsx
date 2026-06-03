@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {ActorProperties} from '@tryghost/admin-x-framework/api/activitypub';
-import {Button, LoadingIndicator, LucideIcon, Skeleton} from '@tryghost/shade';
+import {Button, LoadingIndicator, Skeleton} from '@tryghost/shade/components';
+import {LucideIcon} from '@tryghost/shade/utils';
 
 import APAvatar from '@components/global/ap-avatar';
 import AppError from '@components/layout/error';
@@ -305,7 +306,7 @@ const Notifications: React.FC = () => {
                                     <React.Fragment key={group.id || `${group.type}_${index}`}>
                                         <NotificationItem
                                             centerAlign={group.actors.length < 2 && group.type === 'follow'}
-                                            className='hover:bg-gray-75 dark:hover:bg-gray-950'
+                                            className='hover:bg-gray-100 dark:hover:bg-gray-950'
                                             isGrouped={group.actors.length > 1}
                                             onClick={() => handleNotificationClick(group, index)}
                                         >
@@ -325,13 +326,13 @@ const Notifications: React.FC = () => {
                                                             }}
                                                             size='notification'
                                                         />
-                                                        <NotificationIcon className='absolute -bottom-1 -right-1 z-10 border-2 border-white dark:border-black' notificationType={group.type} size='sm' />
+                                                        <NotificationIcon className='absolute -right-1 -bottom-1 z-10 border-2 border-white dark:border-black' notificationType={group.type} size='sm' />
                                                     </div>
                                                 )
                                             }
                                             {group.actors.length > 1 && <NotificationItem.Avatars>
                                                 <div className='flex w-full flex-col'>
-                                                    <div className='relative flex items-center pl-2'>
+                                                    <div className='relative flex w-fit items-center pl-2'>
                                                         {!openStates[group.id || `${group.type}_${index}`] && group.actors.slice(0, maxAvatars).map((actor: ActorProperties) => (
                                                             <APAvatar
                                                                 key={actor.id}
@@ -342,7 +343,7 @@ const Notifications: React.FC = () => {
                                                                     name: actor.name,
                                                                     handle: actor.handle
                                                                 }}
-                                                                className='bg-[#F3F3F3]! group-hover:bg-[#EDEEF0]! -ml-2 outline outline-2 outline-white group-hover:outline-gray-75 dark:outline-black group-hover:dark:outline-gray-950'
+                                                                className='-ml-2 bg-[#F3F3F3]! outline outline-2 outline-white group-hover:bg-[#EDEEF0]! group-hover:outline-gray-100 dark:outline-black group-hover:dark:outline-gray-950'
                                                                 size='notification'
                                                             />
                                                         ))}
@@ -368,7 +369,7 @@ const Notifications: React.FC = () => {
                                                                 {group.actors.map((actor: ActorProperties) => (
                                                                     <div
                                                                         key={actor.id}
-                                                                        className='group/item flex items-center justify-between gap-4 break-anywhere'
+                                                                        className='group/item break-anywhere flex items-center justify-between gap-4'
                                                                         onClick={(e) => {
                                                                             e?.stopPropagation();
                                                                             handleProfileClick(actor.handle, navigate);
@@ -433,12 +434,12 @@ const Notifications: React.FC = () => {
                                                     (group.type === 'repost' && !group.post?.name && group.post?.content)
                                                 ) && (
                                                     (group.type !== 'reply' && group.type !== 'mention' ?
-                                                        <div className='ap-note-content mt-0.5 line-clamp-1 text-pretty text-sm text-gray-700 dark:text-gray-600'>
+                                                        <div className='ap-note-content mt-0.5 line-clamp-1 text-sm text-pretty text-gray-700 dark:text-gray-600'>
                                                             {group.post?.type === 'article' && group.post?.title && <>{group.post.title} &mdash; </>}
                                                             <span dangerouslySetInnerHTML={{__html: stripHtml(group.post?.content || '')}} />
                                                         </div> :
                                                         <>
-                                                            <div className='mt-2.5 rounded-md bg-gray-100 px-5 py-[14px] group-hover:bg-gray-200 dark:bg-gray-925/30 group-hover:dark:bg-black/40'>
+                                                            <div className='mt-2.5 rounded-md bg-gray-100 px-5 py-[14px] group-hover:bg-gray-200 dark:bg-gray-950/30 group-hover:dark:bg-black/40'>
                                                                 <ProfileLinkedContent
                                                                     className='ap-note-content text-pretty'
                                                                     content={group.post?.content || ''}

@@ -17,7 +17,7 @@ describe('{{price}} helper', function () {
         sinon.restore();
     });
 
-    before(function () {
+    beforeAll(function () {
         registerHelper('price');
     });
 
@@ -100,6 +100,11 @@ describe('{{price}} helper', function () {
     it('will format with short number format without decimal value', function () {
         const rendered = price.call({}, 500, {hash: {currency: 'EUR', numberFormat: 'short'}});
         assert.equal(rendered, '€5');
+    });
+
+    it('will format with short number format preserving trailing zero', function () {
+        const rendered = price.call({}, 3540, {hash: {currency: 'USD', numberFormat: 'short'}});
+        assert.equal(rendered, '$35.40');
     });
 
     it('will format with name currency format', function () {

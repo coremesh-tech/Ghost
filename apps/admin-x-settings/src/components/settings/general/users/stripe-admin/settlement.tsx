@@ -16,7 +16,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
                         className="font-bold text-grey-700 w-[130px] md:w-[150px]"
-                        valign="center"
+                        valign="middle"
                     >
                         Settlement ID
                     </TableCell>
@@ -24,14 +24,14 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Settlement Month
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center w-[120px] md:w-[150px]"
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Currency
                     </TableCell>
@@ -39,7 +39,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 160 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Total Amount
                     </TableCell>
@@ -47,7 +47,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: "150px"}}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         State
                     </TableCell>
@@ -55,7 +55,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150}}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Remark
                     </TableCell>
@@ -63,7 +63,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: "200px"}}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Created At
                     </TableCell>
@@ -71,7 +71,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: "200px"}}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Updated At
                     </TableCell>
@@ -79,7 +79,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 130}}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Action
                     </TableCell>
@@ -91,20 +91,20 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             className="w-[130px] md:w-[150px]"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.settlement_no}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{ width: 150 }}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.period_month}
                         </TableCell>
                         <TableCell
                             className="text-center w-[120px] md:w-[150px]"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.currency}
                         </TableCell>
@@ -112,7 +112,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: 160 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.total_amount}
                         </TableCell>
@@ -120,7 +120,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: 150}}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.state}
                         </TableCell>
@@ -128,7 +128,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: "150px"}}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
@@ -136,7 +136,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: "200px"}}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.created_at}
                         </TableCell>
@@ -144,7 +144,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: "200px"}}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.updated_at}
                         </TableCell>
@@ -152,7 +152,7 @@ const Settlement = ({ paginatedData, handleImplement, handleCheckDetail }: Props
                             className="text-center"
                             style={{ width: "130px"}}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             <Button
                                 label="Settle"

@@ -6,7 +6,7 @@ import {
     isEmailSuppressed,
     hasNewsletterSendingEnabled,
 } from "../../../../utils/helpers";
-import { ReactComponent as LoaderIcon } from "../../../../images/icons/loader.svg";
+import LoaderIcon from "../../../../images/icons/loader.svg?react";
 
 import PaidAccountActions from "./paid-account-actions";
 import TransistorPodcastsAction from "./transistor-podcasts-action";

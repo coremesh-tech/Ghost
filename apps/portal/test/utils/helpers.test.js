@@ -1,4 +1,6 @@
 import {
+    getActiveInterval,
+    arePaidMembersEnabled,
     hasAvailablePrices,
     getAllProductsForSite,
     getAvailableProducts,
@@ -11,23 +13,27 @@ import {
     getSupportAddress,
     getDefaultNewsletterSender,
     getUrlHistory,
+    removePortalLinkFromUrl,
     hasMultipleProducts,
     isActiveOffer,
     isRetentionOffer,
     isInviteOnly,
+    isArchivedTier,
+    isGiftMember,
     isPaidMember,
     isPaidMembersOnly,
     isSameCurrency,
     transformApiTiersData,
     isSigninAllowed,
     isSignupAllowed,
-    getCompExpiry,
+    getSubscriptionExpiry,
     isInThePast,
     hasNewsletterSendingEnabled,
     getUpdatedOfferPrice,
     isComplimentaryMember,
     subscriptionHasFreeTrial,
-    addMonths
+    addMonths,
+    formatPrice
 } from '../../src/utils/helpers';
 import * as Fixtures from '../../src/utils/fixtures-generator';
 import {site as FixturesSite, member as FixtureMember, offer as FixtureOffer, transformTierFixture as TransformFixtureTiers} from './test-fixtures';
@@ -73,6 +79,38 @@ describe('Helpers - ', () => {
 
         test('returns false for free member', () => {
             const value = isPaidMember({member: FixtureMember.free});
+            expect(value).toBe(false);
+        });
+    });
+
+    describe('isGiftMember -', () => {
+        test('returns true when member status is "gift"', () => {
+            const value = isGiftMember({member: {status: 'gift'}});
+            expect(value).toBe(true);
+        });
+
+        test('returns false for free member', () => {
+            const value = isGiftMember({member: FixtureMember.free});
+            expect(value).toBe(false);
+        });
+
+        test('returns false for paid member', () => {
+            const value = isGiftMember({member: FixtureMember.paid});
+            expect(value).toBe(false);
+        });
+
+        test('returns false for complimentary member', () => {
+            const value = isGiftMember({member: FixtureMember.complimentary});
+            expect(value).toBe(false);
+        });
+
+        test('returns false when member is null', () => {
+            const value = isGiftMember({member: null});
+            expect(value).toBe(false);
+        });
+
+        test('returns false when member arg is omitted', () => {
+            const value = isGiftMember({});
             expect(value).toBe(false);
         });
     });
@@ -280,6 +318,25 @@ describe('Helpers - ', () => {
             });
 
             expect(updatedPrice).toBe('$4.79');
+        });
+    });
+
+    describe('formatPrice - ', () => {
+        test('returns whole numbers without decimal padding', () => {
+            expect(formatPrice(5)).toBe('5');
+        });
+
+        test('returns fractional numbers with two decimals', () => {
+            expect(formatPrice(5.4)).toBe('5.40');
+        });
+
+        test('returns fractional numbers with locale grouping', () => {
+            expect(formatPrice(1234.5, 'en-US')).toBe('1,234.50');
+        });
+
+        test('returns empty string for null/undefined input', () => {
+            expect(formatPrice(null)).toBe('');
+            expect(formatPrice(undefined)).toBe('');
         });
     });
 
@@ -615,12 +672,42 @@ describe('Helpers - ', () => {
         });
     });
 
+    describe('removePortalLinkFromUrl', () => {
+        test('clears #/portal links from URL hash', () => {
+            window.history.pushState({}, '', '/members?filter=all#/portal/account');
+
+            removePortalLinkFromUrl();
+
+            expect(window.location.pathname).toBe('/members');
+            expect(window.location.search).toBe('?filter=all');
+            expect(window.location.hash).toBe('');
+        });
+
+        test('clears #/share links from URL hash', () => {
+            window.history.pushState({}, '', '/post/test?ref=mail#/share');
+
+            removePortalLinkFromUrl();
+
+            expect(window.location.pathname).toBe('/post/test');
+            expect(window.location.search).toBe('?ref=mail');
+            expect(window.location.hash).toBe('');
+        });
+
+        test('does not clear unrelated hashes', () => {
+            window.history.pushState({}, '', '/post/test?ref=mail#/not-portal');
+
+            removePortalLinkFromUrl();
+
+            expect(window.location.hash).toBe('#/not-portal');
+        });
+    });
+
     describe('getAvailableProducts', () => {
         it('Does not include paid Tiers when stripe is not configured', () => {
             const actual = getAvailableProducts({
                 site: {
                     ...FixturesSite.multipleTiers.basic,
-                    is_stripe_configured: false
+                    paid_members_enabled: false
                 }
             });
 
@@ -628,7 +715,7 @@ describe('Helpers - ', () => {
         });
     });
 
-    describe('getCompExpiry', () => {
+    describe('getSubscriptionExpiry', () => {
         let member = {};
 
         beforeEach(() => {
@@ -650,7 +737,7 @@ describe('Helpers - ', () => {
 
         it('returns the expiry date of a comped subscription', () => {
             const date = new Date('2023-10-13T00:00:00.000Z');
-            expect(getCompExpiry({member})).toEqual(date.toLocaleDateString('en-GB', {year: 'numeric', month: 'short', day: 'numeric'}));
+            expect(getSubscriptionExpiry({member})).toEqual(date.toLocaleDateString('en-GB', {year: 'numeric', month: 'short', day: 'numeric'}));
         });
 
         it('returns the expiry date of a comped subscription if the member has multiple subscriptions', () => {
@@ -664,13 +751,44 @@ describe('Helpers - ', () => {
                     expiry_at: '2023-10-14T00:00:00.000Z'
                 }
             });
-            expect(getCompExpiry({member})).toEqual(date.toLocaleDateString('en-GB', {year: 'numeric', month: 'short', day: 'numeric'}));
+            expect(getSubscriptionExpiry({member})).toEqual(date.toLocaleDateString('en-GB', {year: 'numeric', month: 'short', day: 'numeric'}));
         });
 
         it('returns an empty string if the subscription has no expiry date', () => {
             delete member.subscriptions[0].tier.expiry_at;
 
-            expect(getCompExpiry({member})).toEqual('');
+            expect(getSubscriptionExpiry({member})).toEqual('');
+        });
+    });
+
+    describe('isArchivedTier', () => {
+        const site = FixturesSite.singleTier.basic;
+        const activeTierId = site.products.find(p => p.type === 'paid').id;
+
+        const buildMemberWithTierId = tierId => ({
+            paid: true,
+            status: 'gift',
+            subscriptions: [
+                {
+                    status: 'active',
+                    price: {amount: 0},
+                    tier: tierId === undefined ? {} : {id: tierId}
+                }
+            ]
+        });
+
+        test('returns false when the member has no subscription', () => {
+            expect(isArchivedTier({member: FixtureMember.free, site})).toBe(false);
+        });
+
+        test('returns false when the subscription tier id is in site.products', () => {
+            const member = buildMemberWithTierId(activeTierId);
+            expect(isArchivedTier({member, site})).toBe(false);
+        });
+
+        test('returns true when the subscription tier id is not in site.products', () => {
+            const member = buildMemberWithTierId('archived_tier_id');
+            expect(isArchivedTier({member, site})).toBe(true);
         });
     });
 
@@ -797,6 +915,62 @@ describe('Helpers - ', () => {
         it('returns the original date when month count is not an integer', () => {
             const date = '2024-03-15T00:00:00.000Z';
             expect(addMonths(date, 1.5)).toEqual(new Date(date));
+        });
+    });
+
+    describe('arePaidMembersEnabled', () => {
+        test('returns true when paid_members_enabled is true', () => {
+            expect(arePaidMembersEnabled({site: {paid_members_enabled: true}})).toBe(true);
+        });
+
+        test('returns false when paid_members_enabled is false', () => {
+            expect(arePaidMembersEnabled({site: {paid_members_enabled: false}})).toBe(false);
+        });
+
+        test('returns false when paid_members_enabled is missing', () => {
+            expect(arePaidMembersEnabled({site: {}})).toBe(false);
+        });
+
+        test('returns false when site is undefined', () => {
+            expect(arePaidMembersEnabled({})).toBe(false);
+        });
+    });
+
+    describe('getActiveInterval', () => {
+        test('returns month when selectedInterval is month and monthly is available', () => {
+            expect(getActiveInterval({portalPlans: ['monthly', 'yearly'], portalDefaultPlan: 'yearly', selectedInterval: 'month'})).toBe('month');
+        });
+
+        test('returns year when selectedInterval is year and yearly is available', () => {
+            expect(getActiveInterval({portalPlans: ['monthly', 'yearly'], portalDefaultPlan: 'monthly', selectedInterval: 'year'})).toBe('year');
+        });
+
+        test('falls back to portalDefaultPlan when selectedInterval is null', () => {
+            expect(getActiveInterval({portalPlans: ['monthly', 'yearly'], portalDefaultPlan: 'monthly', selectedInterval: null})).toBe('month');
+        });
+
+        test('falls back to yearly when portalDefaultPlan is not monthly', () => {
+            expect(getActiveInterval({portalPlans: ['monthly', 'yearly'], portalDefaultPlan: 'yearly', selectedInterval: null})).toBe('year');
+        });
+
+        test('falls back to yearly when no default plan is set', () => {
+            expect(getActiveInterval({portalPlans: ['monthly', 'yearly'], portalDefaultPlan: null, selectedInterval: null})).toBe('year');
+        });
+
+        test('falls back to monthly when only monthly is available', () => {
+            expect(getActiveInterval({portalPlans: ['monthly'], portalDefaultPlan: null, selectedInterval: null})).toBe('month');
+        });
+
+        test('ignores selectedInterval month when monthly is not available', () => {
+            expect(getActiveInterval({portalPlans: ['yearly'], portalDefaultPlan: null, selectedInterval: 'month'})).toBe('year');
+        });
+
+        test('ignores selectedInterval year when yearly is not available', () => {
+            expect(getActiveInterval({portalPlans: ['monthly'], portalDefaultPlan: null, selectedInterval: 'year'})).toBe('month');
+        });
+
+        test('returns undefined when portalPlans is empty', () => {
+            expect(getActiveInterval({portalPlans: [], portalDefaultPlan: null, selectedInterval: null})).toBeUndefined();
         });
     });
 

@@ -48,8 +48,8 @@ module.exports = {
                 populateNodes();
             }
 
-            const LexicalHtmlRenderer = require('@tryghost/kg-lexical-html-renderer');
-            lexicalHtmlRenderer = new LexicalHtmlRenderer({nodes});
+            const {LexicalHTMLRenderer} = require('@tryghost/kg-lexical-html-renderer');
+            lexicalHtmlRenderer = new LexicalHTMLRenderer({nodes});
         }
 
         return lexicalHtmlRenderer;

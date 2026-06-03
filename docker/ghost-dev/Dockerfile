@@ -18,17 +18,26 @@ RUN apt-get update && \
 WORKDIR /home/ghost
 
 # Copy package files for dependency installation
-COPY package.json yarn.lock ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY ghost/core/package.json ghost/core/package.json
 COPY ghost/i18n/package.json ghost/i18n/package.json
 COPY ghost/parse-email-address/package.json ghost/parse-email-address/package.json
 
 # Install dependencies
-# Note: Dependencies are installed at build time, but source code is mounted at runtime
-COPY .github/scripts/install-deps.sh .github/scripts/install-deps.sh
-RUN --mount=type=cache,target=/usr/local/share/.cache/yarn,id=yarn-cache \
-    --mount=type=secret,id=npmrc,target=/root/.npmrc,required=false \
-    bash .github/scripts/install-deps.sh
+# Note: Dependencies are installed at build time, but source code is mounted at runtime.
+
+# Copy root lifecycle scripts/hooks needed by `pnpm install`
+COPY .github/scripts .github/scripts
+COPY .github/hooks .github/hooks
+
+# Enable corepack so it can read packageManager from package.json and provide pnpm
+RUN corepack enable
+
+# Install deps
+# NOTE: BuildKit cache mount removed — pnpm 11.x switched the store index to SQLite,
+# which fails with "disk I/O error" on overlayfs-backed cache mounts (esp. on
+# Docker Desktop / macOS). Trade-off: no cross-build store cache, slower rebuilds.
+RUN pnpm install --frozen-lockfile --prefer-offline
 
 # Copy entrypoint script that optionally loads Tinybird config
 COPY docker/ghost-dev/entrypoint.sh entrypoint.sh
@@ -41,11 +50,12 @@ ENV portal__url=/ghost/assets/portal/portal.min.js \
     sodoSearch__url=/ghost/assets/sodo-search/sodo-search.min.js \
     sodoSearch__styles=/ghost/assets/sodo-search/main.css \
     signupForm__url=/ghost/assets/signup-form/signup-form.min.js \
-    announcementBar__url=/ghost/assets/announcement-bar/announcement-bar.min.js
+    announcementBar__url=/ghost/assets/announcement-bar/announcement-bar.min.js \
+    adminToolbar__url=/ghost/assets/admin-toolbar/admin-toolbar.min.js
 
 # Source code will be mounted from host at /home/ghost/ghost/core
 # This allows the Ghost dev script to pick up file changes for hot-reload
 WORKDIR /home/ghost/ghost/core
 
 ENTRYPOINT ["/home/ghost/entrypoint.sh"]
-CMD ["yarn", "dev"]
+CMD ["pnpm", "dev"]

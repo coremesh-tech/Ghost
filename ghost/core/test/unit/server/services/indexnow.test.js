@@ -9,6 +9,7 @@ const events = require('../../../../core/server/lib/common/events');
 const settingsCache = require('../../../../core/shared/settings-cache');
 const labs = require('../../../../core/shared/labs');
 const logging = require('@tryghost/logging');
+const urlService = require('../../../../core/server/services/url');
 
 describe('IndexNow', function () {
     let eventStub;
@@ -250,6 +251,11 @@ describe('IndexNow', function () {
 
     describe('ping()', function () {
         const ping = indexnow.__get__('ping');
+        let urlStub;
+
+        beforeEach(function () {
+            urlStub = sinon.stub(urlService.facade, 'getUrlForResource').returns('https://example.com/my-post/');
+        });
 
         it('with a post should execute ping', async function () {
             loggingStub = sinon.stub(logging, 'info');
@@ -261,6 +267,27 @@ describe('IndexNow', function () {
             await ping(testPost);
 
             sinon.assert.calledOnce(loggingStub);
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.pinged');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 200);
+        });
+
+        it('does not ping when the post has no resolvable URL (/404/)', async function () {
+            urlStub.returns('https://example.com/404/');
+            loggingStub = sinon.stub(logging, 'warn');
+            const pingRequest = nock('https://api.indexnow.org')
+                .get(/\/indexnow/)
+                .reply(200);
+            const testPost = _.clone(testUtils.DataGenerator.Content.posts[2]);
+
+            await ping(testPost);
+
+            assert.equal(pingRequest.isDone(), false);
+            sinon.assert.calledOnce(loggingStub);
+            const logged = loggingStub.args[0][0];
+            assert.equal(logged.event.name, 'indexnow.unresolved_url');
+            assert.equal(logged.post.url, 'https://example.com/404/');
+            assert.equal(logged.post.id, testPost.id);
+            assert.equal(logged.post.slug, testPost.slug);
         });
 
         it('with default post should not execute ping', async function () {
@@ -326,9 +353,10 @@ describe('IndexNow', function () {
 
             // Should NOT have made the ping request
             assert.equal(pingRequest.isDone(), false);
-            // Should have logged a warning
+            // Should have logged a warning with a structured event
             sinon.assert.calledOnce(loggingStub);
-            assert(loggingStub.args[0][0].includes('API key not available'));
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.api_key_missing');
+            assert(loggingStub.args[0][1].includes('API key not available'));
         });
 
         it('should handle 202 response as success', async function () {
@@ -342,6 +370,8 @@ describe('IndexNow', function () {
 
             assert.equal(pingRequest.isDone(), true);
             sinon.assert.calledOnce(loggingStub);
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.pinged');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 202);
         });
 
         it('captures && logs errors from 400 requests', async function () {
@@ -355,6 +385,8 @@ describe('IndexNow', function () {
 
             assert.equal(pingRequest.isDone(), true);
             sinon.assert.calledOnce(loggingStub);
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.ping_failed');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 400);
         });
 
         it('captures && logs validation errors from 422 requests', async function () {
@@ -368,7 +400,8 @@ describe('IndexNow', function () {
 
             assert.equal(pingRequest.isDone(), true);
             sinon.assert.calledOnce(loggingStub);
-            assert(loggingStub.args[0][0].message.includes('key validation failed'));
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.key_validation_failed');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 422);
         });
 
         it('should behave correctly when getting a 429', async function () {
@@ -382,6 +415,25 @@ describe('IndexNow', function () {
 
             assert.equal(pingRequest.isDone(), true);
             sinon.assert.calledOnce(loggingStub);
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.rate_limited');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 429);
+        });
+
+        it('logs the real status code for an unexpected 2xx response', async function () {
+            loggingStub = sinon.stub(logging, 'warn');
+            // 204 is a 2xx that request() does not throw on, so it hits the
+            // manual unexpected-status check rather than an HTTP error
+            const pingRequest = nock('https://api.indexnow.org')
+                .get(/\/indexnow/)
+                .reply(204);
+            const testPost = _.clone(testUtils.DataGenerator.Content.posts[2]);
+
+            await ping(testPost);
+
+            assert.equal(pingRequest.isDone(), true);
+            sinon.assert.calledOnce(loggingStub);
+            assert.equal(loggingStub.args[0][0].event.name, 'indexnow.ping_failed');
+            assert.equal(loggingStub.args[0][0].http.response.status_code, 204);
         });
     });
 
@@ -399,6 +451,50 @@ describe('IndexNow', function () {
 
             const key = indexnow.getApiKey();
             assert.equal((key === null), true);
+        });
+    });
+
+    // Pin which URL ping() actually sends. The earlier `ping()` block above
+    // uses nock to intercept the HTTP request but never inspects the
+    // `?url=...` query parameter; that's the exact value a future change to
+    // the url-service call shape (e.g. swapping the legacy id-based method
+    // for a resource-based facade method) could regress without anyone
+    // noticing.
+    describe('ping() URL output', function () {
+        const ping = indexnow.__get__('ping');
+        const POST_URL = 'https://my-blog.example/some-post/';
+        let getUrlForResourceStub;
+        let requestStub;
+        let resetIndexNow;
+
+        beforeEach(function () {
+            // Bind the stub to the exact resource shape production passes
+            // (`{...post, type: 'posts'}`) so a regression that drops the
+            // type override or the spread surfaces here.
+            getUrlForResourceStub = sinon.stub(urlService.facade, 'getUrlForResource');
+            getUrlForResourceStub
+                .withArgs(sinon.match({id: 'abc', type: 'posts'}), {absolute: true})
+                .returns(POST_URL);
+
+            requestStub = sinon.stub().resolves({statusCode: 200});
+            resetIndexNow = indexnow.__set__('request', requestStub);
+
+            settingsCacheStub.withArgs('indexnow_api_key').returns('a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4');
+        });
+
+        afterEach(function () {
+            resetIndexNow();
+        });
+
+        it('passes the post URL into the IndexNow request', async function () {
+            const post = {id: 'abc', slug: 'some-post', type: 'post'};
+
+            await ping(post);
+
+            sinon.assert.calledOnce(getUrlForResourceStub);
+            sinon.assert.calledOnce(requestStub);
+            const indexNowUrl = new URL(requestStub.firstCall.args[0]);
+            assert.equal(indexNowUrl.searchParams.get('url'), POST_URL);
         });
     });
 });

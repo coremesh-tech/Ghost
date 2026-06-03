@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Popover, PopoverContent, PopoverTrigger} from '@tryghost/shade';
+import {Popover, PopoverContent, PopoverTrigger} from '@tryghost/shade/components';
 
 export interface TOCItem {
     id: string;
@@ -186,7 +186,7 @@ const TableOfContentsView: React.FC<TableOfContentsViewProps> = ({items, activeH
         <Popover modal={false} open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <div
-                    className='absolute right-2 top-1/2 flex -translate-y-1/2 flex-col items-end gap-2 rounded-md p-2 text-base dark:bg-black'
+                    className='absolute top-1/2 right-2 flex -translate-y-1/2 flex-col items-end gap-2 rounded-md p-2 text-base dark:bg-black'
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
@@ -216,7 +216,7 @@ const TableOfContentsView: React.FC<TableOfContentsViewProps> = ({items, activeH
                     {items.map(item => (
                         <button
                             key={item.id}
-                            className={`line-clamp-2 block w-full cursor-pointer rounded py-1 text-left text-sm leading-tight ${activeHeading === item.id ? 'text-black dark:text-white' : 'text-gray-700 dark:text-gray-600'} hover:bg-gray-75 hover:text-gray-900 dark:hover:bg-grey-925 dark:hover:text-white ${getHeadingPadding(item.level)}`}
+                            className={`line-clamp-2 block w-full cursor-pointer rounded py-1 text-left text-sm leading-tight ${activeHeading === item.id ? 'text-black dark:text-white' : 'text-gray-700 dark:text-gray-600'} hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-grey-950 dark:hover:text-white ${getHeadingPadding(item.level)}`}
                             type='button'
                             onClick={() => onItemClick(item.id)}
                         >

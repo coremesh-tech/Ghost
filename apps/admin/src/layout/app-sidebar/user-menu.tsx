@@ -1,15 +1,7 @@
 import React from "react"
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    Indicator,
-    LucideIcon,
-    SidebarMenuButton,
-    Switch
-} from "@tryghost/shade"
+import {DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger, Indicator, SidebarMenuButton, Switch} from "@tryghost/shade/components"
+import {LucideIcon} from "@tryghost/shade/utils"
 import { useCurrentUser } from "@tryghost/admin-x-framework/api/current-user";
 import { getGhostPaths } from "@tryghost/admin-x-framework/helpers";
 import { useUserPreferences, useEditUserPreferences } from "@/hooks/user-preferences";
@@ -20,6 +12,7 @@ import { UserMenuItem } from "./user-menu-item";
 import { UserMenuAvatar } from "./user-menu-avatar";
 import { UserMenuHeader } from "./user-menu-header";
 import { Link } from "@tryghost/admin-x-framework";
+import { getAdminToolbarUrl } from "@/utils/admin-toolbar-url";
 
 function UserMenuProfile() {
     const currentUser = useCurrentUser();
@@ -118,7 +111,7 @@ function UserMenu(props: UserMenuProps) {
                     </div>
                     <div className="grid flex-1 text-left text-base leading-tight">
                         <span className="truncate font-semibold">{currentUser.data?.name}</span>
-                        <span className="text-muted-foreground truncate text-xs -mt-px">
+                        <span className="-mt-px truncate text-xs text-muted-foreground">
                             {currentUser.data?.email}
                         </span>
                     </div>
@@ -147,7 +140,7 @@ function UserMenu(props: UserMenuProps) {
                     <LucideIcon.Sparkles />
                     <UserMenuItem.Label>What’s new?</UserMenuItem.Label>
                     {whatsNewData?.hasNew && (
-                        <div className="flex-1 flex justify-end">
+                        <div className="flex flex-1 justify-end">
                             <Indicator
                                 variant="success"
                                 size="sm"
@@ -196,24 +189,24 @@ function UserMenu(props: UserMenuProps) {
 function ContributorUserMenu() {
     const currentUser = useCurrentUser();
     const site = useBrowseSite();
-    const siteUrl = site.data?.site.url ?? "";
-    const boardGuidanceUrl = "https://www.predictionmarkets.org/creator-on-boarding-guide/";
+    const siteUrl = getAdminToolbarUrl(site.data?.site.url ?? "");
+    const boardGuidanceUrl = "https://www.predictionmarkets.org/creator-on-boarding-guide/";   
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button
-                    className="rounded-full shadow-lg hover:shadow-xl transition-shadow focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 p-0.5 flex items-center justify-center border border-border dark:bg-muted bg-background"
+                    className="flex items-center justify-center rounded-full border border-border bg-background p-0.5 shadow-lg transition-shadow hover:shadow-xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-muted"
                     aria-label="Open user menu"
                 >
-                    <UserMenuAvatar className="w-11 h-11" />
+                    <UserMenuAvatar className="h-11 w-11" />
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="start"
                 side="top"
                 sideOffset={10}
-                className="min-w-56 mb-2"
+                className="mb-2 min-w-56"
             >
                 <UserMenuHeader
                     name={currentUser.data?.name}

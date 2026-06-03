@@ -1,4 +1,7 @@
-module.exports = ({result, siteUrl, postsUrl, emailRecipient}) => `
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.emailTemplate = void 0;
+const emailTemplate = ({ result, siteUrl, postsUrl, emailRecipient }) => `
 <!doctype html>
 <html>
   <head>
@@ -160,4 +163,4 @@ module.exports = ({result, siteUrl, postsUrl, emailRecipient}) => `
   </body>
 </html>
 `;
-
+exports.emailTemplate = emailTemplate;

@@ -70,7 +70,7 @@ export type SelectProps = Props<SelectOption, false> & SelectOptionProps & {
 const DropdownIndicator: React.FC<DropdownIndicatorProps<SelectOption, false> & {clearBg: boolean}> = ({clearBg, ...props}) => (
     <components.DropdownIndicator {...props}>
         <div
-            className={`absolute top-1/2 mt-[-5px] block size-2 border-[1px] border-l-0 border-t-0 border-grey-900 content-[''] dark:border-grey-400 ${clearBg ? 'right-2' : 'right-[14px]'} `}
+            className={`absolute top-1/2 mt-[-5px] block size-2 border-[1px] border-t-0 border-l-0 border-grey-900 content-[''] dark:border-grey-400 ${clearBg ? 'right-2' : 'right-[14px]'} `}
             style={{transform: 'rotate(45deg)'}}
         ></div>
     </components.DropdownIndicator>
@@ -151,7 +151,7 @@ const Select: React.FC<SelectProps> = ({
         containerClasses = clsx(
             'dark:text-white',
             fullWidth && 'w-full',
-            disabled && 'cursor-not-allowed opacity-40'
+            disabled && 'cursor-not-allowed text-grey-600 dark:text-grey-800'
         );
     }
     containerClasses = clsx(
@@ -162,11 +162,13 @@ const Select: React.FC<SelectProps> = ({
     const customClasses = {
         control: clsx(
             controlClasses?.control,
-            'outline-hidden h-9 min-h-[36px] w-full appearance-none rounded-lg border md:h-[38px] md:min-h-[38px] dark:text-white',
+            'h-9 min-h-[36px] w-full appearance-none rounded-lg border outline-hidden md:h-[38px] md:min-h-[38px]',
             size === 'xs' ? 'py-0 pr-2 text-xs' : 'py-1 pr-4',
-            clearBg ? '' : 'bg-grey-150 px-3 dark:bg-grey-900',
-            error ? 'border-red' : `border-transparent ${!clearBg && 'hover:bg-grey-100 dark:hover:bg-grey-925'}`,
+            clearBg ? '' : 'bg-grey-100 px-3 dark:bg-grey-900',
+            disabled && !clearBg && 'bg-grey-50 shadow-[0_0_0_1px_rgba(255,255,255,0.45)] hover:bg-grey-50 dark:bg-grey-950 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.18)] dark:hover:bg-grey-950',
+            error ? 'border-red' : `border-transparent ${!clearBg && !disabled && 'hover:bg-grey-100 dark:hover:bg-grey-900'}`,
             !disabled && 'cursor-pointer',
+            disabled ? 'dark:text-grey-800' : 'dark:text-white',
             (title && !clearBg) && 'mt-1.5'
         ),
         valueContainer: clsx('mr-1.5 gap-1', controlClasses?.valueContainer),
@@ -178,7 +180,7 @@ const Select: React.FC<SelectProps> = ({
         ),
         option: clsx('group px-3 py-[7px] hover:cursor-pointer hover:bg-grey-100 dark:text-white dark:hover:bg-grey-900', controlClasses?.option),
         noOptionsMessage: clsx('nowrap p-3 text-grey-600', controlClasses?.noOptionsMessage),
-        groupHeading: clsx('px-3 py-[7px] text-2xs font-semibold uppercase tracking-wide text-grey-700', controlClasses?.groupHeading),
+        groupHeading: clsx('px-3 py-[7px] text-2xs font-semibold tracking-wide text-grey-700 uppercase', controlClasses?.groupHeading),
         clearIndicator: clsx('', controlClasses?.clearIndicator)
     };
 

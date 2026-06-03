@@ -90,6 +90,12 @@ const NotificationStyles = `
     .gh-portal-notification-icon.warning {
         color: var(--yellow);
     }
+        
+    .gh-portal-notification-closebutton {
+        background: none;
+        border: none;
+        padding: 0;
+    }
 
     .gh-portal-notification-closeicon {
         color: var(--grey8);

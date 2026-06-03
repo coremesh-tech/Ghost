@@ -14,14 +14,14 @@ const Income = ({ paginatedData }: Props) => {
                 <div className="flex w-full justify-between px-2 items-center">
                     <TableCell
                         className="font-bold text-grey-700 w-[150px]"
-                        valign="center"
+                        valign="middle"
                     >
                         Flow ID
                     </TableCell>
                     <TableCell
                         className="font-bold text-grey-700 text-center w-[120px] md:w-[150px]"
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Amount
                     </TableCell>
@@ -29,7 +29,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Currency
                     </TableCell>
@@ -37,7 +37,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 180 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Available Amount
                     </TableCell>
@@ -45,7 +45,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 100 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Fees
                     </TableCell>
@@ -53,7 +53,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Created At
                     </TableCell>
@@ -61,7 +61,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Source Type
                     </TableCell>
@@ -69,7 +69,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 200 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Source ID
                     </TableCell>
@@ -77,7 +77,7 @@ const Income = ({ paginatedData }: Props) => {
                         className="font-bold text-grey-700 text-center"
                         style={{ width: 150 }}
                         align="center"
-                        valign="center"
+                        valign="middle"
                     >
                         Remark
                     </TableCell>
@@ -89,13 +89,13 @@ const Income = ({ paginatedData }: Props) => {
                     <div className="flex w-full justify-between px-2 items-center">
                         <TableCell 
                             className="w-[150px]"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.flow_no}
                         </TableCell>
                         <TableCell
                             className="text-center w-[120px] md:w-[150px]"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.amount}
                         </TableCell>
@@ -103,7 +103,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.currency}
                         </TableCell>
@@ -111,7 +111,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 180 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.available_amount}
                         </TableCell>
@@ -119,7 +119,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 100 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.fees}
                         </TableCell>
@@ -127,7 +127,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.created_at}
                         </TableCell>
@@ -135,7 +135,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.source_type}
                         </TableCell>
@@ -143,7 +143,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 200 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             {item.source_no}
                         </TableCell>
@@ -151,7 +151,7 @@ const Income = ({ paginatedData }: Props) => {
                             className="text-center"
                             style={{ width: 150 }}
                             align="center"
-                            valign="center"
+                            valign="middle"
                         >
                             <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>

@@ -3,13 +3,29 @@
  * @typedef {import('got').ExtendOptions} ExtendOptions
  */
 
-const got = /** @type {Got} */ (/** @type {unknown} */ (require('got')));
+const got = /** @type {Got} */ (/** @type {unknown} */ (require('got').default));
 const dns = require('dns');
 const net = require('net');
+const http = require('http');
+const https = require('https');
 const dnsPromises = require('dns').promises;
 const errors = require('@tryghost/errors');
 const config = require('../../shared/config');
 const validator = require('@tryghost/validator');
+
+// Shared keep-alive agents so outbound HTTPS connections are pooled and reused
+// across page renders / oEmbed / webmention / recommendations / image probes.
+// Without this, each request opens a fresh socket which on a NAT-gatewayed VPC
+// holds the gateway at its connection-rate ceiling and causes port-collision drops.
+// Pool sizing is configurable via `externalRequest` (see config defaults).
+const agentOptions = {
+    keepAlive: config.get('externalRequest:keepAlive') ?? true,
+    keepAliveMsecs: config.get('externalRequest:keepAliveMsecs') ?? 60000,
+    maxSockets: config.get('externalRequest:maxSockets') ?? 256,
+    maxFreeSockets: config.get('externalRequest:maxFreeSockets') ?? 256
+};
+const httpAgent = new http.Agent(agentOptions);
+const httpsAgent = new https.Agent(agentOptions);
 
 /**
  * Normalize an IPv4 address from any format (decimal, octal, hex, integer)
@@ -208,7 +224,9 @@ async function disableRetries(options) {
         limit: 0,
         calculateDelay: () => 0
     };
-    options.timeout = 5000;
+    options.timeout = {
+        request: 5000
+    };
 }
 
 /**
@@ -275,7 +293,13 @@ const gotOpts = {
     headers: {
         'user-agent': 'Ghost(https://github.com/TryGhost/Ghost)'
     },
-    timeout: 10000, // default is no timeout
+    timeout: {
+        request: 10000
+    }, // default is no timeout
+    agent: {
+        http: httpAgent,
+        https: httpsAgent
+    },
     hooks: {
         init: process.env.NODE_ENV?.startsWith('test') ? [disableRetries] : [],
         beforeRequest: [errorIfInvalidUrl, errorIfHostnameResolvesToPrivateIp, installSafeDnsLookup],

@@ -8,7 +8,7 @@ describe('AttributionBuilder', function () {
     let urlTranslator;
     let now;
 
-    before(function () {
+    beforeAll(function () {
         now = Date.now();
         urlTranslator = {
             getResourceDetails(item) {
@@ -69,6 +69,9 @@ describe('AttributionBuilder', function () {
                 return url;
             },
             getUrlByResourceId() {
+                return 'https://absolute/dir/path';
+            },
+            getResourceUrl() {
                 return 'https://absolute/dir/path';
             },
             relativeToAbsolute(path) {

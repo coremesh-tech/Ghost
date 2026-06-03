@@ -1,9 +1,11 @@
 import GlobalDataProvider from './global-data-provider';
 import useSearchService, {type ComponentId, type SearchService} from '../../utils/search';
-import {type ReactNode, createContext, useContext, useState, useEffect} from 'react';
+import {type ReactNode, createContext, useContext, useEffect, useState} from 'react';
 import {ScrollSectionProvider} from '../../hooks/use-scroll-section';
 import {type ZapierTemplate} from '../settings/advanced/integrations/zapier-modal';
+import {isContributorUser} from '@tryghost/admin-x-framework/api/users';
 import {officialThemes} from '../../data/official-themes';
+import {useCurrentUser} from '@tryghost/admin-x-framework/api/current-user';
 import {zapierTemplates} from '../../data/zapier-templates';
 
 export type ThemeVariant = {
@@ -32,6 +34,18 @@ export interface UpgradeStatusType {
     isRequired: boolean;
     message: string;
 }
+
+type AccountState = {
+    view_state?: string;
+};
+
+type EmberBridgeState = {
+    on: (eventName: 'accountStateChange', callback: (payload: {accountState: AccountState}) => void) => void;
+    off: (eventName: 'accountStateChange', callback: (payload: {accountState: AccountState}) => void) => void;
+    session?: {
+        accountState?: AccountState;
+    };
+};
 
 interface SettingsAppContextType {
     officialThemes: OfficialTheme[];
@@ -71,6 +85,7 @@ type SettingsAppProviderProps = Partial<Omit<SettingsAppContextType, 'search'>> 
 
 const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...props}) => {
     const search = useSearchService();
+    const {data: currentUser} = useCurrentUser();
 
     // a few sane defaults for keeping a sorting state
     const [sortingState, setSortingState] = useState<Sorting[]>([{
@@ -83,12 +98,12 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
 
     // Sync accountState from Ember bridge
     const [accountState, setAccountState] = useState(() => {
-        const bridge = (window as any).EmberBridge?.state;
+        const bridge = (window as {EmberBridge?: {state?: EmberBridgeState}}).EmberBridge?.state;
         return props.accountState || bridge?.session?.accountState;
     });
 
     useEffect(() => {
-        const bridge = (window as any).EmberBridge?.state;
+        const bridge = (window as {EmberBridge?: {state?: EmberBridgeState}}).EmberBridge?.state;
         if (!bridge) {
             return;
         }
@@ -97,17 +112,20 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
         if (bridge.session?.accountState) {
             setAccountState(bridge.session.accountState);
         }
-        
-        const handleAccountStateChange = (event: any) => {
-             setAccountState(event.accountState);
+
+        const handleAccountStateChange = (event: {accountState: AccountState}) => {
+            setAccountState(event.accountState);
         };
-        
+
         bridge.on('accountStateChange', handleAccountStateChange);
-        
+
         return () => {
             bridge.off('accountStateChange', handleAccountStateChange);
         };
     }, []);
+
+    const userRole = props.userRole ?? currentUser?.roles?.[0]?.name;
+    const isContributor = props.isContributor ?? (currentUser ? isContributorUser(currentUser) : undefined);
 
     return (
         <SettingsAppContext.Provider value={{
@@ -116,6 +134,8 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
             zapierTemplates,
             ...props,
             accountState,
+            userRole,
+            isContributor,
             search,
             sortingState,
             setSortingState,
