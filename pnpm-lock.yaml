@@ -2708,6 +2708,9 @@ importers:
       probe-image-size:
         specifier: 7.3.0
         version: 7.3.0
+      qs:
+        specifier: 6.15.2
+        version: 6.15.2
       rss:
         specifier: 1.2.2
         version: 1.2.2
@@ -2892,9 +2895,6 @@ importers:
       postcss-cli:
         specifier: 11.0.1
         version: 11.0.1(jiti@2.7.0)(postcss@8.5.10)(tsx@4.21.0)
-      qs:
-        specifier: 6.15.2
-        version: 6.15.2
       rewire:
         specifier: 9.0.1
         version: 9.0.1(jiti@2.7.0)
@@ -8692,7 +8692,7 @@ packages:
     resolution: {integrity: sha512-pATOtb4JhSm+Tx8+7FxHdEkBIi8h43ZffPQu1Mr8bdHVLzN4FalB4fHukRYy53JZc3UEtxSVBZHeg7Q2ZPFR1Q==}
 
   '@tryghost/koenig-lexical@http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.31.tgz':
-    resolution: {integrity: sha512-uRNAHzZJw6An5Ik7XARKKuTMgEQk8lGlD14X1UfnfyJwEbyTqj02soDp3DfBro6t8RuqeTFgtQOmTaimxxfjMA==, tarball: http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.31.tgz}
+    resolution: {tarball: http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.31.tgz}
     version: 1.7.20-poll.31
 
   '@tryghost/limit-service@1.5.5':
