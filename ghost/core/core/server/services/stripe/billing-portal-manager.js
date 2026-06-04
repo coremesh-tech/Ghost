@@ -14,6 +14,24 @@ const DEFAULT_FEATURES = {
     }
 };
 
+/**
+ * 判断当前 Stripe Billing Portal Configuration 是否不可更新。
+ * 这类配置通常是 Stripe 默认配置，或不是由当前应用创建的配置。
+ *
+ * @param {unknown} err
+ * @returns {boolean}
+ */
+function isImmutablePortalConfigurationError(err) {
+    if (!err || typeof err !== 'object') {
+        return false;
+    }
+
+    const message = 'message' in err && typeof err.message === 'string' ? err.message : '';
+
+    return message.includes('PortalConfiguration that was not created by your application') ||
+        message.includes('PortalConfiguration that has `is_default: true`');
+}
+
 class BillingPortalManager {
     /** @type {object} */
     SettingsModel;
@@ -89,7 +107,10 @@ class BillingPortalManager {
             const configuration = await this.api.updateBillingPortalConfiguration(id, this.getConfigurationOptions(true));
             return configuration.id;
         } catch (err) {
-            if (err && typeof err === 'object' && 'code' in err && err.code === 'resource_missing') {
+            if (
+                (err && typeof err === 'object' && 'code' in err && err.code === 'resource_missing') ||
+                isImmutablePortalConfigurationError(err)
+            ) {
                 const configuration = await this.api.createBillingPortalConfiguration(this.getConfigurationOptions());
                 return configuration.id;
             }

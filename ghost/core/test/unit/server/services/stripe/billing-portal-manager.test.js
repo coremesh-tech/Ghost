@@ -173,6 +173,26 @@ describe('BillingPortalManager', function () {
             sinon.assert.calledOnce(mockApi.createBillingPortalConfiguration);
         });
 
+        it('creates new configuration when update fails for a Stripe default configuration', async function () {
+            mockSettingsCache.get.withArgs('title').returns('Test Site');
+            const immutableConfigurationError = new Error('You cannot make any changes to a PortalConfiguration that was not created by your application, or to a PortalConfiguration that has `is_default: true` on a connected account.');
+            mockApi.updateBillingPortalConfiguration.rejects(immutableConfigurationError);
+            mockApi.createBillingPortalConfiguration.resolves({id: 'bpc_recreated123'});
+
+            const manager = new BillingPortalManager({
+                api: mockApi,
+                models: {Settings: mockSettingsModel},
+                settingsCache: mockSettingsCache
+            });
+            manager.configure({siteUrl: 'https://example.com'});
+
+            const result = await manager.createOrUpdateConfiguration('bpc_default');
+
+            assert.equal(result, 'bpc_recreated123');
+            sinon.assert.calledOnce(mockApi.updateBillingPortalConfiguration);
+            sinon.assert.calledOnce(mockApi.createBillingPortalConfiguration);
+        });
+
         it('returns the passed id when failing with a non-resource based error', async function () {
             mockSettingsCache.get.withArgs('title').returns('Test Site');
             const genericError = new Error('Stripe API error');
