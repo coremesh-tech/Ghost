@@ -127,6 +127,9 @@ function servePublicFiles(siteApp) {
     // Traffic analytics tracking script
     siteApp.get('/public/ghost-stats.min.js', createPublicFileMiddleware('static', 'public/ghost-stats.min.js', 'application/javascript', config.get('caching:publicAssets:maxAge')));
 
+    // Poll 趋势图脚本按需独立加载，避免进入 cards.min.js 的首次动态压缩链路
+    siteApp.get('/public/poll-lightweight-charts.min.js', createPublicFileMiddleware('static', 'public/poll-lightweight-charts.min.js', 'application/javascript', config.get('caching:publicAssets:maxAge')));
+
     // Card assets (built on the fly)
     siteApp.get('/public/cards.min.css', cardAssets.serveMiddleware(), createPublicFileMiddleware('built', 'public/cards.min.css', 'text/css', config.get('caching:publicAssets:maxAge')));
     siteApp.get('/public/cards.min.js', cardAssets.serveMiddleware(), createPublicFileMiddleware('built', 'public/cards.min.js', 'application/javascript', config.get('caching:publicAssets:maxAge')));

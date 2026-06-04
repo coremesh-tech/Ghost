@@ -5,9 +5,8 @@ const config = require('../../../shared/config');
 const Minifier = require('./minifier');
 const AssetsMinificationBase = require('./assets-minification-base');
 
-const CARD_JS_DEPENDENCIES = {
-    poll: ['poll-lightweight-charts']
-};
+const CARD_JS_DEPENDENCIES = {};
+const EXCLUDED_CARD_JS = ['poll-lightweight-charts'];
 
 module.exports = class CardAssets extends AssetsMinificationBase {
     constructor(options = {}) {
@@ -32,7 +31,7 @@ module.exports = class CardAssets extends AssetsMinificationBase {
         if (this.config === true) {
             return {
                 'cards.min.css': 'css/*.css',
-                'cards.min.js': 'js/*.js'
+                'cards.min.js': `js/!(${EXCLUDED_CARD_JS.join('|')}).js`
             };
         }
 
@@ -49,9 +48,10 @@ module.exports = class CardAssets extends AssetsMinificationBase {
         // CASE: the theme has declared an exclude directive, we should include exactly these assets
         if (_.has(this.config, 'exclude')) {
             const exclude = this.expandCardNames(this.config.exclude);
+            const excludeJs = Array.from(new Set([...exclude, ...EXCLUDED_CARD_JS]));
             return {
                 'cards.min.css': `css/!(${this.config.exclude.join('|')}).css`,
-                'cards.min.js': `js/!(${exclude.join('|')}).js`
+                'cards.min.js': `js/!(${excludeJs.join('|')}).js`
             };
         }
 

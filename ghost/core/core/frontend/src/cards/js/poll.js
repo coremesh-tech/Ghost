@@ -311,6 +311,75 @@
         return window.LightweightCharts || null;
     };
 
+    const CHART_LIBRARY_ASSET_URL = '/public/poll-lightweight-charts.min.js';
+    let chartLibraryLoadPromise = null;
+
+    const ensureChartLibraryLoaded = function () {
+        const existingLibrary = getChartLibrary();
+
+        if (existingLibrary) {
+            return Promise.resolve(existingLibrary);
+        }
+
+        if (chartLibraryLoadPromise) {
+            return chartLibraryLoadPromise;
+        }
+
+        chartLibraryLoadPromise = new Promise(function (resolve, reject) {
+            let script = document.querySelector('script[data-kg-poll-chart-library="true"]');
+
+            const cleanup = function () {
+                if (!script) {
+                    return;
+                }
+
+                script.removeEventListener('load', handleLoad);
+                script.removeEventListener('error', handleError);
+            };
+
+            const handleLoad = function () {
+                const loadedLibrary = getChartLibrary();
+
+                cleanup();
+
+                if (loadedLibrary) {
+                    script.dataset.loaded = 'true';
+                    resolve(loadedLibrary);
+                    return;
+                }
+
+                reject(new Error('Failed to initialize Lightweight Charts'));
+            };
+
+            const handleError = function () {
+                cleanup();
+                reject(new Error('Failed to load Lightweight Charts'));
+            };
+
+            if (!script) {
+                script = document.createElement('script');
+                script.src = CHART_LIBRARY_ASSET_URL;
+                script.async = true;
+                script.defer = true;
+                script.dataset.kgPollChartLibrary = 'true';
+                document.head.appendChild(script);
+            }
+
+            if (script.dataset.loaded === 'true' && getChartLibrary()) {
+                resolve(getChartLibrary());
+                return;
+            }
+
+            script.addEventListener('load', handleLoad);
+            script.addEventListener('error', handleError);
+        }).catch(function (err) {
+            chartLibraryLoadPromise = null;
+            throw err;
+        });
+
+        return chartLibraryLoadPromise;
+    };
+
     const CHART_RATE_MIN = 0;
     const CHART_RATE_MAX = 100;
     const SCALE_MARGIN_TOP = 0.08;
@@ -1779,6 +1848,59 @@
         }
     };
 
+    const renderTrendChartAsync = function (card) {
+        const chartElement = card.querySelector('.kg-poll-card-chart');
+
+        if (!chartElement) {
+            return;
+        }
+
+        const trendsPayload = card.__kgPollTrends;
+        const state = card.__kgPollState;
+        const trendModel = trendsPayload
+            ? buildRealTrendModel(trendsPayload, state && state.options ? state.options : [])
+            : null;
+        const renderToken = (card.__kgPollChartRenderToken || 0) + 1;
+
+        card.__kgPollChartRenderToken = renderToken;
+
+        if (!trendModel) {
+            hideTrendChart(chartElement);
+            return;
+        }
+
+        prepareTrendChartForRender(chartElement);
+
+        ensureChartLibraryLoaded().then(function () {
+            if (card.__kgPollChartRenderToken !== renderToken) {
+                return;
+            }
+
+            const latestChartElement = card.querySelector('.kg-poll-card-chart');
+            const latestState = card.__kgPollState;
+            const latestTrendsPayload = card.__kgPollTrends;
+            const latestTrendModel = latestTrendsPayload
+                ? buildRealTrendModel(latestTrendsPayload, latestState && latestState.options ? latestState.options : [])
+                : null;
+
+            if (!latestChartElement || !latestTrendModel) {
+                hideTrendChart(chartElement);
+                return;
+            }
+
+            if (renderTrendChart(latestChartElement, latestTrendModel)) {
+                syncTrendChartLayout(card);
+                revealTrendChart(latestChartElement);
+            } else {
+                hideTrendChart(latestChartElement);
+            }
+        }).catch(function () {
+            if (card.__kgPollChartRenderToken === renderToken) {
+                hideTrendChart(chartElement);
+            }
+        });
+    };
+
     const renderPoll = function (card, state) {
         ensureFeedbackElement(card);
 
@@ -1836,31 +1958,9 @@
             });
         }
 
-        // 图表只在 trends 接口返回了有效 points 后再显示.
-        // 没有 points / 请求失败时直接隐藏, 避免 SSR 快照先占位再重排.
-        const chartElement = card.querySelector('.kg-poll-card-chart');
-        if (chartElement) {
-            try {
-                const trendsPayload = card.__kgPollTrends;
-                const trendModel = trendsPayload
-                    ? buildRealTrendModel(trendsPayload, state.options || [])
-                    : null;
-
-                if (trendModel) {
-                    prepareTrendChartForRender(chartElement);
-                    if (renderTrendChart(chartElement, trendModel)) {
-                        syncTrendChartLayout(card);
-                        revealTrendChart(chartElement);
-                    } else {
-                        hideTrendChart(chartElement);
-                    }
-                } else {
-                    hideTrendChart(chartElement);
-                }
-            } catch (err) {
-                hideTrendChart(chartElement);
-            }
-        }
+        // 图表脚本拆到独立资源后，卡片主逻辑先完成渲染，
+        // 趋势图再按需异步加载，避免首次请求 cards.min.js 时阻塞整条链路。
+        renderTrendChartAsync(card);
 
         const votes = card.querySelector('.kg-poll-card-votes');
         if (votes) {
