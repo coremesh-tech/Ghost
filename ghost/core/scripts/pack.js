@@ -29,6 +29,20 @@ const CORE_DIR = path.resolve(__dirname, '..');
 const ROOT_DIR = path.resolve(CORE_DIR, '../..');
 const DEPLOY_DIR = path.join(CORE_DIR, 'package');
 
+/**
+ * 在 macOS 上，pnpm deploy 产物会继承 com.apple.provenance 等扩展属性。
+ * 直接用系统 tar 打包时，这些元数据在非 Apple 文件系统上解包后，
+ * 可能表现为 `._*` AppleDouble 文件，因此这里在归档前显式清掉。
+ */
+function stripMacOsMetadata(targetDir) {
+    if (process.platform !== 'darwin') {
+        return;
+    }
+
+    console.log('\nStripping macOS extended attributes from deploy output...');
+    execFileSync('xattr', ['-cr', targetDir], {stdio: 'inherit'});
+}
+
 // 1. Run pnpm deploy
 // inject-workspace-packages is enabled only for deploy (not workspace-wide)
 // because it conflicts with packages that have build outputs in their files field.
@@ -194,12 +208,22 @@ const tgzPath = path.join(CORE_DIR, `ghost-${version}.tgz`);
 
 // Remove node_modules — both the tarball and Docker build install their own
 fs.rmSync(path.join(DEPLOY_DIR, 'node_modules'), {recursive: true, force: true});
+stripMacOsMetadata(DEPLOY_DIR);
 
 console.log(`\nCreating tarball: ghost-${version}.tgz`);
 execFileSync(
     'tar',
     ['czf', tgzPath, 'package'],
-    {cwd: CORE_DIR, stdio: 'inherit'}
+    {
+        cwd: CORE_DIR,
+        stdio: 'inherit',
+        env: {
+            ...process.env,
+            // 双保险：告诉 macOS tar 不要把资源分叉和扩展属性写进归档。
+            COPYFILE_DISABLE: '1',
+            COPY_EXTENDED_ATTRIBUTES_DISABLE: '1'
+        }
+    }
 );
 
 const size = (fs.statSync(tgzPath).size / 1024 / 1024).toFixed(1);
