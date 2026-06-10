@@ -59,6 +59,7 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
+!koenig-lexical-*.tgz
 
 # pnpm store
 .pnpm-store
