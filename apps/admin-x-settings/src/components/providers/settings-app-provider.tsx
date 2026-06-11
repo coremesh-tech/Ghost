@@ -69,6 +69,25 @@ const SettingsAppContext = createContext<SettingsAppContextType>({
 
 type SettingsAppProviderProps = Partial<Omit<SettingsAppContextType, 'search'>> & {children: ReactNode};
 
+type BridgeSessionState = {
+    accountState?: unknown;
+    upgradeStatus?: UpgradeStatusType;
+    userRole?: string;
+    isContributor?: boolean;
+};
+
+const getBridgeSessionState = (): BridgeSessionState => {
+    const bridge = (window as any).EmberBridge?.state;
+    const userRole = bridge?.session?.user?.role?.name;
+
+    return {
+        accountState: bridge?.session?.accountState,
+        upgradeStatus: bridge?.session?.upgradeStatus,
+        userRole,
+        isContributor: userRole === 'Contributor'
+    };
+};
+
 const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...props}) => {
     const search = useSearchService();
 
@@ -83,8 +102,16 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
 
     // Sync accountState from Ember bridge
     const [accountState, setAccountState] = useState(() => {
-        const bridge = (window as any).EmberBridge?.state;
-        return props.accountState || bridge?.session?.accountState;
+        return props.accountState || getBridgeSessionState().accountState;
+    });
+    const [upgradeStatus, setUpgradeStatus] = useState(() => {
+        return props.upgradeStatus || getBridgeSessionState().upgradeStatus;
+    });
+    const [userRole, setUserRole] = useState(() => {
+        return props.userRole || getBridgeSessionState().userRole;
+    });
+    const [isContributor, setIsContributor] = useState(() => {
+        return props.isContributor ?? getBridgeSessionState().isContributor;
     });
 
     useEffect(() => {
@@ -93,19 +120,41 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
             return;
         }
 
-        // Ensure we have the latest state on mount in case it wasn't available during initial render
-        if (bridge.session?.accountState) {
-            setAccountState(bridge.session.accountState);
-        }
-        
+        const syncSessionState = () => {
+            const bridgeSessionState = getBridgeSessionState();
+
+            if (bridgeSessionState.accountState) {
+                setAccountState(bridgeSessionState.accountState);
+            }
+
+            if (bridgeSessionState.upgradeStatus) {
+                setUpgradeStatus(bridgeSessionState.upgradeStatus);
+            }
+
+            if (bridgeSessionState.userRole) {
+                setUserRole(bridgeSessionState.userRole);
+            }
+
+            if (typeof bridgeSessionState.isContributor === 'boolean') {
+                setIsContributor(bridgeSessionState.isContributor);
+            }
+        };
+
+        syncSessionState();
+
         const handleAccountStateChange = (event: any) => {
             setAccountState(event.accountState);
         };
-        
+        const handleAuthChange = () => {
+            syncSessionState();
+        };
+
         bridge.on('accountStateChange', handleAccountStateChange);
-        
+        bridge.on('emberAuthChange', handleAuthChange);
+
         return () => {
             bridge.off('accountStateChange', handleAccountStateChange);
+            bridge.off('emberAuthChange', handleAuthChange);
         };
     }, []);
 
@@ -116,6 +165,9 @@ const SettingsAppProvider: React.FC<SettingsAppProviderProps> = ({children, ...p
             zapierTemplates,
             ...props,
             accountState,
+            upgradeStatus,
+            userRole,
+            isContributor,
             search,
             sortingState,
             setSortingState,

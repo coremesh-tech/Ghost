@@ -48,10 +48,7 @@ export default defineConfig(({ command }) => ({
     server: {
         host: '0.0.0.0',
         port: 5174,
-        // https: {
-        //     key: fs.readFileSync(resolve(__dirname, '../../keys/agent2-key.pem')),
-        //     cert: fs.readFileSync(resolve(__dirname, '../../keys/agent2-cert.pem')),
-        // },
+        allowedHosts: true
     },
     resolve: {
         alias: {
