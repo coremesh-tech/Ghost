@@ -372,11 +372,15 @@ class SignupPage extends React.Component {
     }
 
     componentDidMount() {
-        const {member} = this.context;
+        const {member, pageData} = this.context;
         if (member) {
             this.context.doAction('switchPage', {
                 page: 'accountHome'
             });
+        }
+        
+        if (pageData?.email) {
+            this.setState({email: pageData.email});
         }
 
         // Handle the default plan if not set

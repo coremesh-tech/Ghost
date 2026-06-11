@@ -7,6 +7,7 @@ const stripeService = require('../../services/stripe');
 const middleware = membersService.middleware;
 const shared = require('../shared');
 const errorHandler = require('@tryghost/mw-error-handler');
+const errors = require('@tryghost/errors');
 const config = require('../../../shared/config');
 const {http} = require('@tryghost/api-framework');
 const api = require('../../api').endpoints;
@@ -14,6 +15,10 @@ const api = require('../../api').endpoints;
 const commentRouter = require('../comments');
 const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
+const requestExternal = require('../../lib/request-external');
+const pollsService = require('../../services/polls/poll-service');
+
+const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 
 /**
  * @returns {import('express').Application}
@@ -62,6 +67,100 @@ module.exports = function setupMembersApp() {
     membersApp.put('/api/member', bodyParser.json({limit: '50mb'}), middleware.updateMemberData);
     membersApp.post('/api/member/email', bodyParser.json({limit: '50mb'}), (req, res, next) => membersService.api.middleware.updateEmailAddress(req, res, next));
 
+    membersApp.get('/api/polls/:id',
+        middleware.loadMemberSession,
+        async function getPoll(req, res, next) {
+            try {
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPoll(req.params.id, req.member, token, req);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    membersApp.get('/api/polls/:id/votes',
+        middleware.loadMemberSession,
+        async function getPollVotes(req, res, next) {
+            try {
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPollVotes(req.params.id, req.member, token, req);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    // 趋势接口 (代理到外部 prediction-markets 的 /admin/polls/:id/trends)
+    // 给 reading mode 的图表组件用 — 接受可选 from/to/resolution query 参数.
+    membersApp.get('/api/polls/:id/trends',
+        middleware.loadMemberSession,
+        async function getPollTrends(req, res, next) {
+            try {
+                const response = await pollsService.getContentPollTrends(
+                    req.params.id,
+                    {
+                        from: req.query.from,
+                        to: req.query.to,
+                        resolution: req.query.resolution
+                    },
+                    req.member,
+                    req
+                );
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    membersApp.post('/api/polls/:id/votes',
+        bodyParser.json({limit: '5mb'}),
+        middleware.loadMemberSession,
+        async function postPollVote(req, res, next) {
+            try {
+                const response = await pollsService.submitPollVote(req.params.id, req.body, req.member, req);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
     // Member offers (retention etc.)
     membersApp.post('/api/member/offers', bodyParser.json(), function lazyGetMemberOffersMw(req, res, next) {
         return membersService.api.middleware.getMemberOffers(req, res, next);
@@ -76,6 +175,34 @@ module.exports = function setupMembersApp() {
 
     membersApp.get('/api/entitlements', middleware.getEntitlementToken);
     membersApp.get('/api/integrity-token', middleware.createIntegrityToken);
+
+    membersApp.post(
+        '/api/predict_mixin/member_staff_apply',
+        bodyParser.json({limit: '5mb'}),
+        middleware.loadMemberSession,
+        async function memberStaffApply(req, res, next) {
+            try {
+                if (!req.member) {
+                    throw new errors.UnauthorizedError({
+                        message: 'Member not authenticated'
+                    });
+                }
+
+                const token = await membersService.ssr.getIdentityTokenForMemberFromSession(req, res);
+                const data = await api.predictMixin.memberStaffApply.query({
+                    original: {
+                        body: {token}
+                    }
+                });
+
+                res.json({
+                    predict_mixin: data
+                });
+            } catch (err) {
+                next(err);
+            }
+        }
+    );
 
     membersApp.post(
         '/api/send-magic-link',
@@ -115,6 +242,29 @@ module.exports = function setupMembersApp() {
     });
     membersApp.post('/api/subscriptions/:id/apply-offer', function lazyApplyOfferMw(req, res, next) {
         return membersService.api.middleware.applyOfferToSubscription(req, res, next);
+    });
+
+    // Custom tracking endpoint to proxy tracking requests
+    membersApp.post('/api/track/events', bodyParser.json(), async function trackEvents(req, res) {
+        try {
+            const trackingUrl = `${predictionMarketsApiUrl}/market-topic`;
+            const response = await requestExternal(`${trackingUrl}/api/v1/track/events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(req.headers['x-user-role'] ? {'X-User-Role': req.headers['x-user-role']} : {}),
+                    ...(req.headers['x-user-id'] ? {'X-User-Id': req.headers['x-user-id']} : {}),
+                    ...(req.headers.authorization ? {Authorization: req.headers.authorization} : {})
+                },
+                body: JSON.stringify(req.body)
+            });
+            
+            res.status(response.statusCode).send(response.body);
+        } catch (err) {
+            const logging = require('@tryghost/logging');
+            logging.error(err);
+            res.status(500).send('Failed to proxy tracking event');
+        }
     });
 
     // Comments

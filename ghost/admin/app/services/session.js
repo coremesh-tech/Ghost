@@ -1,13 +1,14 @@
 import AuthConfiguration from 'ember-simple-auth/configuration';
 import ESASessionService from 'ember-simple-auth/services/session';
 import RSVP from 'rsvp';
+import fetch from 'fetch';
 import windowProxy from 'ghost-admin/utils/window-proxy';
 import {configureScope} from '@sentry/ember';
 import {getOwner} from '@ember/application';
 import {inject} from 'ghost-admin/decorators/inject';
 import {run} from '@ember/runloop';
 import {inject as service} from '@ember/service';
-import {task} from 'ember-concurrency';
+import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
 
 export default class SessionService extends ESASessionService {
@@ -28,8 +29,10 @@ export default class SessionService extends ESASessionService {
     @inject config;
 
     @tracked user = null;
+    @tracked accountState = null;
 
     skipAuthSuccessHandler = false;
+    handledOnboardingSuccess = false;
 
     async populateUser(options = {}) {
         if (this.user) {
@@ -75,6 +78,17 @@ export default class SessionService extends ESASessionService {
 
         // pre-emptively load editor code in the background to avoid loading state when opening editor
         this.koenig.fetch();
+
+        await this.fetchAccountState();
+
+        if (this.user?.role?.name === 'Contributor') {
+            const bindState = this.accountState?.view_state;
+            if (bindState !== 'ACTIVE') {
+                if (!this.pollAccountStateTask.isRunning) {
+                    this.pollAccountStateTask.perform();
+                }
+            }
+        }
     }
 
     async handleAuthentication() {
@@ -159,6 +173,54 @@ export default class SessionService extends ESASessionService {
         }
     }
 
+    shouldSyncAccountBinding() {
+        if (this.handledOnboardingSuccess || typeof window === 'undefined') {
+            return false;
+        }
+
+        const url = new URL(window.location.href);
+        const searchValue = url.searchParams.get('onboarding');
+
+        if (searchValue === 'success') {
+            return true;
+        }
+
+        const [hashPath, hashQuery = ''] = url.hash.split('?');
+        const hashParams = new URLSearchParams(hashQuery);
+
+        if (!hashPath) {
+            return false;
+        }
+
+        return hashParams.get('onboarding') === 'success';
+    }
+
+    clearOnboardingSuccessParam() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        const [hashPath, hashQuery = ''] = url.hash.split('?');
+        const hashParams = new URLSearchParams(hashQuery);
+
+        url.searchParams.delete('onboarding');
+        hashParams.delete('onboarding');
+
+        const nextHashQuery = hashParams.toString();
+        const nextHash = hashPath ? `${hashPath}${nextHashQuery ? `?${nextHashQuery}` : ''}` : '';
+
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${nextHash}`);
+    }
+
+    normalizeAccountStateResponse(data) {
+        if (data?.predict_mixin && Array.isArray(data.predict_mixin) && data.predict_mixin.length > 0) {
+            return data.predict_mixin[0];
+        }
+
+        return data;
+    }
+
     @task({drop: true})
     *handleAuthenticationTask(callback) {
         if (!this.user) {
@@ -167,10 +229,60 @@ export default class SessionService extends ESASessionService {
             } catch (err) {
                 yield this.invalidate();
             }
-
-            yield this.postAuthPreparation();
         }
+        
+        // Ensure account state is fetched upon authentication (e.g. login)
+        yield this.fetchAccountState();
 
         callback();
+    }
+
+    async fetchAccountState() {
+        if (!this.user || this.user.role?.name !== 'Contributor') {
+            return;
+        }
+
+        const shouldSyncAccountBinding = this.shouldSyncAccountBinding();
+
+        try {
+            const ghostPaths = this.configManager.get('ghostPaths');
+            const endpoint = shouldSyncAccountBinding ? 'predict_mixin/account_bind_sync' : 'predict_mixin/account_state';
+            const url = `${ghostPaths.url.api(endpoint)}`;
+            const res = await fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+            if (res.status === 401) {
+                return;
+            }
+            if (res.ok) {
+                const data = await res.json().catch(() => null);
+                this.accountState = this.normalizeAccountStateResponse(data);
+                if (shouldSyncAccountBinding) {
+                    this.handledOnboardingSuccess = true;
+                    this.clearOnboardingSuccessParam();
+                }
+                this.stateBridge.triggerAccountStateChange(this.accountState);
+                const bindState = this.accountState?.view_state;
+                if (bindState === 'ACTIVE') {
+                    return;
+                }
+                this.notifications.showToast('Stripe account not connected', {type: 'warn', key: 'stripe.account-unbound'});
+            }
+        } catch {
+            return;
+        }
+    }
+
+    @task({restartable: true})
+    *pollAccountStateTask() {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            yield timeout(600000); // 10 minutes
+            if (!this.user || this.user.role?.name !== 'Contributor') {
+                return;
+            }
+            yield this.fetchAccountState();
+        }
     }
 }

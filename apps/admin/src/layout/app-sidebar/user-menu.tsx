@@ -189,6 +189,7 @@ function ContributorUserMenu() {
     const currentUser = useCurrentUser();
     const site = useBrowseSite();
     const siteUrl = getAdminToolbarUrl(site.data?.site.url ?? "");
+    const boardGuidanceUrl = "https://www.predictionmarkets.org/creator-on-boarding-guide/";
 
     return (
         <DropdownMenu>
@@ -223,6 +224,12 @@ function ContributorUserMenu() {
                     <a href={siteUrl} target="_blank" rel="noopener noreferrer">
                         <LucideIcon.ExternalLink />
                         <UserMenuItem.Label>View site</UserMenuItem.Label>
+                    </a>
+                </UserMenuItem>
+                <UserMenuItem>
+                    <a href={boardGuidanceUrl} target="_blank" rel="noopener noreferrer">
+                        <LucideIcon.Compass />
+                        <UserMenuItem.Label>Onboarding</UserMenuItem.Label>
                     </a>
                 </UserMenuItem>
                 <DropdownMenuSeparator />

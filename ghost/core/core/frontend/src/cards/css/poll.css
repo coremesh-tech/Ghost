@@ -1,0 +1,700 @@
+#tv-attr-logo {
+    display: none !important;
+}
+
+.kg-poll-card {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 32px !important;
+    border-radius: 20px;
+    background: #1F1F1F;
+    border: 1px solid #272727;
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.kg-poll-card,
+.kg-poll-card * {
+    box-sizing: border-box;
+}
+
+.kg-poll-card-image {
+    display: block;
+    width: 100%;
+    height: 240px;
+    margin: 0 0 28px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+/* 跟 .kg-poll-card-chart / .kg-poll-card-expiry 同一类问题 — author 的 display:block
+ * 覆盖了 user-agent 的 [hidden] {display:none}, 所以 image.hidden = true 不生效. */
+.kg-poll-card-image[hidden] {
+    display: none;
+}
+
+.kg-poll-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.kg-poll-card-title {
+    margin: 0 !important;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.kg-poll-card-description {
+    margin: 16px 0 0;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+/*
+ * Body 把图表和选项列横向排在一起 (桌面端: 图表在左, 选项在右).
+ * 移动端默认 (flex-direction: column) 上下排列, 图表在上, 选项在下.
+ */
+.kg-poll-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 28px;
+}
+
+.kg-poll-card-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-options {
+    gap: 12px;
+}
+
+/* 图表区域 */
+.kg-poll-card-chart {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    align-self: flex-start;
+}
+
+/*
+ * 修正: 浏览器对 [hidden] 的默认是 display:none, 但我们给 .kg-poll-card-chart
+ * 写了 display:flex, 两者 specificity 都是 (0,1,0), author 样式胜过 user-agent,
+ * 结果 `hidden="hidden"` 不起作用 —— 空的图表容器仍然占着位置, 把选项列挤窄.
+ * 显式声明 `[hidden] { display:none }` 把 hidden 行为找回来.
+ */
+.kg-poll-card-chart[hidden] {
+    display: none;
+}
+
+.kg-poll-card-chart-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 12px;
+}
+
+.kg-poll-card-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-bottom: 10px;
+    min-width: 0;
+}
+
+.kg-poll-card-chart-legend.kg-poll-card-chart-legend--compact {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
+}
+
+.kg-poll-card-chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.kg-poll-card-chart-legend.kg-poll-card-chart-legend--compact .kg-poll-card-chart-legend-item {
+    width: 100%;
+}
+
+.kg-poll-card-chart-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.kg-poll-card-chart-legend-text {
+    display: block;
+    flex: 1 1 auto;
+    font-size: 16px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kg-poll-card-chart-plot {
+    position: relative;
+    height: 120px;
+    min-height: 0;
+    cursor: crosshair;
+}
+
+.kg-poll-card-chart-surface,
+.kg-poll-card-chart-overlay {
+    position: absolute;
+    inset: 0;
+}
+
+.kg-poll-card-chart-surface {
+    z-index: 1;
+    overflow: visible;
+}
+
+.kg-poll-card-chart-overlay {
+    z-index: 2;
+    pointer-events: none;
+}
+
+.kg-poll-card-chart-crosshair {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateX(-50%);
+}
+
+.kg-poll-card-chart-crosshair[hidden] {
+    display: none;
+}
+
+.kg-poll-card-chart-active-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    transform: translate(-50%, -50%);
+}
+
+.kg-poll-card-chart-active-dot[hidden] {
+    display: none;
+}
+
+.kg-poll-card-chart-active-dot-halo,
+.kg-poll-card-chart-active-dot-solid {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+}
+
+.kg-poll-card-chart-active-dot-halo {
+    background: currentColor;
+    opacity: 0.45;
+    animation: poll-trend-dot-pulse 1.8s ease-out infinite;
+}
+
+.kg-poll-card-chart-active-dot-solid {
+    inset: 1.5px;
+    border: 2px solid #232120;
+    background: currentColor;
+}
+
+.kg-poll-card-chart-rate-label {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    min-height: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 14px;
+    white-space: nowrap;
+    text-shadow:
+        0 0 1px #232120,
+        0 0 4px #232120,
+        0 0 6px #232120;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.kg-poll-card-chart-detail-label {
+    position: absolute;
+    z-index: 3;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.82);
+    white-space: nowrap;
+    text-shadow:
+        0 0 1px #232120,
+        0 0 4px #232120,
+        0 0 6px #232120;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+}
+
+.kg-poll-card-chart-detail-label[hidden] {
+    display: none;
+}
+
+.kg-poll-card-chart-rate-label[hidden] {
+    display: none;
+}
+
+.kg-poll-card-chart-rate-label[data-align="left"] {
+    justify-content: flex-end;
+    text-align: right;
+    transform: translate(-100%, -50%);
+}
+
+.kg-poll-card-chart-rate-label[data-align="right"] {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+@keyframes poll-trend-dot-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.45;
+    }
+
+    70% {
+        transform: scale(2.3);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(2.3);
+        opacity: 0;
+    }
+}
+
+.kg-poll-card-option {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: transparent;
+}
+
+.kg-poll-card-option-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.08);
+    transition: width 220ms ease, background-color 220ms ease;
+}
+
+.kg-poll-card-option[data-selected="true"] .kg-poll-card-option-fill {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* 正确选项 (答案公布后) 用 Ghost 品牌绿做底色填充, 比之前的 #1b3b1f 暗绿色更醒目 */
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option[data-correct="true"] .kg-poll-card-option-fill {
+    background: #0caa27;
+}
+
+/*
+ * 答案公布后整张卡片的视觉调整:
+ *   - 错误选项: 去边框 + 不再渲染白色 fill 条, 只剩"文字 + (可选)✓ + 百分比" + 底部细进度条
+ *   - 正确选项: 边框透明掉 (绿色填充已经足够强调), 保留 fill 的亮绿 + 底部绿进度条
+ */
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option {
+    border-color: transparent;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option .kg-poll-card-option-fill {
+    display: none;
+}
+
+/*
+ * 每个选项底部的细进度条 (width 由 JS/SSR 直接计算最终像素/百分比宽度).
+ * 默认色: 半透白 rgba(255,255,255,0.12); 正确选项: Ghost 品牌绿 #0caa27.
+ * 用 transition 让票数变化时进度条丝滑伸缩.
+ */
+.kg-poll-card-option-progress {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 0;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 30px;
+    transition: width 220ms ease, background-color 220ms ease;
+    pointer-events: none;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option-progress {
+    display: block;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option[data-correct="true"] .kg-poll-card-option-progress {
+    background: #0caa27;
+}
+
+.kg-poll-card-option-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option-content {
+    padding: 12px 0 20px;
+}
+
+/*
+ * Result 徽章: 答案公布后, 正确选项在文字旁挂一颗绿色 "Result" 小标签.
+ * 默认 hidden, [data-poll-answer-revealed="true"] + [data-correct="true"] 时显示;
+ * 用 inline-flex 让它跟左侧文字基线对齐, 不会撑高那一行.
+ */
+.kg-poll-card-option-result-badge {
+    display: none;
+    align-items: center;
+    /* 徽章自身不收缩, label 太长时把 label 让出, 徽章和 "Result" 始终完整可见 */
+    flex-shrink: 0;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #0caa27;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+.kg-poll-card[data-poll-answer-revealed="true"] .kg-poll-card-option[data-correct="true"] .kg-poll-card-option-result-badge {
+    display: inline-flex;
+}
+
+/*
+ * 左侧"文字 + Result 徽章"容器:
+ *   - flex: 1 1 auto + min-width: 0 让它在 option-content (space-between flex) 里可以收缩,
+ *     不再"撑爆右侧 / 把 .kg-poll-card-option-result 挤下去换行".
+ *   - overflow: hidden 给子元素 (label span) 的 text-overflow: ellipsis 提供裁切上下文.
+ */
+.kg-poll-card-option-text {
+    display: inline-flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    color: #fff;
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
+/* 标签本体在空间不够时单行省略 */
+.kg-poll-card-option-text-label {
+    display: inline-block;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kg-poll-card-option-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* 右侧"✓ + 百分比"在任何情况下都不收缩, 由左侧 label 让出空间, 不会被挤换行 */
+    flex-shrink: 0;
+    color: #fff;
+    font-size: 12px;
+}
+
+.kg-poll-card-option-rate {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.kg-poll-card-option-loading {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    border-top-color: #FFFFFF;
+    border-radius: 999px;
+    animation: kg-poll-card-option-spin 700ms linear infinite;
+}
+
+.kg-poll-card-option-correct {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    color: #FFFFFF;
+}
+
+.kg-poll-card-option-correct svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/*
+ * ✓ 勾只在用户**自己投过**这个选项时出现 (data-selected="true").
+ * 不再因为这个选项是「系统标记的正确答案」(data-correct="true") 就单独显示勾 ——
+ * 正确答案的视觉信息已经由 .kg-poll-card-option-fill 的绿色填充 +
+ * .kg-poll-card-option-result-badge 的 "Result" 徽章承担, 不需要勾来重复表达.
+ */
+.kg-poll-card-option[data-selected="true"] .kg-poll-card-option-correct {
+    display: inline-flex;
+}
+
+.kg-poll-card-option[data-submitting="true"] .kg-poll-card-option-loading {
+    display: inline-flex;
+}
+
+.kg-poll-card[data-poll-submitting="true"] .kg-poll-card-option {
+    pointer-events: none;
+}
+
+.kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option {
+    cursor: pointer;
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option:hover,
+.kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option:focus-visible {
+    border-color: rgba(255, 255, 255, 0.38);
+    background: rgba(255, 255, 255, 0.03);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.kg-poll-card[data-poll-clickable="true"] .kg-poll-card-option[data-selected="true"] {
+    border-color: rgba(255, 255, 255, 0.48);
+}
+
+@keyframes kg-poll-card-option-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.kg-poll-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+.kg-poll-card-meta-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+}
+
+.kg-poll-card-expiry {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+/*
+ * 修正: 跟 .kg-poll-card-chart[hidden] 同一类问题 — author 样式 display:inline-flex
+ * 覆盖了 user-agent 的 [hidden] {display:none}, 导致 JS 设 expiry.hidden=true 无效,
+ * SSR 旧 expiresAt 留下的日期还会显示. 显式声明 [hidden] 把它压回去.
+ */
+.kg-poll-card-expiry[hidden] {
+    display: none;
+}
+
+.kg-poll-card-expiry svg {
+    width: 16px;
+    height: 16px;
+}
+
+.kg-poll-card-ended {
+    color: #878888;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.kg-poll-card-ended[hidden] {
+    display: none;
+}
+
+.kg-poll-card-feedback {
+    margin: 18px 0 0;
+    color: rgba(255, 255, 255, 0.52);
+    line-height: 1.45;
+}
+
+.kg-poll-card-feedback[data-tone="error"] {
+    color: #ff9a9a;
+}
+
+.kg-poll-card-feedback[data-tone="warning"] {
+    color: #ffd36c;
+}
+
+/*
+ * 桌面端: 选项在左, 图表在右.
+ * DOM 顺序里 chart 在 options 之前 (这样移动端的 column 布局会自动得到"图表在上,
+ * 选项在下"). 在桌面端用 order 反过来: options(order:1) 左, chart(order:2) 右.
+ *
+ * 行高由选项的自然堆叠决定; 图表 SVG 用 preserveAspectRatio=none 跟着撑满,
+ * 与 PollTrendChart React 组件里的 ResizeObserver 效果近似.
+ */
+@media (min-width: 768px) {
+    .kg-poll-card-body {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 32px;
+    }
+
+    .kg-poll-card-options {
+        order: 1;
+        flex: 1 1 0;
+        min-width: 0;
+        align-self: flex-start;
+    }
+
+    .kg-poll-card-chart {
+        order: 2;
+        flex: 1.2 1 0;
+        min-height: 0;
+        min-width: 0;
+        align-self: flex-start;
+    }
+}
+
+html.kg-poll-dialog-open,
+body.kg-poll-dialog-open {
+    overflow: hidden;
+}
+
+.kg-poll-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.kg-poll-dialog[hidden] {
+    display: none;
+}
+
+.kg-poll-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 14, 14, 0.92);
+}
+
+.kg-poll-dialog-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 54px;
+    width: min(680px, calc(100vw - 48px));
+    padding: 30px;
+    border-radius: 20px;
+    background: #fff;
+    color: #111;
+}
+
+.kg-poll-dialog-title {
+    margin: 0;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-top: 20px;
+}
+
+.kg-poll-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+}
+
+.kg-poll-dialog-button {
+    min-height: 58px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    background: #fff;
+    color: #111;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    text-align: center !important;
+}
+
+.kg-poll-dialog-button:hover,
+.kg-poll-dialog-button:focus-visible {
+    background: #fafafa;
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.08);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 767px) {
+    .kg-poll-card {
+        padding: 24px;
+    }
+
+    .kg-poll-card-image {
+        height: 180px;
+        margin-bottom: 24px;
+    }
+
+    .kg-poll-card-option-content {
+        gap: 12px;
+    }
+
+    .kg-poll-dialog-panel {
+        gap: 36px;
+        width: calc(100vw - 32px);
+        padding: 28px 22px 24px;
+        border-radius: 24px;
+    }
+
+    .kg-poll-dialog-actions {
+        gap: 16px;
+    }
+
+    .kg-poll-dialog-button {
+        min-height: 64px;
+        border-radius: 18px;
+    }
+}

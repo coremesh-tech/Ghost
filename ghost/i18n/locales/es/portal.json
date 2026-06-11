@@ -295,5 +295,10 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "Tu suscripción ha sido cancelada y expirará en {expiryDate}.",
     "Your subscription will expire on {expiryDate}": "Tu suscripción caducará el {expiryDate} ",
     "Your subscription will renew on {renewalDate}": "Tu suscripción se renovará el {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Tu suscripción comenzará el {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Tu suscripción comenzará el {subscriptionStart}",
+    "Analyst Contributor Program": "Programa de Colaboradores Analistas",
+    "See more": "Ver más",
+    "Join": "Unirse",
+    "Successfully applied for creator plan": "Por favor, revise su correo electrónico para confirmación si su solicitud es exitosa",
+    "Failed to apply for creator plan": "Error al solicitar el plan de creador"
 }

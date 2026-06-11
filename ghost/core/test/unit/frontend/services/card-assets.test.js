@@ -115,6 +115,19 @@ describe('Card Asset Service', function () {
             });
         });
 
+        it('expands poll excludes to also remove the lightweight-charts dependency file', function () {
+            const cardAssets = new CardAssetService({
+                config: {
+                    exclude: ['poll']
+                }
+            });
+
+            assert.deepEqual(cardAssets.generateGlobs(), {
+                'cards.min.css': 'css/!(poll).css',
+                'cards.min.js': 'js/!(poll|poll-lightweight-charts).js'
+            });
+        });
+
         it('CASE: card_assets is an object with an include property, generate match strings', function () {
             const cardAssets = new CardAssetService({
                 config: {
@@ -125,6 +138,19 @@ describe('Card Asset Service', function () {
             assert.deepEqual(cardAssets.generateGlobs(), {
                 'cards.min.css': 'css/@(gallery).css',
                 'cards.min.js': 'js/@(gallery).js'
+            });
+        });
+
+        it('expands poll includes to also add the lightweight-charts dependency file', function () {
+            const cardAssets = new CardAssetService({
+                config: {
+                    include: ['poll']
+                }
+            });
+
+            assert.deepEqual(cardAssets.generateGlobs(), {
+                'cards.min.css': 'css/@(poll).css',
+                'cards.min.js': 'js/@(poll|poll-lightweight-charts).js'
             });
         });
 

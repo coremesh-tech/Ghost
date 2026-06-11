@@ -6,7 +6,9 @@ export const DEFAULT_QUERY_PARAMS = {
         visibility: null,
         author: null,
         tag: null,
-        order: null
+        order: null,
+        predictStatus: null,
+        refresh: null
     },
     pages: {
         type: null,

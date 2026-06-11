@@ -1,6 +1,12 @@
 import AppContext from '../../../../app-context';
-import {useContext} from 'react';
-import {hasCommentsEnabled, hasMultipleNewsletters, isEmailSuppressed, hasNewsletterSendingEnabled} from '../../../../utils/helpers';
+import {useContext, useState} from 'react';
+import {
+    hasCommentsEnabled,
+    hasMultipleNewsletters,
+    isEmailSuppressed,
+    hasNewsletterSendingEnabled
+} from '../../../../utils/helpers';
+import {ReactComponent as LoaderIcon} from '../../../../images/icons/loader.svg';
 
 import PaidAccountActions from './paid-account-actions';
 import TransistorPodcastsAction from './transistor-podcasts-action';
@@ -11,17 +17,18 @@ import {t} from '../../../../utils/i18n';
 
 const shouldShowEmailPreferences = (site, member) => {
     return (
-        hasMultipleNewsletters({site}) && hasNewsletterSendingEnabled({site}) ||
-    hasCommentsEnabled({site}) ||
-    isEmailSuppressed({member})
+        (hasMultipleNewsletters({site}) &&
+            hasNewsletterSendingEnabled({site})) ||
+        hasCommentsEnabled({site}) ||
+        isEmailSuppressed({member})
     );
 };
 
 const shouldShowEmailNewsletterAction = (site) => {
     return (
         !hasMultipleNewsletters({site}) &&
-    hasNewsletterSendingEnabled({site}) &&
-    !hasCommentsEnabled({site})
+        hasNewsletterSendingEnabled({site}) &&
+        !hasCommentsEnabled({site})
     );
 };
 
@@ -39,18 +46,58 @@ const AccountActions = () => {
 
     const showEmailPreferences = shouldShowEmailPreferences(site, member);
     const showEmailNewsletterAction = shouldShowEmailNewsletterAction(site);
+    const [isJoining, setIsJoining] = useState(false);
+
+    const handleJoinCreatorPlan = async () => {
+        if (isJoining) {
+            return;
+        }
+        setIsJoining(true);
+        try {
+            const url = `/members/api/predict_mixin/member_staff_apply`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            if (data?.predict_mixin?.id) {
+                doAction('showPopupNotification', {
+                    action: 'showPopupNotification:success',
+                    message: t('Successfully applied for creator plan'),
+                    status: 'success'
+                });
+            } else {
+                doAction('showPopupNotification', {
+                    action: 'showPopupNotification:failed',
+                    message: data?.predict_mixin?.error || t('Failed to apply for creator plan'),
+                    status: 'error'
+                });
+            }
+        } catch (error) {
+            doAction('showPopupNotification', {
+                action: 'showPopupNotification:failed',
+                message: t('An error occurred'),
+                status: 'error'
+            });
+        } finally {
+            setIsJoining(false);
+        }
+    };
 
     return (
         <div>
-            <div className='gh-portal-list'>
+            <div className="gh-portal-list">
                 <section>
-                    <div className='gh-portal-list-detail'>
-                        <h3>{(name ? name : t('Account'))}</h3>
+                    <div className="gh-portal-list-detail">
+                        <h3>{name ? name : t('Account')}</h3>
                         <p>{email}</p>
                     </div>
                     <button
-                        data-test-button='edit-profile'
-                        className='gh-portal-btn gh-portal-btn-list'
+                        data-test-button="edit-profile"
+                        className="gh-portal-btn gh-portal-btn-list"
                         onClick={e => openEditProfile(e)}
                     >
                         {t('Edit')}
@@ -67,8 +114,25 @@ const AccountActions = () => {
                         settings={transistor.settings}
                     />
                 )}
+                <section>
+                    <div className="gh-portal-list-detail">
+                        <h3>{t('Analyst Contributor Program')}</h3>
+                        {/* <a>{t("See more")}</a> */}
+                    </div>
+                    <button
+                        data-test-button="edit-profile"
+                        className="gh-portal-btn gh-portal-btn-list"
+                        onClick={handleJoinCreatorPlan}
+                        disabled={isJoining}
+                    >
+                        {isJoining ? (
+                            <LoaderIcon className="gh-portal-billing-button-loader" />
+                        ) : (
+                            t('Join')
+                        )}
+                    </button>
+                </section>
             </div>
-
         </div>
     );
 };

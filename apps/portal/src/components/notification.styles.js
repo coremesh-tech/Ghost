@@ -92,6 +92,10 @@ const NotificationStyles = `
         border: none;
         padding: 0;
     }
+        
+    .gh-portal-notification-icon.warning {
+        color: var(--yellow);
+    }
 
     .gh-portal-notification-closeicon {
         color: var(--grey8);

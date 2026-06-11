@@ -79,15 +79,20 @@ export const TabList: React.FC<TabListProps> = ({
     topRightContent,
     stickyHeader
 }) => {
+    const listClasses = clsx(
+        'relative',
+        stickyHeader && 'sticky top-0 z-50 bg-white dark:bg-black',
+        border && 'after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-grey-300 dark:after:bg-grey-900'
+    );
+
     const containerClasses = clsx(
         'no-scrollbar relative flex w-full overflow-x-auto',
         width === 'narrow' && 'gap-3',
         width === 'normal' && 'gap-5',
-        width === 'wide' && 'gap-7',
-        border && 'after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-grey-300 dark:after:bg-grey-900'
+        width === 'wide' && 'gap-7'
     );
     return (
-        <TabsPrimitive.List className={`${stickyHeader ? 'sticky top-0 z-50 bg-white dark:bg-black' : ''}`}>
+        <TabsPrimitive.List className={listClasses}>
             <div className={containerClasses} role='tablist'>
                 {tabs.map(tab => (
                     <TabButton

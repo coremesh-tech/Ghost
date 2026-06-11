@@ -28,6 +28,7 @@ module.exports = {
     image: require('./image-renderer'),
     markdown: require('./markdown-renderer'),
     paywall: require('./paywall-renderer'),
+    poll: require('./poll-renderer'),
     product: require('./product-renderer'),
     signup: require('./signup-renderer'),
     toggle: require('./toggle-renderer'),

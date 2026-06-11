@@ -6,6 +6,7 @@ import PublishOptionsResource from 'ghost-admin/helpers/publish-options';
 import TkReminderModal from './modals/tk-reminder';
 import UpdateFlowModal from './modals/update-flow';
 import envConfig from 'ghost-admin/config/environment';
+import fetch from 'fetch';
 import {action} from '@ember/object';
 import {capitalize} from '@ember/string';
 import {inject as service} from '@ember/service';
@@ -22,8 +23,12 @@ export const CONFIRM_EMAIL_MAX_POLL_LENGTH = 15 * 1000;
 // modal display, and provide an editor-specific save behaviour wrapper around
 // PublishOptions saving.
 export default class PublishManagement extends Component {
+    @service ajax;
+    @service ghostPaths;
     @service modals;
     @service notifications;
+    @service router;
+    @service session;
 
     // ensure we get a new PublishOptions instance when @post is replaced
     @use publishOptions = new PublishOptionsResource(() => [this.args.post]);
@@ -95,7 +100,35 @@ export default class PublishManagement extends Component {
 
             if (result?.afterTask && this[result?.afterTask]) {
                 await timeout(160); // wait for modal animation to finish
-                this[result.afterTask].perform();
+                const taskResult = await this[result.afterTask].perform();
+
+                if (result.afterTask === 'revertToDraftTask' && taskResult) {
+                    const post = this.publishOptions.post;
+                    const authors = post.get ? post.get('authors') : post.authors;
+                    let isContributor = false;
+                    
+                    if (authors && typeof authors.any === 'function') {
+                        isContributor = authors.any(author => (author.get ? author.get('isContributor') : author.isContributor));
+                    } else if (authors && Array.isArray(authors)) {
+                        isContributor = authors.some(author => (author.get ? author.get('isContributor') : author.isContributor));
+                    } else if (authors && typeof authors.toArray === 'function') {
+                        isContributor = authors.toArray().some(author => (author.get ? author.get('isContributor') : author.isContributor));
+                    }
+                    
+                    const isAdmin = this.session.user?.get ? this.session.user.get('isAdmin') : this.session.user?.isAdmin;
+
+                    if (isContributor && isAdmin) {
+                        try {
+                            const url = this.ghostPaths.url.api('predict_mixin/admin_reopen');
+                            await this.ajax.request(url, {
+                                method: 'POST',
+                                data: {ghost_post_id: post.get ? post.get('id') : post.id}
+                            });
+                        } catch (error) {
+                            this.notifications.showAPIError(error);
+                        }
+                    }
+                }
             }
         }
     }
@@ -198,7 +231,31 @@ export default class PublishManagement extends Component {
     @task
     *publishTask({taskName = 'saveTask'} = {}) {
         const willEmailImmediately = this.publishOptions.willEmailImmediately;
+        const post = this.publishOptions.post;
+        const authors = post.get ? post.get('authors') : post.authors;
+        let isContributor = false;
+        
+        if (authors && typeof authors.any === 'function') {
+            isContributor = authors.any(author => (author.get ? author.get('isContributor') : author.isContributor));
+        } else if (authors && Array.isArray(authors)) {
+            isContributor = authors.some(author => (author.get ? author.get('isContributor') : author.isContributor));
+        } else if (authors && typeof authors.toArray === 'function') {
+            isContributor = authors.toArray().some(author => (author.get ? author.get('isContributor') : author.isContributor));
+        }
+        
+        const isAdmin = this.session.user?.get ? this.session.user.get('isAdmin') : this.session.user?.isAdmin;
 
+        if (isContributor && isAdmin) {
+            try {
+                const url = this.ghostPaths.url.api('predict_mixin/admin_approve');
+                yield this.ajax.request(url, {
+                    method: 'POST',
+                    data: {ghost_post_id: post.get ? post.get('id') : post.id}
+                });
+            } catch (error) {
+                this.notifications.showAPIError(error);
+            }
+        }
         // clean up blank editor cards
         // apply cloned lexical
         // apply scratch values
@@ -225,6 +282,35 @@ export default class PublishManagement extends Component {
     *saveTask() {
         yield this.args.saveTask.perform();
         this.saveButtonTimeoutTask.perform();
+        return true;
+    }
+
+    @task({group: 'saveButtonTaskGroup'})
+    *submitTask() {
+        try {
+            yield this.args.saveTask.perform();
+            const url = this.publishOptions.post.get('id') 
+                ? `/ghost/api/admin/predict_mixin/staff_submit?ghost_post_id=${this.publishOptions.post.get('id')}`
+                : null;
+                
+            if (!url) {
+                this.notifications.showNotification('Cannot submit an unsaved post', {type: 'error'});
+                return;
+            }
+            const response = yield fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to submit post');
+            }
+            this.notifications.showNotification('Post submitted successfully', {type: 'success'});
+            this.router.transitionTo('posts');
+        } catch (error) {
+            this.notifications.showAPIError(error);
+        }
         return true;
     }
 

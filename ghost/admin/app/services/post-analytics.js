@@ -8,6 +8,7 @@ export default class PostAnalyticsService extends Service {
     @service ghostPaths;
     @service feature;
     @service settings;
+    @service session;
 
     /**
      * @type {?Object} Post visitor counts by UUID
@@ -22,6 +23,12 @@ export default class PostAnalyticsService extends Service {
         memberCounts = {};
 
     /**
+     * @type {?Object} Post read counts by post ID
+     */
+    @tracked
+        readCounts = {};
+
+    /**
      * @type {Set} UUIDs of posts we've already fetched analytics for
      */
     _fetchedUuids = new Set();
@@ -30,6 +37,11 @@ export default class PostAnalyticsService extends Service {
      * @type {Set} Post IDs we've already fetched member conversions for
      */
     _fetchedMemberIds = new Set();
+
+    /**
+     * @type {Set} Post IDs we've already fetched read counts for
+     */
+    _fetchedReadCountIds = new Set();
 
     /**
      * Load visitor counts for the given post UUIDs
@@ -106,13 +118,49 @@ export default class PostAnalyticsService extends Service {
     }
 
     /**
+     * Load read counts for the given posts
+     * @param {Object[]} posts - Array of post objects with id
+     * @returns {Promise}
+     */
+    loadReadCounts(posts) {
+        if (!posts || posts.length === 0) {
+            return Promise.resolve();
+        }
+
+        const newPosts = posts.filter(post => !this._fetchedReadCountIds.has(post.id));
+
+        if (newPosts.length === 0) {
+            return Promise.resolve();
+        }
+
+        newPosts.forEach(post => this._fetchedReadCountIds.add(post.id));
+
+        return this._loadReadCounts.perform(newPosts);
+    }
+
+    /**
+     * Get read count for a specific post
+     * @param {string|number} postId - Post ID
+     * @returns {number|null} Read count or null if not available
+     */
+    getReadCount(postId) {
+        if (this.readCounts && Object.prototype.hasOwnProperty.call(this.readCounts, postId)) {
+            return this.readCounts[postId];
+        }
+
+        return null;
+    }
+
+    /**
      * Reset the analytics cache - call this when filters change or on route transitions
      */
     reset() {
         this.visitorCounts = {};
         this.memberCounts = {};
+        this.readCounts = {};
         this._fetchedUuids.clear();
         this._fetchedMemberIds.clear();
+        this._fetchedReadCountIds.clear();
     }
 
     @task
@@ -178,4 +226,33 @@ export default class PostAnalyticsService extends Service {
             this.memberCounts = this.memberCounts || {};
         }
     }
-} 
+
+    _extractReadCount(payload) {
+        return Number(payload.view_effective_count ?? 0);
+    }
+
+    @task
+    *_loadReadCounts(posts) {
+        try {
+            const postIds = posts.map(post => post.id);
+            const statsUrl = this.ghostPaths.url.api('predict_mixin/admin_tracking_post_event_counts');
+            const result = yield this.ajax.request(statsUrl, {
+                method: 'POST',
+                data: JSON.stringify({post_ids: postIds}),
+                contentType: 'application/json'
+            });
+            const rawData = result.predict_mixin?.[0]?.counts || {};
+            const readCountsById = {};
+            Object.entries(rawData).forEach(([postId, value]) => {
+                readCountsById[postId] = this._extractReadCount(value);
+            });
+            this.readCounts = {
+                ...this.readCounts,
+                ...readCountsById
+            };
+        } catch (error) {
+            posts.forEach(post => this._fetchedReadCountIds.delete(post.id));
+            this.readCounts = this.readCounts || {};
+        }
+    }
+}

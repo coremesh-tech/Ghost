@@ -12,6 +12,7 @@ export type StateBridgeEventMap = {
     subscriptionChange: SubscriptionState;
     sidebarVisibilityChange: SidebarVisibilityChangeEvent;
     routeChange: RouteChangeEvent;
+    accountStateChange: unknown;
 }
 
 export interface StateBridge {

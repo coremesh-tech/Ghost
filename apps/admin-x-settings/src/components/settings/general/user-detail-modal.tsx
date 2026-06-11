@@ -3,6 +3,8 @@ import NiceModal, {useModal} from '@ebay/nice-modal-react';
 import ProfileTab from './users/profile-tab';
 import React, {useCallback, useState} from 'react';
 import SocialLinksTab from './users/social-links-tab';
+import StripeAccountTab from './users/stripe-account-tab';
+import StripeAdminTab from './users/stripe-admin-tab';
 import clsx from 'clsx';
 import usePinturaEditor from '../../../hooks/use-pintura-editor';
 import useStaffUsers from '../../../hooks/use-staff-users';
@@ -329,6 +331,38 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
         setSelectedTab(newTabId);
     };
 
+    const tabs = [
+        {
+            id: 'profile',
+            title: 'Profile',
+            contents: <ProfileTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
+        },
+        {
+            id: 'social-links',
+            title: 'Social Links',
+            contents: <SocialLinksTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
+        },
+        {
+            id: 'email-notifications',
+            title: 'Email Notifications',
+            contents: <EmailNotificationsTab setUserData={setUserData} user={formState} />
+        }
+    ];
+    if (user.roles?.[0].name === 'Contributor') {
+        tabs.push({
+            id: 'stripe-account',
+            title: 'Stripe Account',
+            contents: <StripeAccountTab />
+        });
+    }
+    if (user.roles?.[0].name === 'Administrator' || user.roles?.[0].name === 'Owner') {
+        tabs.push({
+            id: 'stripe-admin',
+            title: 'Stripe Admin',
+            contents: <StripeAdminTab />
+        });
+    }
+
     return (
         <Modal
             afterClose={navigateOnClose}
@@ -454,23 +488,7 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                 <div className={`${!canAccessSettings(currentUser) && 'mx-auto max-w-[536px]'} mt-6 flex flex-col`}>
                     <TabView
                         selectedTab={selectedTab}
-                        tabs={[
-                            {
-                                id: 'profile',
-                                title: 'Profile',
-                                contents: <ProfileTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
-                            },
-                            {
-                                id: 'social-links',
-                                title: 'Social Links',
-                                contents: <SocialLinksTab clearError={clearError} errors={errors} setUserData={setUserData} user={formState} validateField={validateField} />
-                            },
-                            {
-                                id: 'email-notifications',
-                                title: 'Email Notifications',
-                                contents: <EmailNotificationsTab setUserData={setUserData} user={formState} />
-                            }
-                        ]}
+                        tabs={tabs}
                         onTabChange={handleTabChange}
                     />
                 </div>

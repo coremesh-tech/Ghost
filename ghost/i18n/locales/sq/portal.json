@@ -295,5 +295,10 @@
     "Your subscription has been canceled and will expire on {expiryDate}.": "",
     "Your subscription will expire on {expiryDate}": "Abonimi juaj do te skadoje ne {expiryDate}",
     "Your subscription will renew on {renewalDate}": "Abonimi juaj to te rinovohet ne {renewalDate}",
-    "Your subscription will start on {subscriptionStart}": "Abonimi juaj do te filloje ne {subscriptionStart}"
+    "Your subscription will start on {subscriptionStart}": "Abonimi juaj do te filloje ne {subscriptionStart}",
+    "Analyst Contributor Program": "Programi i Kontribuesve Analistë",
+    "See more": "Shiko më shumë",
+    "Join": "Bashkohu",
+    "Successfully applied for creator plan": "Ju lutemi kontrolloni emailin tuaj për konfirmim nëse aplikimi juaj është i suksesshëm",
+    "Failed to apply for creator plan": "Dështoi aplikimi për planin e krijuesit"
 }

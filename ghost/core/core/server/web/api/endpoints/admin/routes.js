@@ -420,5 +420,68 @@ module.exports = function apiRoutes() {
     router.get('/search-index/tags', mw.authAdminApi, http(api.searchIndex.fetchTags));
     router.get('/search-index/users', mw.authAdminApi, http(api.searchIndex.fetchUsers));
 
+    // Stripe Account
+    router.get('/predict_mixin/account_state', mw.authAdminApi, http(api.predictMixin.getAccountState));
+    router.post('/predict_mixin/connect_url', mw.authAdminApi, (req, res, next) => {
+        // 单独处理该接口的超时时间，设置为 20s (20000 ms)
+        req.setTimeout(20000);
+        res.setTimeout(20000);
+        next();
+    }, http(api.predictMixin.getConnectUrl));
+    router.get('/predict_mixin/unbind', mw.authAdminApi, http(api.predictMixin.accountUnbind));
+    router.get('/predict_mixin/account_bind_sync', mw.authAdminApi, http(api.predictMixin.accountbindSync));
+
+    // Staff Submit
+    router.get('/predict_mixin/staff_submit', mw.authAdminApi, http(api.predictMixin.staffSubmit));
+    // Staff Withdraw
+    router.post('/predict_mixin/staff_withdraw', mw.authAdminApi, http(api.predictMixin.staffWithdraw));
+    // Get Post Submissions
+    router.post('/predict_mixin/post_submissions', mw.authAdminApi, http(api.predictMixin.getStaffPostSubmissions));
+    // Get Vendor Login Links
+    router.get('/predict_mixin/vendor_login_links', mw.authAdminApi, http(api.predictMixin.getVendorLoginLinks));
+
+    // Admin Approve
+    router.post('/predict_mixin/admin_approve', mw.authAdminApi, http(api.predictMixin.adminApprove));
+    // Admin Reject
+    router.post('/predict_mixin/admin_reject', mw.authAdminApi, http(api.predictMixin.adminReject));
+    // Admin Reopen
+    router.post('/predict_mixin/admin_reopen', mw.authAdminApi, http(api.predictMixin.adminReopen));
+    // Get Admin Post Submissions
+    router.post('/predict_mixin/admin_post_submissions', mw.authAdminApi, http(api.predictMixin.getAdminPostSubmissions));
+
+    // Member Staff Apply
+    router.post('/predict_mixin/member_staff_apply', mw.authAdminApi, http(api.predictMixin.memberStaffApply));
+
+    // Staff Wallet Me
+    router.get('/predict_mixin/staff_wallet_me', mw.authAdminApi, http(api.predictMixin.staffWalletMe));
+    // Staff Income Me
+    router.post('/predict_mixin/staff_income_me', mw.authAdminApi, http(api.predictMixin.staffIncomeMe));
+    // Staff Withdraw Available
+    router.get('/predict_mixin/staff_withdraw_available', mw.authAdminApi, http(api.predictMixin.staffWithdrawAvailable));
+    // Staff Withdraw Apply
+    router.post('/predict_mixin/staff_withdraw_apply', mw.authAdminApi, http(api.predictMixin.staffWithdrawApply));
+    // Staff Payout Me
+    router.post('/predict_mixin/staff_payout_me', mw.authAdminApi, http(api.predictMixin.staffPayoutMe));
+    // Admin Settlement List
+    router.post('/predict_mixin/admin_settlement_list', mw.authAdminApi, http(api.predictMixin.adminSettlementList));
+    // Admin Settlement Items
+    router.post('/predict_mixin/admin_settlement_items', mw.authAdminApi, http(api.predictMixin.adminSettlementItems));
+    // Admin Settlement Transfer
+    router.post('/predict_mixin/admin_settlement_transfer', mw.authAdminApi, http(api.predictMixin.adminSettlementTransfer));
+    // Admin Withdraw List
+    router.post('/predict_mixin/admin_withdraw_list', mw.authAdminApi, http(api.predictMixin.adminWithdrawList));
+    // Admin Tracking Post Event Counts
+    router.post('/predict_mixin/admin_tracking_post_event_counts', mw.authAdminApi, http(api.predictMixin.adminTrackingPostEventCounts));
+
+    // Polls
+    router.post('/polls_mixin/admin/polls', mw.authAdminApi, http(api.pollsMixin.saveAdminPoll));
+    router.get('/polls_mixin/admin/polls/:poll_id', mw.authAdminApi, http(api.pollsMixin.getAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/publish', mw.authAdminApi, http(api.pollsMixin.publishAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/unpublish', mw.authAdminApi, http(api.pollsMixin.unpublishAdminPoll));
+    router.del('/polls_mixin/admin/polls/:poll_id', mw.authAdminApi, http(api.pollsMixin.deleteAdminPoll));
+    router.post('/polls_mixin/admin/polls/:poll_id/reveal-answer', mw.authAdminApi, http(api.pollsMixin.revealAdminPollAnswer));
+    router.get('/polls_mixin/admin/polls/:poll_id/votes', mw.authAdminApi, http(api.pollsMixin.getAdminPollVotes));
+    router.get('/polls_mixin/admin/polls/:poll_id/trends', mw.authAdminApi, http(api.pollsMixin.getAdminPollTrends));
+
     return router;
 };

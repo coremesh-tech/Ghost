@@ -1,0 +1,5 @@
+<aside class="gh-toasts" ...attributes>
+    {{#each this.notifications.toasts as |message|}}
+        <GhNotification @message={{message}} />
+    {{/each}}
+</aside>
