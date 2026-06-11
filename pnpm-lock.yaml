@@ -2741,6 +2741,9 @@ importers:
       probe-image-size:
         specifier: 7.3.0
         version: 7.3.0
+      qs:
+        specifier: 6.15.2
+        version: 6.15.2
       rss:
         specifier: 1.2.2
         version: 1.2.2
@@ -2931,9 +2934,6 @@ importers:
       postcss-cli:
         specifier: 11.0.1
         version: 11.0.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.21.0)
-      qs:
-        specifier: 6.15.2
-        version: 6.15.2
       rewire:
         specifier: 9.0.1
         version: 9.0.1(jiti@2.7.0)
