@@ -104,7 +104,7 @@ const componentsDir = path.join(DEPLOY_DIR, 'components');
 fs.mkdirSync(componentsDir, {recursive: true});
 
 for (const [key, val] of Object.entries(pkg.dependencies || {})) {
-    if (typeof val !== 'string' || !val.includes('file:')) {
+    if (typeof val !== 'string' || (!val.includes('file:') && !val.startsWith('workspace:'))) {
         continue;
     }
 
@@ -124,6 +124,19 @@ for (const [key, val] of Object.entries(pkg.dependencies || {})) {
         {cwd: depDir, stdio: 'pipe'}
     );
     pkg.dependencies[key] = `file:components/${tgzName}`;
+}
+
+const remainingWorkspaceDeps = [];
+for (const section of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+    for (const [key, val] of Object.entries(pkg[section] || {})) {
+        if (typeof val === 'string' && val.startsWith('workspace:')) {
+            remainingWorkspaceDeps.push(`${section}:${key}=${val}`);
+        }
+    }
+}
+
+if (remainingWorkspaceDeps.length > 0) {
+    throw new Error(`Workspace dependencies remain after component packing: ${remainingWorkspaceDeps.join(', ')}`);
 }
 
 // Carry over root-level fields that pnpm deploy doesn't preserve.

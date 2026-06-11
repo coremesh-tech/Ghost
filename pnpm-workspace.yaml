@@ -3,6 +3,7 @@ packages:
   - 'apps/*'
   - 'e2e'
 
+forceLegacyDeploy: true
 strictDepBuilds: true
 catalogMode: strict
 

@@ -57,6 +57,12 @@
     "targets": {
       "dev": {
         "dependsOn": [
+          {
+            "projects": [
+              "ghost-monorepo"
+            ],
+            "target": "docker:up"
+          },
           "ghost-admin:dev",
           "@tryghost/admin-x-framework:dev",
           "@tryghost/admin-x-design-system:dev",

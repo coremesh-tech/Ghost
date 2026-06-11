@@ -14,7 +14,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                     <TableCell
                         className="font-bold text-grey-700"
                         style={{width: 150}}
-                        valign="center"
+                        valign="middle"
                     >
                         Settlement ID
                     </TableCell>
@@ -22,7 +22,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 200}}
-                        valign="center"
+                        valign="middle"
                     >
                         Settlement Item ID
                     </TableCell>
@@ -30,7 +30,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 150}}
-                        valign="center"
+                        valign="middle"
                     >
                         Transfer ID
                     </TableCell>
@@ -38,7 +38,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 160}}
-                        valign="center"
+                        valign="middle"
                     >
                         Settlement Month
                     </TableCell>
@@ -46,7 +46,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 160}}
-                        valign="center"
+                        valign="middle"
                     >
                         User Name
                     </TableCell>
@@ -54,7 +54,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 220}}
-                        valign="center"
+                        valign="middle"
                     >
                         Ghost User ID
                     </TableCell>
@@ -62,7 +62,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 220}}
-                        valign="center"
+                        valign="middle"
                     >
                         Vendor Account ID
                     </TableCell>
@@ -70,7 +70,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 120}}
-                        valign="center"
+                        valign="middle"
                     >
                         Amount
                     </TableCell>
@@ -78,7 +78,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 120}}
-                        valign="center"
+                        valign="middle"
                     >
                         Currency
                     </TableCell>
@@ -86,7 +86,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 150}}
-                        valign="center"
+                        valign="middle"
                     >
                         State
                     </TableCell>
@@ -94,7 +94,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 150}}
-                        valign="center"
+                        valign="middle"
                     >
                         Remark
                     </TableCell>
@@ -102,7 +102,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 200}}
-                        valign="center"
+                        valign="middle"
                     >
                         Created At
                     </TableCell>
@@ -110,7 +110,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                         align="center"
                         className="text-center font-bold text-grey-700"
                         style={{width: 200}}
-                        valign="center"
+                        valign="middle"
                     >
                         Updated At
                     </TableCell>
@@ -123,49 +123,49 @@ const SettlementItems = ({paginatedData}: Props) => {
                     <div className="flex w-full items-center justify-between px-2">
                         <TableCell 
                             style={{width: 150}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.settlement_no}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 200}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.settlement_item_no}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 150}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.transfer_no}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 160}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.period_month}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 160}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item?.username}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 220}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.ghost_user_id}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 220}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.vendor_account_id}
                         </TableCell>
@@ -173,14 +173,14 @@ const SettlementItems = ({paginatedData}: Props) => {
                             align="center"
                             className="text-center"
                             style={{width: 120}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.amount}
                         </TableCell>
                         <TableCell
                             className="text-center"
                             style={{width: 120}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.currency}
                         </TableCell>
@@ -188,7 +188,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                             align="center"
                             className="text-center"
                             style={{width: 150}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.state}
                         </TableCell>
@@ -196,7 +196,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                             align="center"
                             className="text-center"
                             style={{width: 150}}
-                            valign="center"
+                            valign="middle"
                         >
                             <OverflowTooltip className="text-left" maxWidth={150} text={item.remark} />
                         </TableCell>
@@ -204,7 +204,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                             align="center"
                             className="text-center"
                             style={{width: 200}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.created_at}
                         </TableCell>
@@ -212,7 +212,7 @@ const SettlementItems = ({paginatedData}: Props) => {
                             align="center"
                             className="text-center"
                             style={{width: 200}}
-                            valign="center"
+                            valign="middle"
                         >
                             {item.updated_at}
                         </TableCell>

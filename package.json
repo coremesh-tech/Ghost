@@ -92,7 +92,7 @@
       "docker:up": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "docker compose -f compose.dev.yaml ${DEV_COMPOSE_FILES} up -d --force-recreate --wait"
+          "command": "docker compose -f compose.dev.yaml ${DEV_COMPOSE_FILES} up -d --wait"
         },
         "dependsOn": [
           "docker:build"
