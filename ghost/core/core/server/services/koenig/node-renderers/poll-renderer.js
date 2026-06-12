@@ -65,16 +65,29 @@ function buildOptionProgressWidth(value) {
 }
 
 function renderPollNode(node, options = {}) {
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG-POLL] renderPollNode() called, target:', options.target);
     addCreateDocumentOption(options);
     const document = options.createDocument();
     const poll = normalizePollData(node);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG-POLL] normalized poll data:', JSON.stringify({
+        pollId: poll.pollId,
+        title: poll.title?.slice(0, 40),
+        descLen: poll.description?.length,
+        optionsCount: poll.options.length
+    }));
     const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
 
     if (options.target === 'email') {
+        // eslint-disable-next-line no-console
+        console.log('[DEBUG-POLL] returning empty (email target)');
         return {element: document.createElement('div')};
     }
 
     if (!poll.pollId && !poll.title && !poll.description && poll.options.length === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[DEBUG-POLL] returning emptyContainer (all data empty)');
         return renderEmptyContainer(document);
     }
 
