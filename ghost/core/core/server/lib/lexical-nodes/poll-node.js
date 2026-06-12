@@ -51,20 +51,14 @@ class PollNode extends KoenigDecoratorNode {
     }
 
     static getType() {
-        // eslint-disable-next-line no-console
-        console.log('[DEBUG-POLL] PollNode.getType() called');
         return 'poll';
     }
 
     static clone(node) {
-        // eslint-disable-next-line no-console
-        console.log('[DEBUG-POLL] PollNode.clone() called');
         return new PollNode(node.getDataset(), node.__key);
     }
 
     static importJSON(serializedNode) {
-        // eslint-disable-next-line no-console
-        console.log('[DEBUG-POLL] PollNode.importJSON() called, keys:', Object.keys(serializedNode || {}));
         return new PollNode(serializedNode);
     }
 
@@ -98,9 +92,6 @@ class PollNode extends KoenigDecoratorNode {
     // upstream kg-lexical-html-renderer (>= 1.4) calls this as
     //   const {element, type} = node.exportDOM(editor, options);
     exportDOM(_editor, options = {}) {
-        // eslint-disable-next-line no-console
-        console.log('[DEBUG-POLL] PollNode.exportDOM() called, hasCustomRenderer:', !!options.nodeRenderers?.poll, 'dataset:', JSON.stringify(this.getDataset()).slice(0, 200));
-
         const render = options.nodeRenderers?.poll || renderPollNode;
 
         if (typeof render === 'object') {
