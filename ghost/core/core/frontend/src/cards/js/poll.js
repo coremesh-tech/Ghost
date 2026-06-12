@@ -1662,6 +1662,10 @@
                 const legendHeight = Math.round(legendElement.getBoundingClientRect().height);
                 const plotHeight = Math.max(optionsHeight - legendHeight, DESKTOP_CHART_PLOT_MIN_HEIGHT);
 
+                // DEBUG: 打开浏览器 Console 看实际值
+                // eslint-disable-next-line no-console
+                console.log('[poll-chart] optionsH=', optionsHeight, 'legendH=', legendHeight, 'diff=', optionsHeight - legendHeight, 'MIN=', DESKTOP_CHART_PLOT_MIN_HEIGHT, 'final plotH=', plotHeight);
+
                 nextHeight = `${plotHeight}px`;
             }
         } else {
@@ -1670,11 +1674,21 @@
 
         if (plotWrap.style.height !== nextHeight) {
             plotWrap.style.height = nextHeight;
+            // 强制立即 reflow，让后面的 measureChartSurface 测得新尺寸
+            // void 触发 layout，不影响逻辑
+            void plotWrap.offsetHeight;
         }
 
         const controller = chartElement.__kgChartController;
         if (controller) {
-            resizeTrendChart(controller);
+            // 用 requestAnimationFrame 等下一帧布局完成再 resize chart，
+            // 保险起见——避免某些浏览器在同步 getBoundingClientRect 时仍返回旧值
+            const doResize = function () { resizeTrendChart(controller); };
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(doResize);
+            } else {
+                doResize();
+            }
         }
     };
 
