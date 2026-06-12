@@ -2,6 +2,7 @@
     const numberFormatter = new Intl.NumberFormat('en-US');
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
     const MOBILE_CHART_PLOT_HEIGHT = 120;
+    const DESKTOP_CHART_PLOT_MIN_HEIGHT = 70;
     const DESKTOP_TREND_CHART_BREAKPOINT = 768;
     const MONTH_NAMES = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -1659,7 +1660,7 @@
             if (optionsContainer && legendElement) {
                 const optionsHeight = Math.round(optionsContainer.getBoundingClientRect().height);
                 const legendHeight = Math.round(legendElement.getBoundingClientRect().height);
-                const plotHeight = Math.max(optionsHeight - legendHeight, 1);
+                const plotHeight = Math.max(optionsHeight - legendHeight, DESKTOP_CHART_PLOT_MIN_HEIGHT);
 
                 nextHeight = `${plotHeight}px`;
             }
