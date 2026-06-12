@@ -93,9 +93,14 @@ class PollNode extends KoenigDecoratorNode {
         };
     }
 
-    exportDOM(options = {}) {
+    // Matches the signature used by `@tryghost/kg-default-nodes`'s
+    // generateDecoratorNode: exportDOM(_editor, options = {}). The
+    // upstream kg-lexical-html-renderer (>= 1.4) calls this as
+    //   const {element, type} = node.exportDOM(editor, options);
+    exportDOM(_editor, options = {}) {
         // eslint-disable-next-line no-console
         console.log('[DEBUG-POLL] PollNode.exportDOM() called, hasCustomRenderer:', !!options.nodeRenderers?.poll, 'dataset:', JSON.stringify(this.getDataset()).slice(0, 200));
+
         const render = options.nodeRenderers?.poll || renderPollNode;
 
         if (typeof render === 'object') {
