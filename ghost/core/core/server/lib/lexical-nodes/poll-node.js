@@ -121,6 +121,20 @@ class PollNode extends KoenigDecoratorNode {
     isEmpty() {
         return false;
     }
+
+    // Required by `$isKoenigCard` in @tryghost/kg-default-nodes >= 2.x.
+    // Without these, kg-lexical-html-renderer skips the node entirely.
+    isKoenigCard() {
+        return true;
+    }
+
+    hasDynamicData() {
+        return false;
+    }
+
+    hasEditMode() {
+        return true;
+    }
 }
 
 module.exports = PollNode;
