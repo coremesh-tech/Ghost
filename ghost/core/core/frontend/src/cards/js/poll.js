@@ -510,6 +510,11 @@
     const resizeTrendChart = function (controller) {
         const surfaceSize = measureChartSurface(controller.surfaceElement);
 
+        // DEBUG: 验证 resize 时 surface 的尺寸
+        // eslint-disable-next-line no-console
+        console.log('[poll-resize] surface rect:', surfaceSize.width + 'x' + surfaceSize.height,
+            'parent plotWrap rect:', controller.surfaceElement.parentElement?.getBoundingClientRect().height);
+
         controller.surfaceSize = surfaceSize;
         controller.chart.applyOptions({
             width: surfaceSize.width,
@@ -700,6 +705,13 @@
         plotWrap.appendChild(overlayElement);
         chartInner.appendChild(plotWrap);
         chartElement.replaceChildren(chartInner);
+
+        // DEBUG: 验证 chart 创建时 surface 真实大小
+        // eslint-disable-next-line no-console
+        console.log('[poll-create] plotWrap rect:', plotWrap.getBoundingClientRect().height,
+            'plotWrap.style.height:', plotWrap.style.height,
+            'surface rect:', surfaceElement.getBoundingClientRect().height,
+            'chartElement hidden?', chartElement.hasAttribute('hidden'));
 
         const surfaceSize = measureChartSurface(surfaceElement);
         const background = chartLibrary.ColorType
