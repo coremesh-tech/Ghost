@@ -873,6 +873,12 @@
         destroyTrendChart(chartElement);
         chartElement.hidden = true;
         chartElement.style.visibility = '';
+
+        const card = chartElement.closest('[data-kg-poll-card="true"]');
+        if (card) {
+            card.__kgPollTrendChartLayoutInitialized = false;
+            card.__kgPollTrendChartPlotHeight = '';
+        }
     };
 
     const prepareTrendChartForRender = function (chartElement) {
@@ -1675,6 +1681,11 @@
             void plotWrap.offsetHeight;
         }
 
+        const cardElement = chartElement.closest('[data-kg-poll-card="true"]');
+        if (cardElement) {
+            cardElement.__kgPollTrendChartPlotHeight = nextHeight;
+        }
+
         const controller = chartElement.__kgChartController;
         if (controller) {
             // 用 requestAnimationFrame 等下一帧布局完成再 resize chart，
@@ -1686,53 +1697,6 @@
                 doResize();
             }
         }
-    };
-
-    const ensureTrendChartLayoutObserver = function (card) {
-        if (!card || card.__kgPollChartLayoutObserverBound || typeof ResizeObserver === 'undefined') {
-            return;
-        }
-
-        const optionsContainer = card.querySelector('.kg-poll-card-options');
-        const chartElement = card.querySelector('.kg-poll-card-chart');
-        card.__kgPollChartObservedWidth = chartElement
-            ? Math.round(chartElement.getBoundingClientRect().width)
-            : 0;
-
-        const observer = new ResizeObserver(function (entries) {
-            let shouldSync = false;
-
-            entries.forEach(function (entry) {
-                if (entry.target === optionsContainer) {
-                    shouldSync = true;
-                    return;
-                }
-
-                if (entry.target === chartElement) {
-                    const nextWidth = Math.round(entry.contentRect.width);
-
-                    if (nextWidth !== card.__kgPollChartObservedWidth) {
-                        card.__kgPollChartObservedWidth = nextWidth;
-                        shouldSync = true;
-                    }
-                }
-            });
-
-            if (shouldSync) {
-                syncTrendChartLayout(card);
-            }
-        });
-
-        if (optionsContainer) {
-            observer.observe(optionsContainer);
-        }
-
-        if (chartElement) {
-            observer.observe(chartElement);
-        }
-
-        card.__kgPollChartLayoutObserver = observer;
-        card.__kgPollChartLayoutObserverBound = true;
     };
 
     const renderOption = function (optionElement, option, state, clickable) {
@@ -1860,7 +1824,21 @@
                 if (trendModel) {
                     prepareTrendChartForRender(chartElement);
                     if (renderTrendChart(chartElement, trendModel)) {
-                        syncTrendChartLayout(card);
+                        const plotWrap = chartElement.querySelector('.kg-poll-card-chart-plot');
+                        const storedPlotHeight = card.__kgPollTrendChartPlotHeight;
+                        const controller = chartElement.__kgChartController;
+
+                        if (!card.__kgPollTrendChartLayoutInitialized) {
+                            syncTrendChartLayout(card);
+                            card.__kgPollTrendChartLayoutInitialized = true;
+                        } else if (plotWrap && storedPlotHeight) {
+                            plotWrap.style.height = storedPlotHeight;
+
+                            if (controller) {
+                                resizeTrendChart(controller);
+                            }
+                        }
+
                         revealTrendChart(chartElement);
                     } else {
                         hideTrendChart(chartElement);
@@ -2367,7 +2345,6 @@
         ensureGuestId();
         card.dataset.pollHydrated = 'loading';
         bindInteractions(card);
-        ensureTrendChartLayoutObserver(card);
 
         try {
             if (!await loadPollCardData(card)) {

@@ -3,6 +3,9 @@ const {JSDOM} = require('jsdom');
 
 describe('frontend/cards/poll', function () {
     let dom;
+    let optionsHeight;
+    let legendHeight;
+    let resizeObserverInstances;
     let originalWindow;
     let originalDocument;
     let originalFetch;
@@ -21,6 +24,9 @@ describe('frontend/cards/poll', function () {
     };
 
     beforeEach(function () {
+        optionsHeight = 90;
+        legendHeight = 70;
+        resizeObserverInstances = [];
         originalWindow = global.window;
         originalDocument = global.document;
         originalFetch = global.fetch;
@@ -142,7 +148,16 @@ describe('frontend/cards/poll', function () {
         global.window.fetch = global.fetch;
 
         global.ResizeObserver = class ResizeObserver {
-            observe() {}
+            constructor(callback) {
+                this.callback = callback;
+                this.targets = [];
+                resizeObserverInstances.push(this);
+            }
+
+            observe(target) {
+                this.targets.push(target);
+            }
+
             disconnect() {}
         };
 
@@ -201,11 +216,11 @@ describe('frontend/cards/poll', function () {
         const originalGetBoundingClientRect = global.window.Element.prototype.getBoundingClientRect;
         global.window.Element.prototype.getBoundingClientRect = function () {
             if (this.classList.contains('kg-poll-card-options')) {
-                return {width: 320, height: 90, top: 0, left: 0, right: 320, bottom: 90};
+                return {width: 320, height: optionsHeight, top: 0, left: 0, right: 320, bottom: optionsHeight};
             }
 
             if (this.classList.contains('kg-poll-card-chart-legend')) {
-                return {width: 260, height: 70, top: 0, left: 0, right: 260, bottom: 70};
+                return {width: 260, height: legendHeight, top: 0, left: 0, right: 260, bottom: legendHeight};
             }
 
             if (this.classList.contains('kg-poll-card-chart')) {
@@ -272,6 +287,51 @@ describe('frontend/cards/poll', function () {
 
         assert.equal(card.dataset.pollHydrated, 'true');
         assert.ok(plot, global.document.body.innerHTML);
-        assert.equal(plot.style.height, '60px');
+        assert.ok(Number.parseInt(plot.style.height, 10) >= 60);
+    });
+
+    it('does not recompute the desktop trend plot height after initialization', async function () {
+        optionsHeight = 120;
+        legendHeight = 40;
+        global.document.querySelector('.kg-poll-card').__kgPollTrends = {
+            points: [
+                {
+                    time: '2026-06-10T23:30:00.000Z',
+                    options: [
+                        {id: 'option_a', vote_rate: 42},
+                        {id: 'option_b', vote_rate: 58}
+                    ]
+                },
+                {
+                    time: '2026-06-11T00:00:00.000Z',
+                    options: [
+                        {id: 'option_a', vote_rate: 40},
+                        {id: 'option_b', vote_rate: 60}
+                    ]
+                }
+            ]
+        };
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const optionsContainer = global.document.querySelector('.kg-poll-card-options');
+        const plot = global.document.querySelector('.kg-poll-card-chart-plot');
+
+        assert.equal(plot.style.height, '80px');
+
+        optionsHeight = 220;
+
+        resizeObserverInstances.forEach(function (observer) {
+            if (observer.targets.indexOf(optionsContainer) !== -1) {
+                observer.callback([{
+                    target: optionsContainer,
+                    contentRect: {width: 320, height: optionsHeight}
+                }]);
+            }
+        });
+        await flushMicrotasks();
+
+        assert.equal(plot.style.height, '80px');
     });
 });
