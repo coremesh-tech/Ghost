@@ -584,3 +584,18 @@ li.nav-list-item .for-switch.xs label {
     --tw-shadow-colored: 0 0 7px var(--tw-shadow-color), 0 2.1px 2.2px -5px var(--tw-shadow-color), 0 5.1px 5.3px -5px var(--tw-shadow-color), 0 9.5px 10px -5px var(--tw-shadow-color), 0 17px 17.9px -5px var(--tw-shadow-color), 0 31.8px 33.4px -5px var(--tw-shadow-color), 0 76px 80px -5px var(--tw-shadow-color);
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow);
 }
+
+/* pm.org 分类打标:四字段间距 + 更小的 label */
+.gh-psm-classified-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gh-psm-classified-tags .gh-psm-tag-field-label {
+    display: block;
+    margin: 6px 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}

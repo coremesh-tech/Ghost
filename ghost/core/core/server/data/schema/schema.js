@@ -274,6 +274,20 @@ module.exports = {
         description: {type: 'text', maxlength: 65535, nullable: true, validations: {isLength: {max: 500}}},
         feature_image: {type: 'string', maxlength: 2000, nullable: true},
         parent_id: {type: 'string', nullable: true},
+        // 分类维度(pm.org):null = 历史未分类
+        type: {
+            type: 'string',
+            maxlength: 50,
+            nullable: true,
+            validations: {isIn: [['genre', 'segment', 'topic', 'function']]}
+        },
+        // 体裁子类,仅 type=genre 有意义:syndicated(转载)/ original(原创改编)
+        subgroup: {
+            type: 'string',
+            maxlength: 50,
+            nullable: true,
+            validations: {isIn: [['syndicated', 'original']]}
+        },
         visibility: {
             type: 'string',
             maxlength: 50,

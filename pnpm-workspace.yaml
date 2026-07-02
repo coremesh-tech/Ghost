@@ -10,6 +10,10 @@ catalogMode: strict
 minimumReleaseAge: 1440 # 1 day in minutes; pnpm 11 default
 blockExoticSubdeps: true
 
+# pnpm 11:patchedDependencies 从 package.json 迁到这里
+patchedDependencies:
+  '@tryghost/admin-api-schema@4.7.4': patches/@tryghost__admin-api-schema@4.7.4.patch
+
 allowBuilds:
   '@swc/core': true
   core-js: true

@@ -22,6 +22,29 @@ export default class TagForm extends Component {
     @tracked facebookMetadataOpen = false;
     @tracked codeInjectionOpen = false;
 
+    // pm.org 分类 tag:维度类型与体裁子类(name 用于 GhTokenInput 展示/搜索)
+    availableTypes = [
+        {value: 'genre', name: 'Genre'},
+        {value: 'segment', name: 'Segment'},
+        {value: 'topic', name: 'Topic'},
+        {value: 'function', name: 'Function'}
+    ];
+
+    availableSubgroups = [
+        {value: 'syndicated', name: 'Syndicated'},
+        {value: 'original', name: 'Original'}
+    ];
+
+    get selectedTypeOptions() {
+        const opt = this.availableTypes.find(t => t.value === this.args.tag.type);
+        return opt ? [opt] : [];
+    }
+
+    get selectedSubgroupOptions() {
+        const opt = this.availableSubgroups.find(s => s.value === this.args.tag.subgroup);
+        return opt ? [opt] : [];
+    }
+
     get seoTitle() {
         const settingsTitle = this.settings.title || '';
         const tagName = settingsTitle ? `${this.args.tag.name} - ${settingsTitle}` : this.args.tag.name;
@@ -157,6 +180,28 @@ export default class TagForm extends Component {
     @action
     validateTagProperty(property) {
         return this.args.tag.validate({property});
+    }
+
+    @action
+    setTagType(options) {
+        const {tag} = this.args;
+        // 单选:取最后选择的一个
+        const opt = options[options.length - 1];
+        const value = opt ? opt.value : null;
+        tag.type = value;
+        // 非体裁清空子类
+        if (value !== 'genre') {
+            tag.subgroup = null;
+        }
+        tag.hasValidated.addObject('type');
+    }
+
+    @action
+    setSubgroup(options) {
+        const {tag} = this.args;
+        const opt = options[options.length - 1];
+        tag.subgroup = opt ? opt.value : null;
+        tag.hasValidated.addObject('subgroup');
     }
 
     @action

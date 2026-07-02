@@ -1,10 +1,22 @@
 import LoadMoreButton from '@components/virtual-table/load-more-button';
-import {Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@tryghost/shade/components';
+import {Badge, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@tryghost/shade/components';
 import {LucideIcon, formatNumber} from '@tryghost/shade/utils';
 import {Tag} from '@tryghost/admin-x-framework/api/tags';
 import {forwardRef, useRef} from 'react';
 import {useInfiniteVirtualScroll} from '@components/virtual-table/use-infinite-virtual-scroll';
 import {useVirtualListWindow} from '@components/virtual-table/virtual-list-window';
+
+// pm.org tag classification display labels (English)
+const TYPE_LABELS: Record<string, string> = {
+    genre: 'Genre',
+    segment: 'Segment',
+    topic: 'Topic',
+    function: 'Function'
+};
+const SUBGROUP_LABELS: Record<string, string> = {
+    syndicated: 'Syndicated',
+    original: 'Original'
+};
 
 const SpacerRow = ({height}: { height: number }) => (
     <tr aria-hidden="true" className="flex lg:table-row">
@@ -66,6 +78,8 @@ function TagsList({
                         <TableHead className="w-auto px-4">
                             Tag
                         </TableHead>
+                        <TableHead className="hidden w-32 px-4 lg:table-cell">Type</TableHead>
+                        <TableHead className="hidden w-32 px-4 lg:table-cell">Subgroup</TableHead>
                         <TableHead className="w-1/5 px-4">Slug</TableHead>
                         <TableHead className="w-1/5 px-4">
                             No. of posts
@@ -102,6 +116,24 @@ function TagsList({
                                     <span className="block truncate text-muted-foreground">
                                         {item.description}
                                     </span>
+                                </TableCell>
+                                <TableCell className="hidden lg:table-cell lg:p-4">
+                                    {item.type ? (
+                                        <Badge variant="secondary">
+                                            {TYPE_LABELS[item.type] ?? item.type}
+                                        </Badge>
+                                    ) : (
+                                        <span className="text-muted-foreground"></span>
+                                    )}
+                                </TableCell>
+                                <TableCell className="hidden lg:table-cell lg:p-4">
+                                    {item.type === 'genre' && item.subgroup ? (
+                                        <Badge variant="outline">
+                                            {SUBGROUP_LABELS[item.subgroup] ?? item.subgroup}
+                                        </Badge>
+                                    ) : (
+                                        <span className="text-muted-foreground"></span>
+                                    )}
                                 </TableCell>
                                 <TableCell className="col-start-1 col-end-1 row-start-2 row-end-2 flex p-0 lg:table-cell lg:p-4">
                                     <span className="block truncate">

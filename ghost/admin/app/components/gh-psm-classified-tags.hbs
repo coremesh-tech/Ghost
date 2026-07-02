@@ -1,0 +1,45 @@
+<div class="gh-psm-classified-tags">
+    <div class="gh-psm-tag-field" data-test-field="genre">
+        <label class="gh-psm-tag-field-label">Genre</label>
+        <GhTagsTokenInput
+            @typeFilter="genre"
+            @allowCreation={{false}}
+            @selected={{this.genreTags}}
+            @onChange={{this.updateGenre}}
+            @renderInPlace={{true}}
+        />
+    </div>
+
+    <div class="gh-psm-tag-field" data-test-field="segment">
+        <label class="gh-psm-tag-field-label">Segment</label>
+        <GhTagsTokenInput
+            @typeFilter="segment"
+            @allowCreation={{true}}
+            @selected={{this.segmentTags}}
+            @onChange={{this.updateSegment}}
+            @renderInPlace={{true}}
+        />
+    </div>
+
+    <div class="gh-psm-tag-field" data-test-field="topic">
+        <label class="gh-psm-tag-field-label">Topics</label>
+        <GhTagsTokenInput
+            @typeFilter="topic"
+            @allowCreation={{true}}
+            @selected={{this.topicTags}}
+            @onChange={{this.updateTopic}}
+            @renderInPlace={{true}}
+        />
+    </div>
+
+    <div class="gh-psm-tag-field" data-test-field="function">
+        <label class="gh-psm-tag-field-label">Functions</label>
+        <GhTagsTokenInput
+            @typeFilter="function"
+            @allowCreation={{true}}
+            @selected={{this.functionTags}}
+            @onChange={{this.updateFunction}}
+            @renderInPlace={{true}}
+        />
+    </div>
+</div>

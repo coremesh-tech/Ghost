@@ -114,6 +114,7 @@ typings/
 /ghost/core/PRIVACY.md
 /ghost/core/README.md
 /ghost/core/pnpm-lock.yaml
+compose.dev.theme.yaml
 
 # Test generated files
 test/functional/*.png

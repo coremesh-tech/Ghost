@@ -13,6 +13,9 @@ export type Tag = {
     url: string;
     description: string;
     visibility: 'public' | 'internal';
+    // pm.org 分类维度
+    type?: 'genre' | 'segment' | 'topic' | 'function' | null;
+    subgroup?: 'syndicated' | 'original' | null;
     count?: {
         posts: number;
     };

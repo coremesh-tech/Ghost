@@ -361,6 +361,9 @@ overrides:
 
 packageExtensionsChecksum: sha256-VoukEtG/3ZKlZLtw2HjOKS0hPvjiZTwZtAPotZw7zcw=
 
+patchedDependencies:
+  '@tryghost/admin-api-schema@4.7.4': 5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0
+
 importers:
 
   .:
@@ -2329,7 +2332,7 @@ importers:
         version: 0.1.25
       '@tryghost/admin-api-schema':
         specifier: 4.7.4
-        version: 4.7.4
+        version: 4.7.4(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)
       '@tryghost/api-framework':
         specifier: 'catalog:'
         version: 3.2.3
@@ -20957,6 +20960,7 @@ packages:
   tsconfck@3.1.6:
     resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
     engines: {node: ^18 || >=20}
+    deprecated: unmaintained
     hasBin: true
     peerDependencies:
       typescript: ^5.0.0
@@ -28429,7 +28433,7 @@ snapshots:
 
   '@tryghost/adapter-base-cache@0.1.25': {}
 
-  '@tryghost/admin-api-schema@4.7.4':
+  '@tryghost/admin-api-schema@4.7.4(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)':
     dependencies:
       '@tryghost/errors': 1.3.13
       ajv: 8.20.0

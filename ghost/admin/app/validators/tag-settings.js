@@ -3,7 +3,26 @@ import validator from 'validator';
 import {isBlank} from '@ember/utils';
 
 export default BaseValidator.create({
-    properties: ['name', 'slug', 'description', 'metaTitle', 'metaDescription'],
+    properties: ['name', 'slug', 'description', 'metaTitle', 'metaDescription', 'type', 'subgroup'],
+
+    type(model) {
+        const validTypes = ['genre', 'segment', 'topic', 'function'];
+        if (isBlank(model.type)) {
+            model.errors.add('type', 'You must choose a tag type.');
+            this.invalidate();
+        } else if (!validTypes.includes(model.type)) {
+            model.errors.add('type', 'Invalid tag type.');
+            this.invalidate();
+        }
+    },
+
+    subgroup(model) {
+        // 仅体裁需要子类
+        if (model.type === 'genre' && isBlank(model.subgroup)) {
+            model.errors.add('subgroup', 'A genre tag requires a subgroup (Syndicated / Original).');
+            this.invalidate();
+        }
+    },
 
     name(model) {
         let name = model.name;

@@ -26,6 +26,8 @@ export default Model.extend(ValidationEngine, {
     accentColor: attr('string'),
     featureImage: attr('string'),
     visibility: attr('string', {defaultValue: 'public'}),
+    type: attr('string'),
+    subgroup: attr('string'),
     createdAtUTC: attr('moment-utc'),
     updatedAtUTC: attr('moment-utc'),
     count: attr('raw'),

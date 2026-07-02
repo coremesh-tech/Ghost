@@ -20,10 +20,13 @@ export default class TagsManagerService extends Service {
     }
 
     @task({restartable: true})
-    *searchTagsTask(term, {page = 1} = {}) {
+    *searchTagsTask(term, {page = 1, filter} = {}) {
         // debounce the search
         yield timeout(250);
         const safeTerm = term.replace(/'/g, `\\'`);
-        return yield this.store.query('tag', {filter: `tags.name:~'${safeTerm}'`, limit: 100, page, order: 'name asc'});
+        // pm.org:可叠加维度过滤(如 type:topic),不传则同原行为
+        const nameFilter = `tags.name:~'${safeTerm}'`;
+        const combinedFilter = filter ? `${nameFilter}+${filter}` : nameFilter;
+        return yield this.store.query('tag', {filter: combinedFilter, limit: 100, page, order: 'name asc'});
     }
 }

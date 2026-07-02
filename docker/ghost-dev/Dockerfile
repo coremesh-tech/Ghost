@@ -46,6 +46,9 @@ COPY ghost/parse-email-address/package.json ghost/parse-email-address/package.js
 COPY .github/scripts .github/scripts
 COPY .github/hooks .github/hooks
 
+# pnpm patchedDependencies 需要 patches 目录在 install 之前就位(否则构建失败)
+COPY patches ./patches
+
 # Enable corepack so it can read packageManager from package.json and provide pnpm
 RUN corepack enable
 

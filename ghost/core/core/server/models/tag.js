@@ -4,7 +4,8 @@ const errors = require('@tryghost/errors');
 const urlUtils = require('../../shared/url-utils');
 
 const messages = {
-    tagNotFound: 'Tag not found.'
+    tagNotFound: 'Tag not found.',
+    subgroupRequired: 'A genre tag requires a subgroup (syndicated or original).'
 };
 
 let Tag;
@@ -114,6 +115,15 @@ Tag = ghostBookshelf.Model.extend({
         // name: #later slug: hash-later
         if (/^#/.test(newTag.get('name'))) {
             this.set('visibility', 'internal');
+        }
+
+        // pm.org 分类 tag:体裁必须带 subgroup;非体裁清空 subgroup
+        const tagType = newTag.get('type');
+        if (tagType === 'genre' && !newTag.get('subgroup')) {
+            throw new errors.ValidationError({message: tpl(messages.subgroupRequired)});
+        }
+        if (tagType !== 'genre' && newTag.get('subgroup')) {
+            this.set('subgroup', null);
         }
 
         if (this.hasChanged('slug') || (!this.get('slug') && this.get('name'))) {

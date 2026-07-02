@@ -51,7 +51,7 @@ export default class PublishManagement extends Component {
 
         this.updateFlowModal?.close();
 
-        const isValid = await this._validatePost();
+        const isValid = await this._validatePost({requireFeatureImage: true});
 
         if (this.args.tkCount > 0) {
             const ignoreTks = await this.modals.open(TkReminderModal, {
@@ -88,7 +88,7 @@ export default class PublishManagement extends Component {
 
         this.publishFlowModal?.close();
 
-        const isValid = await this._validatePost();
+        const isValid = await this._validatePost({requireFeatureImage: true});
 
         if (isValid && (!this.updateFlowModal || this.updateFlowModal.isClosing)) {
             this.updateFlowModal = this.modals.open(UpdateFlowModal, {
@@ -208,8 +208,18 @@ export default class PublishManagement extends Component {
         }
     }
 
-    async _validatePost() {
+    async _validatePost({requireFeatureImage = false} = {}) {
         this.notifications.closeAlerts('post.save');
+
+        // pm.org:发布/更新时必须有封面图
+        if (requireFeatureImage) {
+            const post = this.publishOptions.post;
+            const featureImage = post.get ? post.get('featureImage') : post.featureImage;
+            if (!featureImage) {
+                this.notifications.showAlert('Please upload the cover image', {type: 'error', key: 'post.save'});
+                return false;
+            }
+        }
 
         try {
             await this.publishOptions.post.validate();
@@ -287,6 +297,12 @@ export default class PublishManagement extends Component {
 
     @task({group: 'saveButtonTaskGroup'})
     *submitTask() {
+        // pm.org:提交审核也必须有封面图
+        const isValid = yield this._validatePost({requireFeatureImage: true});
+        if (!isValid) {
+            return;
+        }
+
         try {
             yield this.args.saveTask.perform();
             const url = this.publishOptions.post.get('id') 

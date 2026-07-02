@@ -32,6 +32,14 @@ export default class GhTagsTokenInput extends Component {
         return this.tagsManager.sortTags(this._initialTags.filter(tag => !selectedTags.includes(tag)));
     }
 
+    // pm.org:按维度类型过滤候选(@typeFilter 传入时生效)
+    _matchesTypeFilter(tag) {
+        if (!this.args.typeFilter) {
+            return true;
+        }
+        return tag.get('type') === this.args.typeFilter;
+    }
+
     // if we only have one page of tags available or we've already loaded all tags
     // then we can use the client-side search
     get useServerSideSearch() {
@@ -43,16 +51,18 @@ export default class GhTagsTokenInput extends Component {
 
     @action
     addInitialTags(tags) {
-        const selectedTags = this.args.selected || [];
-        const deduplicatedTags = tags.filter(tag => !selectedTags.includes(tag));
-        this._initialTags.push(...deduplicatedTags);
+        // 候选池收全部(同类型)tag,不在加载时排除已选;是否作为候选显示由 availableTags
+        // 动态用 !selected.includes 过滤。这样取消选择的 tag 能立刻回到下拉。
+        const existing = this._initialTags;
+        const toAdd = tags.filter(tag => this._matchesTypeFilter(tag) && !existing.includes(tag));
+        this._initialTags.push(...toAdd);
     }
 
     @action
     addSearchedTags(tags) {
-        const selectedTags = this.args.selected || [];
-        const deduplicatedTags = tags.filter(tag => !selectedTags.includes(tag));
-        this._searchedTags.push(...deduplicatedTags);
+        const existing = this._searchedTags;
+        const toAdd = tags.filter(tag => this._matchesTypeFilter(tag) && !existing.includes(tag));
+        this._searchedTags.push(...toAdd);
     }
 
     @action
@@ -85,7 +95,11 @@ export default class GhTagsTokenInput extends Component {
             }
 
             const page = this._searchedTagsMeta.pagination.page + 1;
-            const tags = yield this.tagsManager.searchTagsTask.perform(this._searchedTagsQuery, {page});
+            const searchOptions = {page};
+            if (this.args.typeFilter) {
+                searchOptions.filter = `type:${this.args.typeFilter}`;
+            }
+            const tags = yield this.tagsManager.searchTagsTask.perform(this._searchedTagsQuery, searchOptions);
             this.addSearchedTags(tags.toArray());
             this._searchedTagsMeta = tags.meta;
         } else {
@@ -94,7 +108,11 @@ export default class GhTagsTokenInput extends Component {
             }
 
             const page = this._initialTagsMeta?.pagination.page ? this._initialTagsMeta.pagination.page + 1 : 1;
-            const tags = yield this.store.query('tag', {limit: PAGE_SIZE, page, order: 'name asc'});
+            const query = {limit: PAGE_SIZE, page, order: 'name asc'};
+            if (this.args.typeFilter) {
+                query.filter = `type:${this.args.typeFilter}`;
+            }
+            const tags = yield this.store.query('tag', query);
             this.addInitialTags(tags.toArray());
             this._initialTagsMeta = tags.meta;
         }
@@ -103,7 +121,11 @@ export default class GhTagsTokenInput extends Component {
     @task
     *searchTagsTask(term) {
         this._searchedTagsQuery = term;
-        const tags = yield this.tagsManager.searchTagsTask.perform(term);
+        const searchOptions = {};
+        if (this.args.typeFilter) {
+            searchOptions.filter = `type:${this.args.typeFilter}`;
+        }
+        const tags = yield this.tagsManager.searchTagsTask.perform(term, searchOptions);
         this._searchedTagsMeta = tags.meta;
 
         // we need to create a tracked array for vertical-collection to update as new options are loaded
@@ -158,7 +180,9 @@ export default class GhTagsTokenInput extends Component {
         // create new tag if no match
         if (!tagToAdd) {
             tagToAdd = this.store.createRecord('tag', {
-                name: tagNameAttr
+                name: tagNameAttr,
+                // pm.org:内联新建自动归入当前字段维度
+                type: this.args.typeFilter || null
             });
 
             // set to public/internal based on the tag name

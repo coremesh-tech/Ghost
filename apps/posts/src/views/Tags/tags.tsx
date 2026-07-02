@@ -1,7 +1,7 @@
 import MainLayout from '@components/layout/main-layout';
 import React from 'react';
 import TagsList from './components/tags-list';
-import {Button, DropdownMenuCheckboxItem, EmptyIndicator, LoadingIndicator, ToggleGroup, ToggleGroupItem} from '@tryghost/shade/components';
+import {Button, DropdownMenuCheckboxItem, EmptyIndicator, LoadingIndicator, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, ToggleGroup, ToggleGroupItem} from '@tryghost/shade/components';
 import {Link, useSearchParams} from '@tryghost/admin-x-framework';
 import {ListPage} from '@tryghost/shade/page-templates';
 import {LucideIcon} from '@tryghost/shade/utils';
@@ -11,6 +11,14 @@ import {useBrowseTags} from '@tryghost/admin-x-framework/api/tags';
 const Tags: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const type = searchParams.get('type') ?? 'public';
+    // pm.org 分类维度筛选(独立于 visibility 的 public/internal)
+    const dimension = searchParams.get('dimension') ?? 'all';
+
+    // NQL: 逗号是 OR、加号是 AND。多条件必须用 + 才是「且」。
+    // useBrowseTags 用逗号拼接对象 filter,这里自己拼 + 并通过 searchParams 覆盖。
+    const filterString = dimension === 'all'
+        ? `visibility:${type}`
+        : `visibility:${type}+type:${dimension}`;
 
     const {
         data,
@@ -20,10 +28,20 @@ const Tags: React.FC = () => {
         fetchNextPage,
         hasNextPage
     } = useBrowseTags({
-        filter: {
-            visibility: type
-        }
+        filter: {visibility: type},
+        searchParams: {filter: filterString}
     });
+
+    const setDimension = (value: string) => {
+        const params: Record<string, string> = {};
+        if (type !== 'public') {
+            params.type = type;
+        }
+        if (value !== 'all') {
+            params.dimension = value;
+        }
+        setSearchParams(params);
+    };
 
     return (
         <MainLayout>
@@ -35,6 +53,18 @@ const Tags: React.FC = () => {
                         </PageHeader.Left>
                         <PageHeader.Actions>
                             <PageHeader.ActionGroup>
+                                <Select value={dimension} onValueChange={setDimension}>
+                                    <SelectTrigger className="w-[150px]" data-testid="tags-type-filter">
+                                        <SelectValue placeholder="All types" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All types</SelectItem>
+                                        <SelectItem value="genre">Genre</SelectItem>
+                                        <SelectItem value="segment">Segment</SelectItem>
+                                        <SelectItem value="topic">Topic</SelectItem>
+                                        <SelectItem value="function">Function</SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <ToggleGroup data-testid="tags-header-tabs" size='button' type="single" value={type}>
                                     <ToggleGroupItem aria-label="Public tags" value="public" asChild>
                                         <Link to="/tags">Public tags</Link>

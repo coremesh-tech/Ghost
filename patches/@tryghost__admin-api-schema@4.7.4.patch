@@ -1,0 +1,19 @@
+diff --git a/lib/schemas/tags.json b/lib/schemas/tags.json
+index e16517dc0e..86d970ae34 100644
+--- a/lib/schemas/tags.json
++++ b/lib/schemas/tags.json
+@@ -81,6 +81,14 @@
+         "accent_color": {
+           "type": ["string", "null"],
+           "maxLength": 50
++        },
++        "type": {
++          "type": ["string", "null"],
++          "enum": ["genre", "segment", "topic", "function", null]
++        },
++        "subgroup": {
++          "type": ["string", "null"],
++          "enum": ["syndicated", "original", null]
+         }
+       }
+     }

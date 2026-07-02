@@ -32,7 +32,8 @@ const messages = {
     invalidMobiledocStructureHelp: 'https://ghost.org/docs/publishing/',
     invalidLexicalStructure: 'Invalid lexical structure.',
     invalidLexicalStructureHelp: 'https://ghost.org/docs/publishing/',
-    emailOnlyWithoutNewsletter: 'Scheduling an email requires a newsletter reference.'
+    emailOnlyWithoutNewsletter: 'Scheduling an email requires a newsletter reference.',
+    multipleGenreTags: 'A post can only have one genre (体裁) tag.'
 };
 
 const MOBILEDOC_REVISIONS_COUNT = 10;
@@ -649,6 +650,15 @@ Post = ghostBookshelf.Model.extend({
             }
 
             this.set('tags', tagsToSave);
+
+            // pm.org 分类 tag:体裁(genre)至多 1 个。这里只用入参携带的 type 计数,
+            // 不查库、不误伤未带 type 的导入/API 调用;「必须有 1 个」由后台单选 UI 保证。
+            const genreCount = tagsToSave.filter(tag => tag && tag.type === 'genre').length;
+            if (genreCount > 1) {
+                return Promise.reject(new errors.ValidationError({
+                    message: tpl(messages.multipleGenreTags)
+                }));
+            }
         }
 
         /**

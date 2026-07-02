@@ -57,6 +57,42 @@
                 </GhFormGroup>
             </div>
 
+            <GhFormGroup @errors={{@tag.errors}} @hasValidated={{@tag.hasValidated}} @property="type">
+                <label for="tag-type">Type</label>
+                <GhTokenInput
+                    @options={{this.availableTypes}}
+                    @selected={{this.selectedTypeOptions}}
+                    @optionsComponent={{component "power-select/options"}}
+                    @allowCreation={{false}}
+                    @closeOnSelect={{true}}
+                    @renderInPlace={{true}}
+                    @onChange={{this.setTagType}}
+                    as |option|
+                >
+                    {{option.name}}
+                </GhTokenInput>
+                <GhErrorMessage @errors={{@tag.errors}} @property="type" />
+            </GhFormGroup>
+
+            {{#if (eq @tag.type "genre")}}
+            <GhFormGroup @errors={{@tag.errors}} @hasValidated={{@tag.hasValidated}} @property="subgroup">
+                <label for="tag-subgroup">Genre subgroup</label>
+                <GhTokenInput
+                    @options={{this.availableSubgroups}}
+                    @selected={{this.selectedSubgroupOptions}}
+                    @optionsComponent={{component "power-select/options"}}
+                    @allowCreation={{false}}
+                    @closeOnSelect={{true}}
+                    @renderInPlace={{true}}
+                    @onChange={{this.setSubgroup}}
+                    as |option|
+                >
+                    {{option.name}}
+                </GhTokenInput>
+                <GhErrorMessage @errors={{@tag.errors}} @property="subgroup" />
+            </GhFormGroup>
+            {{/if}}
+
             <GhFormGroup @errors={{@tag.errors}} @hasValidated={{@tag.hasValidated}} @property="slug">
                 <label for="tag-slug">Slug</label>
                 <input
