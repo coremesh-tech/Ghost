@@ -27,6 +27,9 @@ RUN corepack enable
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY components ./components
+# patches/ must be present before `pnpm install` so patchedDependencies
+# (e.g. @tryghost/admin-api-schema for custom tag fields) are applied.
+COPY patches ./patches
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,id=pnpm-store \
     apt-get update && \

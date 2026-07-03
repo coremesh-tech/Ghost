@@ -78,11 +78,16 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 // Written early (rather than after the pack loop) so workspace component
 // `pnpm pack` calls below have catalog context to resolve `catalog:` refs
 // in their devDependencies.
+//
+// patchedDependencies must be kept: we patch @tryghost/admin-api-schema to
+// accept our custom tag fields (type/subgroup). Without it (and the patches/
+// dir copied below) the deployed install resolves the UNpatched package and
+// ajv's removeAdditional silently strips those fields on the tags API.
 const workspaceSrc = path.join(ROOT_DIR, 'pnpm-workspace.yaml');
 const workspaceDst = path.join(DEPLOY_DIR, 'pnpm-workspace.yaml');
 const rootWorkspace = yaml.load(fs.readFileSync(workspaceSrc, 'utf8'));
 const deployWorkspace = {};
-for (const key of ['catalog', 'catalogs', 'allowBuilds', 'strictDepBuilds', 'overrides', 'packageExtensions']) {
+for (const key of ['catalog', 'catalogs', 'allowBuilds', 'strictDepBuilds', 'overrides', 'packageExtensions', 'patchedDependencies']) {
     if (rootWorkspace[key] !== undefined) {
         deployWorkspace[key] = rootWorkspace[key];
     }
@@ -96,6 +101,22 @@ deployWorkspace.minimumReleaseAge = 0;
 fs.writeFileSync(workspaceDst, yaml.dump(deployWorkspace));
 
 console.log('Wrote trimmed pnpm-workspace.yaml (catalogs + overrides + allowBuilds, age check off)');
+
+// Copy the patches/ directory referenced by patchedDependencies into the deploy
+// dir. Paths in patchedDependencies are repo-root-relative (e.g.
+// patches/foo.patch); pnpm resolves them relative to the workspace file, so they
+// must sit next to the deployed pnpm-workspace.yaml. Copied before the lockfile
+// regen below (which reads the patch to compute its hash) and included in the
+// tarball so the end-user / Docker install can re-apply it.
+if (deployWorkspace.patchedDependencies) {
+    const patchesSrc = path.join(ROOT_DIR, 'patches');
+    const patchesDst = path.join(DEPLOY_DIR, 'patches');
+    if (!fs.existsSync(patchesSrc)) {
+        throw new Error('patchedDependencies is set but patches/ dir is missing at repo root');
+    }
+    fsExtra.copySync(patchesSrc, patchesDst);
+    console.log(`Copied patches/ (${fs.readdirSync(patchesSrc).length} file(s)) into deploy dir`);
+}
 
 // Pack private workspace packages as component tarballs.
 // These are not on npm, so ghost-cli can't install them from the registry.
@@ -196,6 +217,20 @@ if (!packagedWorkspace?.catalog || Object.keys(packagedWorkspace.catalog).length
 }
 if (!packagedWorkspace?.overrides || Object.keys(packagedWorkspace.overrides).length === 0) {
     throw new Error('Packaged pnpm-workspace.yaml is missing root overrides');
+}
+// If the source repo patches deps, the release must carry both the
+// patchedDependencies map and the patch files, or the patch silently no-ops
+// in production (see the tag type/subgroup fields).
+if (rootWorkspace.patchedDependencies) {
+    if (!packagedWorkspace?.patchedDependencies
+        || Object.keys(packagedWorkspace.patchedDependencies).length === 0) {
+        throw new Error('Packaged pnpm-workspace.yaml is missing patchedDependencies');
+    }
+    for (const patchRel of Object.values(packagedWorkspace.patchedDependencies)) {
+        if (!fs.existsSync(path.join(DEPLOY_DIR, patchRel))) {
+            throw new Error(`Patch file missing from deploy output: ${patchRel}`);
+        }
+    }
 }
 
 // 4. Create tarball
