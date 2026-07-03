@@ -34,7 +34,7 @@ const messages = {
     invalidLexicalStructureHelp: 'https://ghost.org/docs/publishing/',
     emailOnlyWithoutNewsletter: 'Scheduling an email requires a newsletter reference.',
     multipleGenreTags: 'A post can only have one genre (体裁) tag.',
-    featureImageRequired: 'Please upload the cover image before publishing or updating.'
+    featureImageRequired: 'Please upload the feature image before publishing or updating.'
 };
 
 const MOBILEDOC_REVISIONS_COUNT = 10;
