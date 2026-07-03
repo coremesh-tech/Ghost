@@ -69,7 +69,8 @@ async function proxyPollApi(path, {method = 'GET', body, member, token = '', req
             ...buildPollGuestHeaders(req),
             ...(token ? {Authorization: `Bearer ${token}`} : {})
         },
-        body: body ? JSON.stringify(body) : undefined
+        body: body ? JSON.stringify(body) : undefined,
+        throwHttpErrors: false
     });
 
     return {

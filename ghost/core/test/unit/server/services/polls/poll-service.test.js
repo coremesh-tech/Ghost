@@ -1,9 +1,27 @@
 const assert = require('node:assert/strict');
-const {buildPollViewerHeaders, extractPollNodeFromLexical, normalizePollNode} = require('../../../../../core/server/services/polls/poll-service');
+const nock = require('nock');
+const configUtils = require('../../../../utils/config-utils');
+
+function loadPollService() {
+    const modulePath = '../../../../../core/server/services/polls/poll-service';
+    delete require.cache[require.resolve(modulePath)];
+    return require(modulePath);
+}
 
 describe('services/polls/poll-service', function () {
+    let pollService;
+
+    beforeEach(function () {
+        pollService = loadPollService();
+    });
+
+    afterEach(async function () {
+        nock.cleanAll();
+        await configUtils.restore();
+    });
+
     it('builds prediction market viewer headers from a member session', function () {
-        const headers = buildPollViewerHeaders({
+        const headers = pollService.buildPollViewerHeaders({
             uuid: 'member_123',
             name: 'Ghost Member',
             email: 'member@example.com'
@@ -18,7 +36,7 @@ describe('services/polls/poll-service', function () {
     });
 
     it('normalizes poll node data', function () {
-        const poll = normalizePollNode({
+        const poll = pollService.normalizePollNode({
             poll_id: 'poll_123',
             title: 'Question',
             description: 'Description',
@@ -83,11 +101,46 @@ describe('services/polls/poll-service', function () {
             }
         });
 
-        const poll = extractPollNodeFromLexical(lexical, 'poll_123');
+        const poll = pollService.extractPollNodeFromLexical(lexical, 'poll_123');
 
         assert.equal(poll.pollId, 'poll_123');
         assert.equal(poll.title, 'Question');
         assert.equal(poll.options.length, 2);
         assert.equal(poll.totalVotes, 20);
+    });
+
+    it('returns upstream poll vote errors instead of throwing got HTTPError', async function () {
+        configUtils.set('PREDICTIONMARKETS_API_URL', 'https://poll-api.test');
+        pollService = loadPollService();
+
+        const scope = nock('https://poll-api.test')
+            .post('/market-topic/polls/poll_123/votes', {
+                action: 'change',
+                option_ids: ['opt_1']
+            })
+            .reply(401, {
+                ok: false,
+                error: {
+                    code: 'LOGIN_REQUIRED',
+                    message: 'please sign in to vote'
+                }
+            });
+
+        const response = await pollService.submitPollVote(
+            'poll_123',
+            {action: 'change', option_ids: ['opt_1']},
+            null,
+            {}
+        );
+
+        assert.equal(response.statusCode, 401);
+        assert.deepEqual(response.body, {
+            ok: false,
+            error: {
+                code: 'LOGIN_REQUIRED',
+                message: 'please sign in to vote'
+            }
+        });
+        assert.equal(scope.isDone(), true);
     });
 });
