@@ -23,6 +23,14 @@ describe('frontend/cards/poll', function () {
         }
     };
 
+    const flushTimers = async function (times = 2) {
+        for (let index = 0; index < times; index += 1) {
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        }
+    };
+
     beforeEach(function () {
         optionsHeight = 90;
         legendHeight = 70;
@@ -333,5 +341,114 @@ describe('frontend/cards/poll', function () {
         await flushMicrotasks();
 
         assert.equal(plot.style.height, '80px');
+    });
+
+    it('opens Portal signin when anonymous vote quota is exhausted', async function () {
+        const signinTrigger = global.document.createElement('button');
+        let signinClicks = 0;
+        signinTrigger.setAttribute('data-portal', 'signin');
+        signinTrigger.addEventListener('click', function () {
+            signinClicks += 1;
+        });
+        global.document.body.appendChild(signinTrigger);
+
+        global.fetch = async function (url, options = {}) {
+            const requestUrl = new URL(url, 'https://example.com');
+            const method = String(options.method || 'GET').toUpperCase();
+
+            if (requestUrl.pathname === '/members/api/session/') {
+                return {
+                    ok: false,
+                    status: 404,
+                    text: async function () {
+                        return '';
+                    },
+                    json: async function () {
+                        return null;
+                    }
+                };
+            }
+
+            if (requestUrl.pathname === '/members/api/polls/poll_123/votes' && method === 'POST') {
+                return {
+                    ok: false,
+                    status: 401,
+                    json: async function () {
+                        return {
+                            ok: false,
+                            error: {
+                                code: 'LOGIN_REQUIRED',
+                                message: 'daily anonymous vote used, please sign in'
+                            }
+                        };
+                    }
+                };
+            }
+
+            const payloads = {
+                '/members/api/polls/poll_123': {
+                    poll_id: 'poll_123',
+                    title: 'What should we ship next?',
+                    description: 'Choose the feature you want first.',
+                    published_at: '2026-06-01T00:00:00.000Z',
+                    status: 'published',
+                    options: [
+                        {id: 'option_a', text: 'Native polls'},
+                        {id: 'option_b', text: 'Theme hydration'}
+                    ],
+                    viewer: {
+                        can_vote: true,
+                        can_interact: true,
+                        has_voted: false,
+                        selected_option_ids: []
+                    },
+                    meta: {
+                        logged_in: false
+                    }
+                },
+                '/members/api/polls/poll_123/votes': {
+                    total_votes: 20,
+                    options: [
+                        {id: 'option_a', text: 'Native polls', vote_count: 8, vote_rate: 40},
+                        {id: 'option_b', text: 'Theme hydration', vote_count: 12, vote_rate: 60}
+                    ],
+                    viewer: {
+                        can_vote: true,
+                        can_interact: true,
+                        has_voted: false,
+                        selected_option_ids: []
+                    },
+                    answer: {
+                        revealed: false,
+                        correct_option_ids: []
+                    }
+                },
+                '/members/api/polls/poll_123/trends': {
+                    points: []
+                }
+            };
+            const payload = payloads[requestUrl.pathname];
+
+            return {
+                ok: Boolean(payload),
+                status: payload ? 200 : 404,
+                json: async function () {
+                    return payload;
+                }
+            };
+        };
+        global.window.fetch = global.fetch;
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const firstOption = global.document.querySelector('.kg-poll-card-option');
+        firstOption.click();
+        await flushMicrotasks(10);
+        await flushTimers();
+
+        assert.equal(signinClicks, 1);
+        assert.equal(global.document.querySelector('.kg-poll-card-feedback').hidden, true);
     });
 });

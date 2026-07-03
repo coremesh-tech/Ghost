@@ -1098,9 +1098,15 @@
         };
     };
 
-    const openPortalAccount = function () {
-        if (window.location.hash !== '#/portal/account') {
-            window.location.hash = '/portal/account';
+    const openPortalSignin = function () {
+        const signinTrigger = document.querySelector('[data-portal="signin"]');
+        if (signinTrigger) {
+            signinTrigger.click();
+            return;
+        }
+
+        if (window.location.hash !== '#/portal/signin') {
+            window.location.hash = '#/portal/signin';
         } else {
             window.dispatchEvent(new HashChangeEvent('hashchange'));
         }
@@ -1983,12 +1989,18 @@
 
             if (!response.ok || !response.payload) {
                 const code = response.payload && response.payload.error && response.payload.error.code;
+                const isLoginRequired = response.status === 401 || code === 'LOGIN_REQUIRED';
                 const refreshedState = await refreshVotes(card, state, {refreshTrends: false}).catch(function () {
                     return null;
                 });
                 if (!refreshedState) {
                     state.selectedOptionIds = previousSelectedOptionIds;
                     persistSelectedOptionIds(state);
+                }
+                if (isLoginRequired) {
+                    setFeedback(card, '', '');
+                    openPortalSignin();
+                    return;
                 }
                 const message = code === 'VOTE_CONFLICT'
                     ? 'Your vote changed in another session. Please try again.'
@@ -2083,7 +2095,7 @@
                     !state.answerRevealed
                 ) {
                     setFeedback(card, '', '');
-                    openPortalAccount();
+                    openPortalSignin();
                 }
                 return;
             }
