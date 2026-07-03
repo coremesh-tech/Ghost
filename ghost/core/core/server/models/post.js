@@ -33,7 +33,8 @@ const messages = {
     invalidLexicalStructure: 'Invalid lexical structure.',
     invalidLexicalStructureHelp: 'https://ghost.org/docs/publishing/',
     emailOnlyWithoutNewsletter: 'Scheduling an email requires a newsletter reference.',
-    multipleGenreTags: 'A post can only have one genre (体裁) tag.'
+    multipleGenreTags: 'A post can only have one genre (体裁) tag.',
+    featureImageRequired: 'Please upload the cover image before publishing or updating.'
 };
 
 const MOBILEDOC_REVISIONS_COUNT = 10;
@@ -601,6 +602,28 @@ Post = ghostBookshelf.Model.extend({
                     })
                 }));
             }
+        }
+
+        // pm.org: 发布/更新 post 必须有封面图(feature_image)。
+        // 放在后端 model 层是因为前端(publish-management)的校验只覆盖发布/更新流程弹窗,
+        // 可被普通保存(cmd+S / 自动保存)、批量操作或直接调 Admin API 绕过。
+        // Scope 控制:
+        //   - 仅 type='post'(page 允许无封面);
+        //   - 仅当目标状态是 published/scheduled(即"要上线");
+        //   - 仅用户发起的请求(context 非 internal),放过定时发布/邮件/重校验等系统内部
+        //     re-save,以及历史无封面数据的内部改写;
+        //   - 放过 importing/migrating。
+        // 定时发布场景下,用户在"排期(scheduled)"这一步就会被拦,故系统内部真正 publish
+        // 时无需再校验。
+        const requiresFeatureImage = ['published', 'scheduled'].includes(newStatus)
+            && this.get('type') === 'post'
+            && options.context && !options.context.internal
+            && !options.importing
+            && !options.migrating;
+        if (requiresFeatureImage && !this.get('feature_image')) {
+            return Promise.reject(new errors.ValidationError({
+                message: tpl(messages.featureImageRequired)
+            }));
         }
 
         // CASE: Force a change for scheduled posts within 2 minutes of
