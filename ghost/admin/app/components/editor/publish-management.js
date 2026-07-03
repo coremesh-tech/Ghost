@@ -216,7 +216,7 @@ export default class PublishManagement extends Component {
             const post = this.publishOptions.post;
             const featureImage = post.get ? post.get('featureImage') : post.featureImage;
             if (!featureImage) {
-                this.notifications.showAlert('Please upload the cover image', {type: 'error', key: 'post.save'});
+                this.notifications.showAlert('Please upload the feature image', {type: 'error', key: 'post.save'});
                 return false;
             }
         }
