@@ -7,7 +7,8 @@ function rgbToHsl(r: number, g: number, b: number) {
     b /= 255;
 
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
+    let h, s;
+    const l = (max + min) / 2;
 
     if (max === min) {
         h = s = 0; // achromatic
@@ -307,6 +308,13 @@ test.describe('Options', async () => {
                 return style.getPropertyValue('color');
             });
             expect(titleColor).toBe('rgba(255, 255, 255, 0.85)');
+
+            const signinButton = await frame.getByTestId('signin-button');
+            const signinColor = await signinButton.evaluate((node) => {
+                const style = window.getComputedStyle(node);
+                return style.getPropertyValue('color');
+            });
+            expect(signinColor).toBe('rgb(255, 255, 255)');
         });
 
         test('Uses light mode by default', async ({page}) => {
@@ -346,6 +354,13 @@ test.describe('Options', async () => {
                 return style.getPropertyValue('color');
             });
             expect(titleColor).toBe('rgba(255, 255, 255, 0.85)');
+
+            const signinButton = await frame.getByTestId('signin-button');
+            const signinColor = await signinButton.evaluate((node) => {
+                const style = window.getComputedStyle(node);
+                return style.getPropertyValue('color');
+            });
+            expect(signinColor).toBe('rgb(255, 255, 255)');
         });
 
         test('Uses dark text in light mode', async ({page}) => {
@@ -369,4 +384,3 @@ test.describe('Options', async () => {
         });
     });
 });
-

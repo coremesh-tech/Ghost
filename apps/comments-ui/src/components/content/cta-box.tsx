@@ -12,10 +12,6 @@ const CTABox: React.FC<Props> = ({isFirst, isPaid}) => {
         backgroundColor: accentColor
     };
 
-    const linkStyle = {
-        color: accentColor
-    };
-
     const titleText = (commentCount === 0 ? t('Start the conversation') : t('Join the discussion'));
 
     const handleSignUpClick = () => {
@@ -43,7 +39,7 @@ const CTABox: React.FC<Props> = ({isFirst, isPaid}) => {
             </button>
             {!member && (<p className="text-md text-center font-sans text-[rgba(0,0,0,0.4)] dark:text-[rgba(255,255,255,0.5)]">
                 <span className='mr-1 inline-block text-[15px]'>{t('Already a member?')}</span>
-                <button className="rounded-md text-sm font-semibold transition-all hover:opacity-90" data-testid="signin-button" style={linkStyle} type="button" onClick={handleSignInClick}>{t('Sign in')}</button>
+                <button className="rounded-md text-sm font-semibold text-[var(--gh-accent-color)] transition-all hover:opacity-90 dark:text-white" data-testid="signin-button" type="button" onClick={handleSignInClick}>{t('Sign in')}</button>
             </p>)}
         </>
     );
