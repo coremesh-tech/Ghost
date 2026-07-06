@@ -274,7 +274,7 @@
         "version": "1.1"
     },
     "comments": {
-        "url": "https://cdn.jsdelivr.net/ghost/comments-ui@~{version}/umd/comments-ui.min.js",
+        "url": "/public/comments-ui.min.js?v={version}",
         "version": "1.5"
     },
     "adminToolbar": {

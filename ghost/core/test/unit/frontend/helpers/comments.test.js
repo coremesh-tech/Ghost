@@ -50,7 +50,7 @@ describe('{{comments}} helper', function () {
             }
         });
         assertExists(rendered);
-        assert(rendered.string.includes('<script defer src="https://cdn.jsdelivr.net/ghost/comments-ui'));
+        assert(rendered.string.includes('<script defer src="/public/comments-ui.min.js?v=test.version"'));
         assert(rendered.string.includes(`data-ghost-comments="${configUtils.config.get('url')}/"`));
         assert(rendered.string.includes(`data-api="${configUtils.config.get('url')}/ghost/api/content/"`));
         assert(rendered.string.includes(`data-admin="${configUtils.config.get('url')}/ghost/"`));
@@ -79,7 +79,7 @@ describe('{{comments}} helper', function () {
             }
         });
         assertExists(rendered);
-        assert(rendered.string.includes('<script defer src="https://cdn.jsdelivr.net/ghost/comments-ui'));
+        assert(rendered.string.includes('<script defer src="/public/comments-ui.min.js?v=test.version"'));
         assert(rendered.string.includes(`data-ghost-comments="${configUtils.config.get('url')}/"`));
         assert(rendered.string.includes(`data-api="${configUtils.config.get('url')}/ghost/api/content/"`));
         assert(rendered.string.includes(`data-admin="${configUtils.config.get('url')}/ghost/"`));
