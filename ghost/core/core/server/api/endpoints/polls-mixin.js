@@ -196,6 +196,26 @@ const controller = {
         }
     },
 
+    pauseAdminPollVoting: {
+        ...controllerConfig,
+        query(frame) {
+            return requestWithSession(frame, {
+                path: `/admin/polls/${encodeURIComponent(frame.original.params.poll_id)}/pause`,
+                method: 'POST'
+            });
+        }
+    },
+
+    resumeAdminPollVoting: {
+        ...controllerConfig,
+        query(frame) {
+            return requestWithSession(frame, {
+                path: `/admin/polls/${encodeURIComponent(frame.original.params.poll_id)}/resume`,
+                method: 'POST'
+            });
+        }
+    },
+
     deleteAdminPoll: {
         ...controllerConfig,
         query(frame) {

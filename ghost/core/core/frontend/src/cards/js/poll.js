@@ -1294,6 +1294,7 @@
             allowAnonymousVote: Boolean(payload && (payload.allow_anonymous_vote ?? payload.allowAnonymousVote)),
             status: payload && payload.status || 'draft',
             answerRevealed: Boolean(payload && (payload.answer_revealed ?? payload.answerRevealed)),
+            votingPaused: Boolean(payload && (payload.voting_paused ?? payload.votingPaused)),
             options: options.map(normalizeOption).sort(function (left, right) {
                 return left.sortOrder - right.sortOrder;
             }),
@@ -1353,6 +1354,7 @@
         const correctOptionIds = votes && votes.answer && votes.answer.correctOptionIds ? votes.answer.correctOptionIds : [];
         const totalVotes = votes ? votes.totalVotes : 0;
         const answerRevealed = Boolean((votes && votes.answer && votes.answer.revealed) || poll.answerRevealed);
+        const votingPaused = Boolean(poll.votingPaused);
         const showResults = Boolean(
             poll.viewer.canVote === false ||
             (votes && (
@@ -1375,6 +1377,7 @@
             allowAnonymousVote: Boolean(poll.allowAnonymousVote),
             status: poll.status,
             answerRevealed,
+            votingPaused,
             totalVotes,
             memberUuid,
             selectedOptionIds,
@@ -1387,9 +1390,11 @@
             submittingOptionId: card.__kgPollState && card.__kgPollState.submittingOptionId
                 ? String(card.__kgPollState.submittingOptionId)
                 : '',
+            // 暂停中直接把 canInteract 拉黑, 无论 backend 传了什么 —— 暂停时前台一律不允许投票 / 改票 / 取消
             canInteract: Boolean(
                 poll.status === 'published' &&
                 !answerRevealed &&
+                !votingPaused &&
                 (
                     poll.viewer.canInteract ||
                     (votes && votes.viewer && votes.viewer.canInteract)
@@ -1496,6 +1501,28 @@
         if (payload.trend_point) {
             card.__kgPollTrends = appendTrendPoint(card.__kgPollTrends, payload.trend_point);
         }
+
+        renderPoll(card, state);
+    };
+
+    // SSE `voting_state_changed`: 后端 pause/resume 成功后广播过来, 前台原地切 UI 无需 reload.
+    // payload 形如 { poll_id, voting_paused: boolean }
+    const applyStreamVotingStateChanged = function (card, payload) {
+        const state = card.__kgPollState;
+        if (!state || !payload) {
+            return;
+        }
+
+        const nextPaused = Boolean(payload.voting_paused ?? payload.votingPaused);
+        state.votingPaused = nextPaused;
+
+        // 暂停中把交互直接锁死; 恢复后由 answerRevealed / status 等其它条件决定
+        state.canInteract = Boolean(
+            state.status === 'published' &&
+            !state.answerRevealed &&
+            !nextPaused &&
+            state.canInteract
+        );
 
         renderPoll(card, state);
     };
@@ -1856,10 +1883,29 @@
             votes.textContent = formatVotes(state.totalVotes || 0);
         }
 
+        /*
+         * 右下角状态徽标显示优先级 (从高到低):
+         *   1. votingPaused && !expired  -> "TBD"
+         *   2. expired 或 answerRevealed  -> "Ended" (不再展示日期)
+         *   3. 未到期且未暂停             -> 时钟图标 + 结束日期
+         * 三者互斥, 同一时刻只显示一个.
+         */
+        const expiresMs = state.expiresAt ? new Date(state.expiresAt).getTime() : NaN;
+        const pollExpired = Number.isFinite(expiresMs) && expiresMs <= Date.now();
+        const showPaused = Boolean(state.votingPaused) && !pollExpired && !state.answerRevealed;
+        const showEnded = !showPaused && (pollExpired || Boolean(state.answerRevealed));
+
+        card.dataset.votingPaused = String(Boolean(state.votingPaused));
+
+        const paused = card.querySelector('.kg-poll-card-paused');
+        if (paused) {
+            paused.hidden = !showPaused;
+        }
+
         const expiry = card.querySelector('.kg-poll-card-expiry');
         if (expiry) {
             const date = expiry.querySelector('span');
-            if (state.expiresAt) {
+            if (state.expiresAt && !showPaused && !showEnded) {
                 if (date) {
                     date.textContent = formatExpiry(state.expiresAt);
                 }
@@ -1871,7 +1917,7 @@
 
         const ended = card.querySelector('.kg-poll-card-ended');
         if (ended) {
-            ended.hidden = !state.answerRevealed;
+            ended.hidden = !showEnded;
         }
 
     };
@@ -2243,6 +2289,11 @@
             return;
         }
 
+        if (eventName === 'voting_state_changed') {
+            applyStreamVotingStateChanged(card, payload);
+            return;
+        }
+
         if (eventName === 'poll_updated') {
             applyStreamPollUpdated(card, payload);
             reloadPollCardData(card).catch(function () {});
@@ -2306,6 +2357,7 @@
             source.addEventListener('vote', handleNamedEvent);
             source.addEventListener('poll_status', handleNamedEvent);
             source.addEventListener('answer_revealed', handleNamedEvent);
+            source.addEventListener('voting_state_changed', handleNamedEvent);
             source.addEventListener('poll_updated', handleNamedEvent);
             source.addEventListener('heartbeat', handleNamedEvent);
             source.addEventListener('open', controller.handleOpen);

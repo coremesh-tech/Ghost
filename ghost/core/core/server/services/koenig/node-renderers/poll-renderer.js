@@ -43,6 +43,7 @@ function normalizePollData(node) {
         pollType: getValue(data, 'pollType', 'poll_type', 'single'),
         status: getValue(data, 'status', 'status', 'draft'),
         answerRevealed: Boolean(getValue(data, 'answerRevealed', 'answer_revealed', false)),
+        votingPaused: Boolean(getValue(data, 'votingPaused', 'voting_paused', false)),
         correctOptionIds: normalizeStringArray(getValue(data, 'correctOptionIds', 'correct_option_ids', [])),
         selectedOptionIds: normalizeStringArray(getValue(data, 'selectedOptionIds', 'selected_option_ids', [])),
         options: normalizeOptions(getValue(data, 'options', 'options', [])),
@@ -86,6 +87,7 @@ function renderPollNode(node, options = {}) {
     card.setAttribute('data-poll-type', poll.pollType);
     card.setAttribute('data-poll-status', poll.status);
     card.setAttribute('data-poll-answer-revealed', String(poll.answerRevealed));
+    card.setAttribute('data-poll-voting-paused', String(poll.votingPaused));
     card.setAttribute('data-total-votes', String(poll.totalVotes));
     card.setAttribute('data-prediction-markets-api-url', predictionMarketsApiUrl);
 
@@ -248,6 +250,16 @@ function renderPollNode(node, options = {}) {
         ended.setAttribute('hidden', 'hidden');
     }
     metaStatus.appendChild(ended);
+
+    // 「TBD」暂停中占位徽标. SSR 阶段默认 hidden, 客户端 poll.js 拿到 voting_paused: true 时 reveal.
+    // 显示优先级 (由 poll.js 控制): paused > expired > 结束日期
+    const paused = document.createElement('span');
+    paused.classList.add('kg-poll-card-paused');
+    paused.textContent = 'TBD';
+    if (!poll.votingPaused) {
+        paused.setAttribute('hidden', 'hidden');
+    }
+    metaStatus.appendChild(paused);
 
     meta.appendChild(metaStatus);
 

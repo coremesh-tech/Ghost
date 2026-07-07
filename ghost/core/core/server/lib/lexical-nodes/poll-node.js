@@ -43,6 +43,7 @@ class PollNode extends KoenigDecoratorNode {
         this.__pollType = getValue(data, 'pollType', 'poll_type', 'single');
         this.__status = getValue(data, 'status', 'status', 'draft');
         this.__answerRevealed = Boolean(getValue(data, 'answerRevealed', 'answer_revealed', false));
+        this.__votingPaused = Boolean(getValue(data, 'votingPaused', 'voting_paused', false));
         this.__correctOptionIds = normalizeStringArray(getValue(data, 'correctOptionIds', 'correct_option_ids', []));
         this.__selectedOptionIds = normalizeStringArray(getValue(data, 'selectedOptionIds', 'selected_option_ids', []));
         this.__options = normalizeOptions(getValue(data, 'options', 'options', []));
@@ -72,6 +73,7 @@ class PollNode extends KoenigDecoratorNode {
             pollType: this.__pollType,
             status: this.__status,
             answerRevealed: this.__answerRevealed,
+            votingPaused: this.__votingPaused,
             correctOptionIds: [...this.__correctOptionIds],
             selectedOptionIds: [...this.__selectedOptionIds],
             options: this.__options.map(option => ({...option})),
