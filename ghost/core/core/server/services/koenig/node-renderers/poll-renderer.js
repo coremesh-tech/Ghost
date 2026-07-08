@@ -243,16 +243,22 @@ function renderPollNode(node, options = {}) {
     expires.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 5v3.2l2 1.2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path></svg><span></span>';
     metaStatus.appendChild(expires);
 
+    /*
+     * SSR 阶段的显示优先级 (从高到低), 与客户端 poll.js 保持一致:
+     *   1. votingPaused             -> "TBD"    (最高, 覆盖 Ended / expiry)
+     *   2. answerRevealed / expired -> "Ended"  (未暂停时)
+     *   3. 其它                     -> 时钟 + 结束日期 (由客户端 hydrate 填)
+     * paused 一旦为 true, ended 和 expiry 都要 hidden, 避免 SSR 先渲染 "Ended" 再被客户端切成 "TBD" 的闪烁.
+     */
     const ended = document.createElement('span');
     ended.classList.add('kg-poll-card-ended');
     ended.textContent = 'Ended';
-    if (!poll.answerRevealed) {
+    if (poll.votingPaused || !poll.answerRevealed) {
         ended.setAttribute('hidden', 'hidden');
     }
     metaStatus.appendChild(ended);
 
-    // 「TBD」暂停中占位徽标. SSR 阶段默认 hidden, 客户端 poll.js 拿到 voting_paused: true 时 reveal.
-    // 显示优先级 (由 poll.js 控制): paused > expired > 结束日期
+    // 「TBD」暂停中占位徽标.
     const paused = document.createElement('span');
     paused.classList.add('kg-poll-card-paused');
     paused.textContent = 'TBD';

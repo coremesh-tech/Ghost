@@ -1891,14 +1891,14 @@
 
         /*
          * 右下角状态徽标显示优先级 (从高到低):
-         *   1. votingPaused && !expired  -> "TBD"
-         *   2. expired 或 answerRevealed  -> "Ended" (不再展示日期)
+         *   1. votingPaused              -> "TBD"    (最高, 即使已过期 / 已公布答案, 只要还是暂停就先显示 TBD)
+         *   2. expired 或 answerRevealed  -> "Ended" (未暂停但已到期 / 已公布)
          *   3. 未到期且未暂停             -> 时钟图标 + 结束日期
          * 三者互斥, 同一时刻只显示一个.
          */
         const expiresMs = state.expiresAt ? new Date(state.expiresAt).getTime() : NaN;
         const pollExpired = Number.isFinite(expiresMs) && expiresMs <= Date.now();
-        const showPaused = Boolean(state.votingPaused) && !pollExpired && !state.answerRevealed;
+        const showPaused = Boolean(state.votingPaused);
         const showEnded = !showPaused && (pollExpired || Boolean(state.answerRevealed));
 
         card.dataset.votingPaused = String(Boolean(state.votingPaused));

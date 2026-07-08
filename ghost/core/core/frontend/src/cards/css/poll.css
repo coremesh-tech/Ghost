@@ -539,7 +539,7 @@
     height: 16px;
 }
 
-.kg-poll-card-ended {
+.kg-poll-card-ended, .kg-poll-card-paused {
     color: #878888;
     font-size: 16px;
     line-height: 1;
@@ -547,24 +547,6 @@
 
 .kg-poll-card-ended[hidden] {
     display: none;
-}
-
-/*
- * 「TBD」暂停中占位徽标.
- * 显示条件: state.votingPaused && !expired && !answerRevealed (由 poll.js 控制 hidden 属性).
- * 视觉上与 Ended 类似, 加一个圆角胶囊背景以区分「作者手动暂停」与「自然到期」.
- */
-.kg-poll-card-paused {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: 0.02em;
 }
 
 .kg-poll-card-paused[hidden] {
