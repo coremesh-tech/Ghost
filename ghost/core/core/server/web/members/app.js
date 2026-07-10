@@ -111,7 +111,7 @@ module.exports = function setupMembersApp() {
         }
     );
 
-    // 趋势接口 (代理到外部 prediction-markets 的 /admin/polls/:id/trends)
+    // 趋势接口 (代理到外部 prediction-markets 的公开 /polls/:id/trends)
     // 给 reading mode 的图表组件用 — 接受可选 from/to/resolution query 参数.
     membersApp.get('/api/polls/:id/trends',
         middleware.loadMemberSession,

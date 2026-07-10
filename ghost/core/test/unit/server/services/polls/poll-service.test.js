@@ -143,4 +143,41 @@ describe('services/polls/poll-service', function () {
         });
         assert.equal(scope.isDone(), true);
     });
+
+    it('proxies content poll trends through the public content endpoint', async function () {
+        configUtils.set('PREDICTIONMARKETS_API_URL', 'https://poll-api.test');
+        pollService = loadPollService();
+
+        const scope = nock('https://poll-api.test')
+            .get('/market-topic/polls/poll_123/trends')
+            .query({
+                from: '2026-07-01T00:00:00.000Z',
+                to: '2026-07-10T00:00:00.000Z',
+                resolution: '1h'
+            })
+            .reply(200, {
+                poll_id: 'poll_123',
+                resolution: '1h',
+                points: []
+            });
+
+        const response = await pollService.getContentPollTrends(
+            'poll_123',
+            {
+                from: '2026-07-01T00:00:00.000Z',
+                to: '2026-07-10T00:00:00.000Z',
+                resolution: '1h'
+            },
+            null,
+            {}
+        );
+
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body, {
+            poll_id: 'poll_123',
+            resolution: '1h',
+            points: []
+        });
+        assert.equal(scope.isDone(), true);
+    });
 });

@@ -89,9 +89,8 @@ async function getContentPollVotes(pollId, member, token = '', req) {
 
 /**
  * 拉取 poll 的投票趋势 (历史时间序列).
- * 外部 prediction-markets 服务的 trends 接口走 /admin 前缀
- * (与 Koenig 编辑器侧 getAdminPollTrends 用的同一个上游 endpoint);
- * 这里通过 Ghost 后端代理后再下发给 reading mode 的浏览器, 顺手带上 member header.
+ * 外部 prediction-markets 服务提供公开的 content trends endpoint;
+ * 这里通过 Ghost 后端代理后再下发给 reading mode 的浏览器.
  *
  * @param {string} pollId
  * @param {{from?: string, to?: string, resolution?: string}} [params]
@@ -110,7 +109,7 @@ async function getContentPollTrends(pollId, params = {}, member, req) {
     }
     const query = search.toString() ? `?${search.toString()}` : '';
 
-    return proxyPollApi(`/admin/polls/${encodeURIComponent(pollId)}/trends${query}`, {member, req});
+    return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/trends${query}`, {member, req});
 }
 
 async function submitPollVote(pollId, payload, member, req) {
