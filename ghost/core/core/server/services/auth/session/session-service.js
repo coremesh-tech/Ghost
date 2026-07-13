@@ -2,6 +2,7 @@ const {
     BadRequestError
 } = require('@tryghost/errors');
 const errors = require('@tryghost/errors');
+const config = require('../../../../shared/config');
 const crypto = require('crypto');
 const emailTemplate = require('./emails/signin');
 const UAParser = require('ua-parser-js');
@@ -127,14 +128,26 @@ module.exports = function createSessionService({
     function cookieCsrfProtection(req, session) {
         const origin = getOriginOfRequest(req);
 
-        // Check that the origin matches the admin URL to prevent cross-origin
-        // requests (e.g. no-cors form submissions from phishing sites)
+        // Check that the origin matches one of the allowed admin URLs to prevent
+        // cross-origin requests (e.g. no-cors form submissions from phishing sites).
+        // Supports serving admin under multiple domains via config `admin.allowedOrigins`.
         const adminUrl = urlUtils.getAdminUrl() || urlUtils.getSiteUrl();
-        const adminOrigin = new URL(adminUrl).origin;
+        const allowedOrigins = [new URL(adminUrl).origin];
 
-        if (origin !== adminOrigin) {
+        const extraOrigins = config.get('admin:allowedOrigins');
+        if (Array.isArray(extraOrigins)) {
+            for (const extraOrigin of extraOrigins) {
+                try {
+                    allowedOrigins.push(new URL(extraOrigin).origin);
+                } catch (err) {
+                    // Ignore malformed entries in config
+                }
+            }
+        }
+
+        if (!allowedOrigins.includes(origin)) {
             throw new BadRequestError({
-                message: `Request made from incorrect origin. Expected '${adminOrigin}' received '${origin}'.`
+                message: `Request made from incorrect origin. Expected one of '${allowedOrigins.join(', ')}' received '${origin}'.`
             });
         }
 
@@ -144,9 +157,12 @@ module.exports = function createSessionService({
             return;
         }
 
-        if (session.origin !== origin) {
+        // The session's stored origin must also be one of the allowed origins.
+        // We no longer require it to equal the *current* request origin, so a user
+        // can move between allowed domains within the same session.
+        if (!allowedOrigins.includes(session.origin)) {
             throw new BadRequestError({
-                message: `Request made from incorrect origin. Expected '${session.origin}' received '${origin}'.`
+                message: `Request made from incorrect origin. Expected one of '${allowedOrigins.join(', ')}' received '${session.origin}'.`
             });
         }
     }
