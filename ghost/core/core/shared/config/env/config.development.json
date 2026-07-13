@@ -34,5 +34,9 @@
             "maxAge": 0
         }
     },
-    "PREDICTIONMARKETS_API_URL": "https://test-api.predictionmarkets.org"
+    "PREDICTIONMARKETS_API_URL": "https://test-api.predictionmarkets.org",
+    "alternativeDomains": [
+        "test.informarket.org",
+        "test.predictionmarkets.org"
+    ]
 }
