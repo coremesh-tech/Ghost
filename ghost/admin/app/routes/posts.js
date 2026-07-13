@@ -106,6 +106,11 @@ export default class PostsRoute extends AuthenticatedRoute {
         // type filters are actually mapping statuses
         assign(filterParams, this._getTypeFilters(params.type));
 
+        // predictStatus 命中时,匹配到的 post id 列表(可能很多)。
+        // 不再塞进 filter(会让 GET /posts 的 URL 超长 → Nginx 414),
+        // 而是记下来,后面用 _fetchPostsByIdsBatched 分批查询。
+        let predictMatchedIds = null;
+
         // Handle predictStatus filter
         if (params.predictStatus && params.predictStatus !== 'all') {
             // Adjust status filter based on predictStatus:
@@ -116,13 +121,15 @@ export default class PostsRoute extends AuthenticatedRoute {
             } else if (params.predictStatus === 'PASSED') {
                 filterParams.status = 'published';
             }
-            
+
             // First, get the list of all posts matching the current base filter (e.g. all drafts)
             // To avoid loading the full post models, we just query for their IDs.
+            // 用与最终展示一致的 order 取候选,这样过滤后的 id 顺序即展示顺序。
             let preFilterParams = {...filterParams};
             preFilterParams.limit = 'all';
             preFilterParams.fields = 'id';
-            
+            preFilterParams.order = params.order || (filterParams.status === 'published' ? 'published_at desc' : 'updated_at desc');
+
             const postsInStatus = await this.store.query('post', preFilterParams);
             const allCandidateIds = postsInStatus.map(p => p.id);
 
@@ -154,7 +161,8 @@ export default class PostsRoute extends AuthenticatedRoute {
                 if (postIds.length === 0) {
                     filterParams.id = 'none';
                 } else {
-                    filterParams.id = `[${postIds.join(',')}]`;
+                    // 记下匹配 id,稍后分批查询(不进 URL filter)
+                    predictMatchedIds = postIds;
                 }
             }
         }
@@ -189,6 +197,21 @@ export default class PostsRoute extends AuthenticatedRoute {
             }
         }
 
+        // predictStatus 命中:分批按 id 查询 posts,避免单条 GET URL 过长(Nginx 414)。
+        // 这条路径不走 infinity model,一次性把匹配到的 posts 加载好,以纯数组返回,
+        // 模板用 {{#each}} 渲染即可;infinity loader 由 predictBatched 标志屏蔽。
+        if (predictMatchedIds && predictMatchedIds.length > 0) {
+            const order = params.order || (filterParams.status === 'published' ? 'published_at desc' : 'updated_at desc');
+            const posts = await this._fetchPostsByIdsBatched(predictMatchedIds, {filterParams, order});
+            const batchedModels = {predictBatched: true};
+            if (filterParams.status === 'published') {
+                batchedModels.publishedAndSentInfinityModel = posts;
+            } else {
+                batchedModels.draftInfinityModel = posts;
+            }
+            return RSVP.hash(batchedModels);
+        }
+
         let perPage = this.perPage;
 
         let filterStatuses = filterParams.status;
@@ -219,6 +242,52 @@ export default class PostsRoute extends AuthenticatedRoute {
         }
 
         return RSVP.hash(models);
+    }
+
+    /**
+     * 按 id 分批查询 posts,避免把大量 id 拼进单条 GET URL(超长会被 Nginx 414 拒绝)。
+     * 每批最多 batchSize 个 id,拼回后按 matched id 的顺序(即展示顺序)排序,
+     * 并补齐 submission / analytics 数据,等价于 infinity 的 afterInfinityModel。
+     * @param {string[]} ids 匹配到的 post id(已按展示 order 排好)
+     * @param {{filterParams: object, order: string, batchSize?: number}} opts
+     * @returns {Promise<Array>} 已解析、已排序的 post 数组
+     */
+    async _fetchPostsByIdsBatched(ids, {filterParams, order, batchSize = 50}) {
+        const batches = [];
+        for (let i = 0; i < ids.length; i += batchSize) {
+            batches.push(ids.slice(i, i + batchSize));
+        }
+
+        const results = await Promise.all(batches.map((batch) => {
+            const filter = this._filterString({...filterParams, id: `[${batch.join(',')}]`});
+            return this.store.query('post', {limit: 'all', order, filter});
+        }));
+
+        const orderIndex = new Map(ids.map((id, idx) => [id, idx]));
+        const posts = [];
+        results.forEach(result => result.forEach(post => posts.push(post)));
+        // 各批之间的顺序会乱,统一按 matched id 顺序(= 展示顺序)重排
+        posts.sort((a, b) => (orderIndex.get(a.id) ?? 0) - (orderIndex.get(b.id) ?? 0));
+
+        // 补齐列表列所需数据(与 PostsInfinityModel.afterInfinityModel 一致)
+        const promises = [];
+        if (posts.length > 0) {
+            promises.push(this.predictMixin.loadStaffPostSubmissions(posts.map(p => p.id)));
+
+            const publishedPosts = posts.filter(p => ['published', 'sent'].includes(p.status));
+            if (publishedPosts.length > 0) {
+                if (this.settings.webAnalyticsEnabled) {
+                    promises.push(this.postAnalytics.loadVisitorCounts(publishedPosts.map(p => p.uuid)));
+                }
+                if (this.settings.membersTrackSources) {
+                    promises.push(this.postAnalytics.loadMemberCounts(publishedPosts));
+                }
+                promises.push(this.postAnalytics.loadReadCounts(publishedPosts));
+            }
+        }
+        await Promise.all(promises);
+
+        return posts;
     }
 
     // trigger a background load of all tags and authors for use in filter dropdowns

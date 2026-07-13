@@ -58,6 +58,8 @@
         </PostsList::List>
 
     {{!-- only show one infinity loader wheel at a time - always order as scheduled, draft, remainder --}}
+    {{!-- predictBatched:分批一次性加载,非 infinity model,不能挂 infinity loader --}}
+    {{#unless @model.predictBatched}}
     {{#if @model.scheduledInfinityModel}}
         <GhInfinityLoader
             @infinityModel={{@model.scheduledInfinityModel}}
@@ -76,6 +78,7 @@
             @scrollable=".shade-admin main"
             @triggerOffset={{1000}} />
     {{/if}}
+    {{/unless}}
 
     </section>
     {{outlet}}
