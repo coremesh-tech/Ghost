@@ -330,22 +330,38 @@ export default class App extends React.Component {
         const {site: previewSiteData, ...restPreviewData} = this.fetchPreviewData();
         const {site: notificationSiteData, ...restNotificationData} = this.fetchNotificationData();
         let page = '';
+
+        const mergedSite = {
+            ...apiSiteData,
+            ...linkSiteData,
+            ...previewSiteData,
+            ...notificationSiteData,
+            ...devSiteData,
+            plans: {
+                ...(devSiteData || {}).plans,
+                ...(apiSiteData || {}).plans,
+                ...(previewSiteData || {}).plans
+            }
+        };
+
+        // 按访问域名覆盖 Portal 显示的站点标题(gh-portal-main-title)。
+        // 未列出的域名保持后台配置的原标题。
+        const TITLE_BY_HOST = {
+            'test.informarket.org': 'Informarket.org',
+            'test.predictionmarkets.org': 'Predictionmarkets.org',
+            'www.informarket.org': 'Informarket.org',
+            'www.predictionmarkets.org': 'Predictionmarkets.org'
+        };
+        const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+        if (TITLE_BY_HOST[currentHost]) {
+            mergedSite.title = TITLE_BY_HOST[currentHost];
+        }
+
         return {
             member,
             offers,
             page,
-            site: {
-                ...apiSiteData,
-                ...linkSiteData,
-                ...previewSiteData,
-                ...notificationSiteData,
-                ...devSiteData,
-                plans: {
-                    ...(devSiteData || {}).plans,
-                    ...(apiSiteData || {}).plans,
-                    ...(previewSiteData || {}).plans
-                }
-            },
+            site: mergedSite,
             ...restDevData,
             ...restLinkData,
             ...restNotificationData,
