@@ -22,5 +22,9 @@
         "update_url": "https://explore.ghost.org/api/update",
         "testimonials_url": "https://explore.ghost.org/api/testimonials"
     },
-    "PREDICTIONMARKETS_API_URL": "https://api.predictionmarkets.org"
+    "PREDICTIONMARKETS_API_URL": "https://api.predictionmarkets.org",
+    "alternativeDomains": [
+        "www.informarket.org",
+        "www.predictionmarkets.org"
+    ]
 }

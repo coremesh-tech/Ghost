@@ -40,5 +40,9 @@
             "https://test.predictionmarkets.org",
             "https://test.informarket.org"
         ]
-    }
+    },
+    "alternativeDomains": [
+        "test.informarket.org",
+        "test.predictionmarkets.org"
+    ]
 }

@@ -1,5 +1,6 @@
 const logging = require('@tryghost/logging');
 const createKeypair = require('keypair');
+const config = require('../../../shared/config');
 
 class MembersConfigProvider {
     /**
@@ -76,6 +77,35 @@ class MembersConfigProvider {
     getSigninURL(token, type, referrer, otcVerification) {
         const siteUrl = this._urlUtils.urlFor({relativeUrl: '/members/'}, true);
         const signinURL = new URL(siteUrl);
+
+        // 多域名支持:magic link 默认用 config.url 的域名。若 referrer(发起页,取自
+        // Referer/redirect,即用户当前访问的域名)带了一个「白名单内」的域名,就把
+        // magic link 的域名改成该发起域名,使用户点邮件链接回到他发起注册/登录的域名。
+        //
+        // 安全红线:referrer 是客户端可控值。绝不能无条件改写 —— 否则攻击者可让带有效
+        // token 的链接指向任意域名,导致 token 泄露/账号劫持。因此只允许改写成:
+        //   1) 与 config.url 同域(等价于不改),或
+        //   2) config 的 alternativeDomains 白名单内的域名。
+        // 白名单外或 referrer 非法 → 保持 config.url。
+        if (referrer) {
+            try {
+                const referrerUrl = new URL(referrer);
+                const isHttp = referrerUrl.protocol === 'http:' || referrerUrl.protocol === 'https:';
+                const referrerHost = referrerUrl.host.toLowerCase();
+                const configHost = signinURL.host.toLowerCase();
+                const allowedHosts = (config.get('alternativeDomains') || [])
+                    .map(host => String(host).toLowerCase());
+                const isAllowedHost = referrerHost === configHost || allowedHosts.includes(referrerHost);
+
+                if (isHttp && isAllowedHost) {
+                    signinURL.protocol = referrerUrl.protocol;
+                    signinURL.host = referrerUrl.host;
+                }
+            } catch (err) {
+                // referrer 非法 URL → 保持 config.url,不改写
+            }
+        }
+
         signinURL.searchParams.set('token', token);
         signinURL.searchParams.set('action', type);
         if (referrer) {

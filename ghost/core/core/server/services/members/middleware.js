@@ -113,7 +113,9 @@ const getRedirectUrl = function getRedirectUrl({action, referrer, searchParams, 
         redirectUrl.searchParams.set('action', 'signin');
     }
 
-    return redirectUrl.href;
+    // 返回相对路径(path+query+hash),让浏览器停留在当前访问域名(多域名部署时
+    // 不再强制跳回 referrer/config.url 的绝对域名)。referrer 已在调用处做过同站校验。
+    return `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
 };
 
 /**
@@ -414,8 +416,12 @@ const createSessionFromMagicLink = async function createSessionFromMagicLink(req
                     // Add only for non-external URLs
                     redirectUrl.searchParams.set('success', 'true');
                     redirectUrl.searchParams.set('action', 'signup');
+
+                    // 同站 welcome page:相对跳转,停留在当前访问域名(支持多域名)
+                    return res.redirect(`${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`);
                 }
 
+                // 外部 welcome page:保持绝对地址
                 return res.redirect(redirectUrl.href);
             }
         }
