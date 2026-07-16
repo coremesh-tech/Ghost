@@ -17,6 +17,9 @@
 
     const TREND_BUCKET_COUNT = 12;
     const TREND_POINTS_CACHE_LIMIT = 720;
+    const TREND_RATE_LABEL_COLUMN_GAP = 72;
+    const TREND_RATE_LABEL_WIDTH = 64;
+    const TREND_RATE_LABEL_X_OFFSET = 12;
 
     const clampNumber = function (value, min, max) {
         return Math.min(Math.max(value, min), max);
@@ -43,22 +46,76 @@
         const sorted = items.slice().sort(function (a, b) {
             return a.y - b.y;
         });
+        const columnCapacity = Math.max(Math.floor((opts.maxY - opts.minY) / opts.minGap) + 1, 1);
         const adjusted = new Map();
-        let prevY = -Infinity;
-        sorted.forEach(function (item) {
-            const y = Math.max(item.y, prevY + opts.minGap);
-            adjusted.set(item.seriesIndex, y);
-            prevY = y;
-        });
-        let nextY = Infinity;
-        for (let i = sorted.length - 1; i >= 0; i -= 1) {
-            const item = sorted[i];
-            const current = adjusted.get(item.seriesIndex);
-            const y = clampNumber(Math.min(current, nextY - opts.minGap), opts.minY, opts.maxY);
-            adjusted.set(item.seriesIndex, y);
-            nextY = y;
+
+        for (let column = 0; column * columnCapacity < sorted.length; column += 1) {
+            const columnItems = sorted.slice(column * columnCapacity, (column + 1) * columnCapacity);
+            let prevY = -Infinity;
+
+            columnItems.forEach(function (item) {
+                const y = Math.max(item.y, prevY + opts.minGap);
+                adjusted.set(item.seriesIndex, {column: column, y: y});
+                prevY = y;
+            });
+
+            let nextY = Infinity;
+            for (let index = columnItems.length - 1; index >= 0; index -= 1) {
+                const item = columnItems[index];
+                const current = adjusted.get(item.seriesIndex);
+                const y = clampNumber(Math.min(current.y, nextY - opts.minGap), opts.minY, opts.maxY);
+                adjusted.set(item.seriesIndex, {column: column, y: y});
+                nextY = y;
+            }
         }
+
         return adjusted;
+    };
+
+    const resolveLabelColumns = function (columnCount, activeX, width) {
+        const edgePadding = 4;
+        const rightSpace = width - edgePadding - activeX - TREND_RATE_LABEL_X_OFFSET;
+        const leftSpace = activeX - edgePadding - TREND_RATE_LABEL_X_OFFSET;
+        const getCapacity = function (space) {
+            if (space < TREND_RATE_LABEL_WIDTH) {
+                return 0;
+            }
+
+            return Math.floor((space - TREND_RATE_LABEL_WIDTH) / TREND_RATE_LABEL_COLUMN_GAP) + 1;
+        };
+        const rightCapacity = getCapacity(rightSpace);
+        const leftCapacity = getCapacity(leftSpace);
+        let rightCount = Math.min(columnCount, rightCapacity);
+        let leftCount = columnCount - rightCount;
+
+        if (leftCount > leftCapacity) {
+            leftCount = Math.min(columnCount, leftCapacity);
+            rightCount = columnCount - leftCount;
+        }
+
+        const columns = [];
+        for (let index = 0; index < rightCount; index += 1) {
+            columns.push({
+                align: 'right',
+                x: clampNumber(
+                    activeX + TREND_RATE_LABEL_X_OFFSET + (index * TREND_RATE_LABEL_COLUMN_GAP),
+                    edgePadding,
+                    Math.max(width - edgePadding, edgePadding)
+                )
+            });
+        }
+        for (let index = 0; index < leftCount; index += 1) {
+            columns.push({
+                align: 'left',
+                x: clampNumber(
+                    activeX - TREND_RATE_LABEL_X_OFFSET - (index * TREND_RATE_LABEL_COLUMN_GAP),
+                    edgePadding,
+                    Math.max(width - edgePadding, edgePadding)
+                )
+            });
+        }
+
+        return columns;
     };
 
     const formatBucketLabel = function (date) {
@@ -610,25 +667,31 @@
             minY: labelMinY,
             maxY: labelMaxY
         });
+        const labelColumnCount = Array.from(labelLayout.values()).reduce(function (count, placement) {
+            return Math.max(count, placement.column + 1);
+        }, 1);
+        const labelColumns = resolveLabelColumns(labelColumnCount, activeX, width);
 
         activePositions.forEach(function (position, index) {
             const ref = controller.seriesRefs[index];
-            const labelY = labelLayout.get(position.seriesIndex) ?? position.y;
-            const flipLeft = activeX > width - 140;
-            const labelX = clampNumber(
-                activeX + (flipLeft ? -12 : 12),
-                4,
-                Math.max(width - 4, 4)
-            );
+            const labelPlacement = labelLayout.get(position.seriesIndex) || {column: 0, y: position.y};
+            const labelColumn = labelColumns[labelPlacement.column] || {
+                align: activeX > width - 140 ? 'left' : 'right',
+                x: clampNumber(
+                    activeX + (activeX > width - 140 ? -TREND_RATE_LABEL_X_OFFSET : TREND_RATE_LABEL_X_OFFSET),
+                    4,
+                    Math.max(width - 4, 4)
+                )
+            };
 
             ref.dotElement.hidden = false;
             ref.labelElement.hidden = !isHovering;
             ref.dotElement.style.left = `${Math.round(position.x)}px`;
             ref.dotElement.style.top = `${Math.round(position.y)}px`;
-            ref.labelElement.style.left = `${Math.round(labelX)}px`;
-            ref.labelElement.style.top = `${Math.round(labelY)}px`;
+            ref.labelElement.style.left = `${Math.round(labelColumn.x)}px`;
+            ref.labelElement.style.top = `${Math.round(labelPlacement.y)}px`;
             ref.labelElement.textContent = formatPercent(position.value);
-            ref.labelElement.dataset.align = flipLeft ? 'left' : 'right';
+            ref.labelElement.dataset.align = labelColumn.align;
         });
 
         if (typeof controller.onActivateIndex === 'function') {

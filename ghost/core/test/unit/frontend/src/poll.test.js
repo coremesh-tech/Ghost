@@ -343,6 +343,132 @@ describe('frontend/cards/poll', function () {
         assert.equal(plot.style.height, '80px');
     });
 
+    it('wraps hover rate labels into columns when one column exceeds the plot height', async function () {
+        optionsHeight = 270;
+        legendHeight = 70;
+
+        const options = Array.from({length: 16}, function (_, index) {
+            return {
+                id: `option_${index}`,
+                text: `Option ${index + 1}`
+            };
+        });
+        const trendOptions = options.map(function (option, index) {
+            return {
+                id: option.id,
+                vote_rate: index === 0 ? 100 : 0
+            };
+        });
+
+        global.fetch = async function (url) {
+            const requestUrl = new URL(url, 'https://example.com');
+            const payloads = {
+                '/members/api/polls/poll_123': {
+                    poll_id: 'poll_123',
+                    title: 'Many options',
+                    published_at: '2026-06-01T00:00:00.000Z',
+                    status: 'published',
+                    options: options,
+                    viewer: {
+                        can_vote: true,
+                        can_interact: true,
+                        has_voted: false,
+                        selected_option_ids: []
+                    },
+                    meta: {
+                        logged_in: false
+                    }
+                },
+                '/members/api/polls/poll_123/votes': {
+                    total_votes: 1,
+                    options: options.map(function (option, index) {
+                        return {
+                            id: option.id,
+                            text: option.text,
+                            vote_count: index === 0 ? 1 : 0,
+                            vote_rate: index === 0 ? 100 : 0
+                        };
+                    }),
+                    viewer: {
+                        can_vote: true,
+                        can_interact: true,
+                        has_voted: false,
+                        selected_option_ids: []
+                    },
+                    answer: {
+                        revealed: false,
+                        correct_option_ids: []
+                    }
+                },
+                '/members/api/polls/poll_123/trends': {
+                    points: [
+                        {time: '2026-06-10T23:30:00.000Z', options: trendOptions},
+                        {time: '2026-06-11T00:00:00.000Z', options: trendOptions}
+                    ]
+                }
+            };
+            const payload = payloads[requestUrl.pathname];
+
+            return {
+                ok: Boolean(payload),
+                status: payload ? 200 : 404,
+                json: async function () {
+                    return payload;
+                }
+            };
+        };
+        global.window.fetch = global.fetch;
+        global.document.querySelector('.kg-poll-card').__kgPollTrends = {
+            points: [
+                {time: '2026-06-10T23:30:00.000Z', options: trendOptions},
+                {time: '2026-06-11T00:00:00.000Z', options: trendOptions}
+            ]
+        };
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const plot = global.document.querySelector('.kg-poll-card-chart-plot');
+        assert.ok(plot, global.document.body.innerHTML);
+        assert.equal(plot.style.height, '200px');
+
+        plot.dispatchEvent(new global.window.MouseEvent('mousemove', {
+            bubbles: true,
+            clientX: 40,
+            clientY: 100
+        }));
+
+        const labels = Array.from(global.document.querySelectorAll('.kg-poll-card-chart-rate-label'));
+        assert.equal(labels.length, 16);
+        assert.equal(labels.filter(function (label) {
+            return label.hidden;
+        }).length, 0);
+
+        const columns = new Map();
+        labels.forEach(function (label) {
+            const left = Number.parseFloat(label.style.left);
+            const top = Number.parseFloat(label.style.top);
+            const column = columns.get(left) || [];
+
+            column.push(top);
+            columns.set(left, column);
+        });
+
+        assert.equal(columns.size, 2);
+        columns.forEach(function (tops) {
+            tops.sort(function (a, b) {
+                return a - b;
+            });
+            tops.forEach(function (top) {
+                assert.ok(top >= 10 && top <= 190);
+            });
+            for (let index = 1; index < tops.length; index += 1) {
+                assert.ok(tops[index] - tops[index - 1] >= 18);
+            }
+        });
+    });
+
     it('opens Portal signin when anonymous vote quota is exhausted', async function () {
         const signinTrigger = global.document.createElement('button');
         let signinClicks = 0;
