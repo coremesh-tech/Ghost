@@ -283,13 +283,14 @@ cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Expected: `12 passing` and zero failures.
+Expected at this historical step: `6 passing` and zero failures. After the completed review follow-ups below, the final focused GREEN is `13 passing` and zero failures.
 
 #### Review follow-ups (completed)
 
 - [x] **Subsecond timestamp TDD:** Preserve subsecond chart times with `chartTime = ms / 1000`, and reject exact duplicate or out-of-order timestamps before series creation. The focused suite moved from RED (`7 passing / 3 failing`) to GREEN (`10 passing`).
 - [x] **Rapid smoothing TDD:** Use exactly eight samples for every positive-duration segment and retain fractional sample times rather than rounding. The focused suite moved from RED (`10 passing / 2 failing`) to GREEN (`12 passing`).
-- [x] **Coverage:** Verify the Hermite midpoint is approximately `43.75`, controller hover state remains isolated from interpolated data, same-second subsecond buckets stay distinct, invalid timestamp ordering is rejected, rapid three-point trends emit 17 samples, and non-integer midpoint times remain aligned.
+- [x] **Full-source timestamp validation TDD:** Final branch review found that validation after sampling could miss an invalid raw point. The regression uses 13 raw points whose non-increasing index 6 is skipped by 12-bucket sampling, moving the suite to RED (`12 passing / 1 failing`). The fix validates every raw timestamp as finite and the complete raw sequence as strictly increasing before sampling, while `prepareTrendModelForChart` retains its defensive downstream check; the suite returned to GREEN (`13 passing`).
+- [x] **Coverage:** Verify the Hermite midpoint is approximately `43.75`, controller hover state remains isolated from interpolated data, same-second subsecond buckets stay distinct, invalid timestamp ordering is rejected across the complete raw sequence before sampling with prepared-model validation retained as defense, rapid three-point trends emit 17 samples, and non-integer midpoint times remain aligned.
 
 ### Task 3: Verify the complete change
 
@@ -305,7 +306,7 @@ cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Observed: `12 passing` and zero failures.
+Observed: `13 passing` and zero failures.
 
 - [x] **Step 2: Run the available lint gates**
 
@@ -335,7 +336,7 @@ git diff --name-only origin/master...HEAD
 git status --short
 ```
 
-Observed: no whitespace errors; the focused suite reported `12 passing`; and the range contained exactly four files: the plan, design spec, `poll.js`, and `poll.test.js`.
+Observed: no whitespace errors; the focused suite reported `13 passing`; and the range contained exactly four files: the plan, design spec, `poll.js`, and `poll.test.js`.
 
 - [x] **Step 5: Commit the verified implementation**
 
