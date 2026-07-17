@@ -305,9 +305,9 @@ cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Expected: `12 passing` and zero failures.
+Observed: `12 passing` and zero failures.
 
-- [x] **Step 2: Lint the touched test file and frontend project**
+- [x] **Step 2: Run the available lint gates**
 
 ```bash
 cd ghost/core
@@ -315,7 +315,7 @@ pnpm exec eslint -c test/.eslintrc.js --ignore-path test/.eslintignore test/unit
 pnpm lint:frontend
 ```
 
-The production file `core/frontend/src/cards/js/poll.js` matches the `.eslintignore` rule `core/frontend/src/**/*.js`, so the repository's project-level `pnpm lint:frontend` script is used for production frontend verification. Expected: both commands exit 0, and ESLint reports zero errors and zero warnings. `pnpm lint:frontend` still prints the known Node engine warning because its runtime reports `v24.14.0` while the project requires `^22.13.1`; record that environment warning separately from the lint result.
+The test file receives direct ESLint coverage from the first command. `pnpm lint:frontend` checks only frontend paths that are not excluded by `.eslintignore`; `core/frontend/src/cards/js/poll.js` matches the explicit `core/frontend/src/**/*.js` ignore rule and therefore does not receive direct ESLint coverage. Verification evidence for `poll.js` comes from the focused poll tests and `pnpm build:assets:js`. Observed: both lint commands exited 0, and ESLint reported zero errors and zero warnings. `pnpm lint:frontend` still printed the known Node engine warning because its runtime reported `v24.14.0` while the project requires `^22.13.1`; that environment warning is recorded separately from the lint result.
 
 - [x] **Step 3: Build frontend JavaScript assets**
 
@@ -324,7 +324,7 @@ cd ghost/core
 pnpm build:assets:js
 ```
 
-Expected: exit 0. The build reports `tsconfig.json` duplicate `esModuleInterop` key warnings that are unrelated to this diff, and `git status --short` plus `git diff --stat` remain empty afterward with no tracked generated changes.
+Observed: exit 0. The build reported `tsconfig.json` duplicate `esModuleInterop` key warnings that are unrelated to this diff, and `git status --short` plus `git diff --stat` remained empty afterward with no tracked generated changes.
 
 - [x] **Step 4: Review invariants and repository diff**
 
@@ -335,7 +335,7 @@ git diff --name-only origin/master...HEAD
 git status --short
 ```
 
-Expected: no whitespace errors; the focused suite reports `12 passing`; and the range contains exactly four files: the plan, design spec, `poll.js`, and `poll.test.js`.
+Observed: no whitespace errors; the focused suite reported `12 passing`; and the range contained exactly four files: the plan, design spec, `poll.js`, and `poll.test.js`.
 
 - [x] **Step 5: Commit the verified implementation**
 
@@ -347,4 +347,4 @@ git commit -m "🐛 Fixed poll trend lines crossing percentage bounds" \
     -m $'no ref\n\n- curved chart-library control points could draw valid poll rates below zero or above one hundred\n- bounded monotone samples keep the smooth shape without changing hover data or vendor code'
 ```
 
-Expected: the commit hook succeeds. Do not push without explicit user approval.
+Observed: the commit hook succeeded, and no push was performed.
