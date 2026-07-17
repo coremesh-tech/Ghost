@@ -6,6 +6,8 @@ describe('frontend/cards/poll', function () {
     let optionsHeight;
     let legendHeight;
     let resizeObserverInstances;
+    let chartSeriesOptions;
+    let chartSeriesData;
     let originalWindow;
     let originalDocument;
     let originalFetch;
@@ -31,10 +33,51 @@ describe('frontend/cards/poll', function () {
         }
     };
 
+    const setTrendRates = function (rates) {
+        const start = Date.parse('2026-06-10T22:30:00.000Z');
+        const times = rates.map(function (_, index) {
+            return new Date(start + (index * 30 * 60 * 1000)).toISOString();
+        });
+
+        global.document.querySelector('.kg-poll-card').__kgPollTrends = {
+            points: rates.map(function (rate, index) {
+                return {
+                    time: times[index],
+                    options: [
+                        {id: 'option_a', vote_rate: rate},
+                        {id: 'option_b', vote_rate: 100 - rate}
+                    ]
+                };
+            })
+        };
+
+        return times.map(function (time) {
+            return Date.parse(time) / 1000;
+        });
+    };
+
+    const assertSeriesStaysWithinSegments = function (data, times, rates) {
+        data.forEach(function (point) {
+            assert.ok(point.value >= 0 && point.value <= 100);
+            let segmentIndex = rates.length - 2;
+            for (let index = 0; index < times.length - 1; index += 1) {
+                if (point.time >= times[index] && point.time <= times[index + 1]) {
+                    segmentIndex = index;
+                    break;
+                }
+            }
+            const segmentMin = Math.min(rates[segmentIndex], rates[segmentIndex + 1]);
+            const segmentMax = Math.max(rates[segmentIndex], rates[segmentIndex + 1]);
+            assert.ok(point.value >= segmentMin && point.value <= segmentMax);
+        });
+    };
+
     beforeEach(function () {
         optionsHeight = 90;
         legendHeight = 70;
         resizeObserverInstances = [];
+        chartSeriesOptions = [];
+        chartSeriesData = [];
         originalWindow = global.window;
         originalDocument = global.document;
         originalFetch = global.fetch;
@@ -191,11 +234,18 @@ describe('frontend/cards/poll', function () {
 
         global.window.LightweightCharts = {
             CrosshairMode: {Normal: 0},
+            LineType: {Simple: 0, Curved: 2},
             createChart() {
                 return {
-                    addLineSeries() {
+                    addLineSeries(options) {
+                        const seriesIndex = chartSeriesOptions.length;
+                        chartSeriesOptions.push(options);
+                        chartSeriesData.push([]);
+
                         return {
-                            setData() {}
+                            setData(data) {
+                                chartSeriesData[seriesIndex] = data;
+                            }
                         };
                     },
                     applyOptions() {},
@@ -265,6 +315,49 @@ describe('frontend/cards/poll', function () {
         global.requestAnimationFrame = originalRequestAnimationFrame;
         global.cancelAnimationFrame = originalCancelAnimationFrame;
         global.localStorage = originalLocalStorage;
+    });
+
+    it('keeps smoothed trend data above zero without losing source buckets', async function () {
+        const rates = [100, 0, 0, 100];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const data = chartSeriesData[0];
+        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple);
+        assert.ok(data.length > rates.length);
+        times.forEach(function (time, index) {
+            assert.equal(data.find(function (point) {
+                return point.time === time;
+            }).value, rates[index]);
+        });
+        assertSeriesStaysWithinSegments(data, times, rates);
+        assert.ok(data.filter(function (point) {
+            return point.time >= times[1] && point.time <= times[2];
+        }).every(function (point) {
+            return point.value === 0;
+        }));
+    });
+
+    it('keeps smoothed trend data below one hundred across a maximum plateau', async function () {
+        const rates = [0, 100, 100, 0];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const data = chartSeriesData[0];
+        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple);
+        assert.ok(data.length > rates.length);
+        assertSeriesStaysWithinSegments(data, times, rates);
+        assert.ok(data.filter(function (point) {
+            return point.time >= times[1] && point.time <= times[2];
+        }).every(function (point) {
+            return point.value === 100;
+        }));
     });
 
     it('keeps the desktop trend plot at least 60px tall when the legend grows', async function () {
