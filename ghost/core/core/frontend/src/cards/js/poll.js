@@ -2209,6 +2209,50 @@
         });
     };
 
+    // 首屏批量预取缓存: pollId -> 原始 payload. 用过即删,
+    // 之后投票/SSE 触发的刷新仍走单个接口, 保证实时性.
+    const POLL_BATCH = {
+        polls: new Map(),
+        votes: new Map()
+    };
+
+    const prefetchPollBatch = async function (pollIds) {
+        const ids = Array.from(new Set((pollIds || [])
+            .map(function (id) {
+                return String(id || '').trim();
+            })
+            .filter(Boolean)));
+
+        if (!ids.length) {
+            return;
+        }
+
+        const query = encodeURIComponent(ids.join(','));
+        const [pollsRes, votesRes] = await Promise.all([
+            fetchJson(`/members/api/polls-batch?ids=${query}`).catch(function () {
+                return null;
+            }),
+            fetchJson(`/members/api/polls-batch/votes?ids=${query}`).catch(function () {
+                return null;
+            })
+        ]);
+
+        if (pollsRes && pollsRes.ok && pollsRes.payload && pollsRes.payload.polls) {
+            const meta = pollsRes.payload.meta || {};
+            Object.keys(pollsRes.payload.polls).forEach(function (id) {
+                const payload = pollsRes.payload.polls[id] || {};
+                // 批量响应的 meta 在顶层, 单个接口是每条自带 — 这里补进每条, 保证登录态/guest 一致
+                POLL_BATCH.polls.set(String(id), {...payload, meta: {...(payload.meta || {}), ...meta}});
+            });
+        }
+
+        if (votesRes && votesRes.ok && votesRes.payload && votesRes.payload.votes) {
+            Object.keys(votesRes.payload.votes).forEach(function (id) {
+                POLL_BATCH.votes.set(String(id), votesRes.payload.votes[id]);
+            });
+        }
+    };
+
     const loadPollCardData = async function (card) {
         const pollId = card.dataset.pollId;
 
@@ -2216,17 +2260,38 @@
             return false;
         }
 
-        const [pollResponse, votesResponse] = await Promise.all([
-            fetchJson(`/members/api/polls/${encodeURIComponent(pollId)}`),
-            fetchJson(`/members/api/polls/${encodeURIComponent(pollId)}/votes`)
-        ]);
+        let pollPayload = null;
+        let votesPayload = null;
 
-        if (!pollResponse.ok || !pollResponse.payload) {
+        // 首屏优先消费批量预取的数据 (消费即删); 没有则回退到单个接口
+        if (POLL_BATCH.polls.has(pollId)) {
+            pollPayload = POLL_BATCH.polls.get(pollId);
+            POLL_BATCH.polls.delete(pollId);
+
+            if (POLL_BATCH.votes.has(pollId)) {
+                votesPayload = POLL_BATCH.votes.get(pollId);
+                POLL_BATCH.votes.delete(pollId);
+            }
+        } else {
+            const [pollResponse, votesResponse] = await Promise.all([
+                fetchJson(`/members/api/polls/${encodeURIComponent(pollId)}`),
+                fetchJson(`/members/api/polls/${encodeURIComponent(pollId)}/votes`)
+            ]);
+
+            if (!pollResponse.ok || !pollResponse.payload) {
+                return false;
+            }
+
+            pollPayload = pollResponse.payload;
+            votesPayload = votesResponse.ok && votesResponse.payload ? votesResponse.payload : null;
+        }
+
+        if (!pollPayload) {
             return false;
         }
 
-        const poll = normalizePollPayload(pollResponse.payload, pollId);
-        const votes = votesResponse.ok && votesResponse.payload ? normalizeVotesPayload(votesResponse.payload) : null;
+        const poll = normalizePollPayload(pollPayload, pollId);
+        const votes = votesPayload ? normalizeVotesPayload(votesPayload) : null;
         const state = mergePollState(poll, votes, card);
 
         const preservedTrends = card.__kgPollTrends || null;
@@ -2424,18 +2489,120 @@
         }
     };
 
-    const init = function (root) {
-        const cards = root.querySelectorAll ? root.querySelectorAll('[data-kg-poll-card="true"]') : [];
-        cards.forEach(function (card) {
-            hydratePollCard(card);
+    // 对一组卡片做「先批量预取, 再逐个 hydrate」。
+    // 会过滤掉已 hydrate / 正在 hydrate 的卡片, 所以重复调用安全。
+    const hydrateCards = function (cardList) {
+        const cards = Array.prototype.filter.call(cardList || [], function (card) {
+            return card &&
+                card.dataset &&
+                card.dataset.pollId &&
+                card.dataset.pollHydrated !== 'true' &&
+                card.dataset.pollHydrated !== 'loading';
+        });
+
+        if (!cards.length) {
+            return;
+        }
+
+        // 批量预取请求也需要带 guest id
+        ensureGuestId();
+
+        const pollIds = cards.map(function (card) {
+            return card.dataset.pollId;
+        }).filter(Boolean);
+
+        // 先一次性批量拉取这批 poll+votes, 再逐个 hydrate (各卡片会命中缓存).
+        // 批量失败不阻塞 — 各卡片自动回退到单个接口, 行为与之前一致.
+        prefetchPollBatch(pollIds).catch(function () {}).then(function () {
+            cards.forEach(function (card) {
+                hydratePollCard(card);
+            });
         });
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            init(document);
+    const init = function (root) {
+        const cards = root && root.querySelectorAll
+            ? root.querySelectorAll('[data-kg-poll-card="true"]')
+            : [];
+        hydrateCards(cards);
+    };
+
+    // 监听后续动态插入的 poll 卡片 (无限滚动 / AJAX 加载更多 post 等),
+    // 把同一批插入的卡片聚到一起做一次批量, 而不是每个卡片各发请求。
+    const observeNewPollCards = function () {
+        if (typeof MutationObserver === 'undefined' || !document.body) {
+            return;
+        }
+
+        let pending = new Set();
+        let scheduled = false;
+
+        const flush = function () {
+            scheduled = false;
+            const cards = Array.from(pending);
+            pending = new Set();
+            hydrateCards(cards);
+        };
+
+        const scheduleFlush = function () {
+            if (scheduled) {
+                return;
+            }
+            scheduled = true;
+            // 用 macrotask 把「同一次滚动加载」里插入的卡片攒到一起, 只发一次批量
+            setTimeout(flush, 0);
+        };
+
+        const collect = function (node) {
+            if (!node || node.nodeType !== 1) {
+                return false;
+            }
+
+            let added = false;
+
+            if (node.matches && node.matches('[data-kg-poll-card="true"]') &&
+                node.dataset && node.dataset.pollHydrated !== 'true' && node.dataset.pollHydrated !== 'loading') {
+                pending.add(node);
+                added = true;
+            }
+
+            if (node.querySelectorAll) {
+                node.querySelectorAll('[data-kg-poll-card="true"]').forEach(function (card) {
+                    if (card.dataset && card.dataset.pollHydrated !== 'true' && card.dataset.pollHydrated !== 'loading') {
+                        pending.add(card);
+                        added = true;
+                    }
+                });
+            }
+
+            return added;
+        };
+
+        const observer = new MutationObserver(function (mutations) {
+            let found = false;
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (collect(node)) {
+                        found = true;
+                    }
+                });
+            });
+            if (found) {
+                scheduleFlush();
+            }
         });
+
+        observer.observe(document.body, {childList: true, subtree: true});
+    };
+
+    const bootstrap = function () {
+        init(document);            // 首屏批量
+        observeNewPollCards();     // 后续动态加载的批量
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
     } else {
-        init(document);
+        bootstrap();
     }
 })();

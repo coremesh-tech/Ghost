@@ -67,6 +67,55 @@ module.exports = function setupMembersApp() {
     membersApp.put('/api/member', bodyParser.json({limit: '50mb'}), middleware.updateMemberData);
     membersApp.post('/api/member/email', bodyParser.json({limit: '50mb'}), (req, res, next) => membersService.api.middleware.updateEmailAddress(req, res, next));
 
+    // 批量拉取多个 poll 定义 (首屏一次性加载, 解决 N+1 请求).
+    // 用 /polls-batch 独立前缀, 避免和 /polls/:id 路由冲突.
+    membersApp.get('/api/polls-batch',
+        middleware.loadMemberSession,
+        async function getPollsBatch(req, res, next) {
+            try {
+                const ids = String(req.query.ids || '').split(',').map(s => s.trim()).filter(Boolean);
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPollsBatch(ids, req.member, token, req);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
+    // 批量拉取多个 poll 的投票结果.
+    membersApp.get('/api/polls-batch/votes',
+        middleware.loadMemberSession,
+        async function getPollsVotesBatch(req, res, next) {
+            try {
+                const ids = String(req.query.ids || '').split(',').map(s => s.trim()).filter(Boolean);
+                const token = req.member
+                    ? await membersService.ssr.getIdentityTokenForMemberFromSession(req, res).catch(() => '')
+                    : '';
+                const response = await pollsService.getContentPollVotesBatch(ids, req.member, token, req);
+
+                return res.status(response.statusCode).json({
+                    ...(response.body || {}),
+                    meta: {
+                        logged_in: Boolean(req.member),
+                        member_uuid: req.member?.uuid || null
+                    }
+                });
+            } catch (err) {
+                return next(err);
+            }
+        }
+    );
+
     membersApp.get('/api/polls/:id',
         middleware.loadMemberSession,
         async function getPoll(req, res, next) {

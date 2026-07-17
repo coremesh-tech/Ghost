@@ -87,6 +87,39 @@ async function getContentPollVotes(pollId, member, token = '', req) {
     return proxyPollApi(`/polls/${encodeURIComponent(pollId)}/votes`, {member, token, req});
 }
 
+function normalizePollIdList(pollIds) {
+    return (Array.isArray(pollIds) ? pollIds : [])
+        .map(id => String(id ?? '').trim())
+        .filter(Boolean)
+        .slice(0, 100); // 上限, 防滥用
+}
+
+/**
+ * 批量拉取多个 poll 的定义 (静态数据, 可缓存).
+ * 代理到外部 node-market-topic-server 的 GET /polls/batch?ids=a,b,c
+ */
+async function getContentPollsBatch(pollIds, member, token = '', req) {
+    const ids = normalizePollIdList(pollIds);
+    if (!ids.length) {
+        return {statusCode: 200, body: {polls: {}}};
+    }
+    const query = encodeURIComponent(ids.join(','));
+    return proxyPollApi(`/polls/batch?ids=${query}`, {member, token, req});
+}
+
+/**
+ * 批量拉取多个 poll 的投票结果 (动态 + 因人而异, 不缓存).
+ * 代理到外部 node-market-topic-server 的 GET /polls/votes/batch?ids=a,b,c
+ */
+async function getContentPollVotesBatch(pollIds, member, token = '', req) {
+    const ids = normalizePollIdList(pollIds);
+    if (!ids.length) {
+        return {statusCode: 200, body: {votes: {}}};
+    }
+    const query = encodeURIComponent(ids.join(','));
+    return proxyPollApi(`/polls/votes/batch?ids=${query}`, {member, token, req});
+}
+
 /**
  * 拉取 poll 的投票趋势 (历史时间序列).
  * 外部 prediction-markets 服务的 trends 接口走 /admin 前缀
@@ -234,8 +267,10 @@ module.exports = {
     extractPollNodeFromLexical,
     findPublishedPollById,
     getContentPoll,
+    getContentPollsBatch,
     getContentPollTrends,
     getContentPollVotes,
+    getContentPollVotesBatch,
     normalizePollNode,
     submitPollVote
 };
