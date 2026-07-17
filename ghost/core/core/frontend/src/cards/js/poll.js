@@ -1,4 +1,13 @@
 (function () {
+    // 幂等守卫: cards.min.js 可能被重复注入 (例如主题 popular-polls 里的
+    // reloadGhostCardScripts)。若已加载过, 直接返回, 避免产生多个实例 ——
+    // 否则会有多个 MutationObserver / 多份批量缓存, 导致同一批卡片被重复批量
+    // 拉取、甚至竞态下走单个接口。动态插入的新卡片由已存在实例的 observer 处理。
+    if (window.__kgPollCardScriptLoaded) {
+        return;
+    }
+    window.__kgPollCardScriptLoaded = true;
+
     const numberFormatter = new Intl.NumberFormat('en-US');
     const POLL_GUEST_ID_STORAGE_KEY = 'pm_guest_id';
     const MOBILE_CHART_PLOT_HEIGHT = 120;
@@ -2221,7 +2230,11 @@
             .map(function (id) {
                 return String(id || '').trim();
             })
-            .filter(Boolean)));
+            .filter(Boolean)))
+            // 已经预取过的 id 不再重复批量, 避免同一 poll 多次 hydrateCards 时重复请求
+            .filter(function (id) {
+                return !POLL_BATCH.polls.has(id);
+            });
 
         if (!ids.length) {
             return;
@@ -2253,24 +2266,25 @@
         }
     };
 
-    const loadPollCardData = async function (card) {
+    const loadPollCardData = async function (card, options) {
         const pollId = card.dataset.pollId;
 
         if (!pollId) {
             return false;
         }
 
+        // 只有首屏 hydrate 才允许用批量缓存; 投票/SSE 后的 reload 走单个接口拿最新
+        const allowBatchCache = Boolean(options && options.allowBatchCache);
         let pollPayload = null;
         let votesPayload = null;
 
-        // 首屏优先消费批量预取的数据 (消费即删); 没有则回退到单个接口
-        if (POLL_BATCH.polls.has(pollId)) {
+        // 命中批量缓存时「读取但不删除」, 让同一 poll 出现在多张卡片 (如 feed + 侧边栏)
+        // 时都能命中, 不会有某张卡回退到单个接口。
+        if (allowBatchCache && POLL_BATCH.polls.has(pollId)) {
             pollPayload = POLL_BATCH.polls.get(pollId);
-            POLL_BATCH.polls.delete(pollId);
 
             if (POLL_BATCH.votes.has(pollId)) {
                 votesPayload = POLL_BATCH.votes.get(pollId);
-                POLL_BATCH.votes.delete(pollId);
             }
         } else {
             const [pollResponse, votesResponse] = await Promise.all([
@@ -2467,7 +2481,7 @@
     const hydratePollCard = async function (card) {
         const pollId = card.dataset.pollId;
 
-        if (!pollId || card.dataset.pollHydrated === 'true') {
+        if (!pollId || card.dataset.pollHydrated === 'true' || card.dataset.pollHydrated === 'loading') {
             return;
         }
 
@@ -2476,7 +2490,7 @@
         bindInteractions(card);
 
         try {
-            if (!await loadPollCardData(card)) {
+            if (!await loadPollCardData(card, {allowBatchCache: true})) {
                 card.dataset.pollHydrated = 'error';
                 setFeedback(card, 'Failed to load poll.', 'error');
                 return;
