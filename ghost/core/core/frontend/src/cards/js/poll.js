@@ -497,7 +497,7 @@
             const start = sourcePoints[index];
             const end = sourcePoints[index + 1];
             const duration = end.time - start.time;
-            const sampleCount = Math.max(1, Math.min(TREND_CURVE_SAMPLES_PER_SEGMENT, Math.floor(duration)));
+            const sampleCount = TREND_CURVE_SAMPLES_PER_SEGMENT;
             const segmentMin = Math.min(start.value, end.value);
             const segmentMax = Math.max(start.value, end.value);
 
@@ -515,7 +515,7 @@
                     + (endTangentBasis * duration * tangents[index + 1]);
 
                 data.push({
-                    time: start.time + Math.round(duration * position),
+                    time: start.time + (duration * position),
                     value: clampNumber(value, segmentMin, segmentMax)
                 });
             }

@@ -60,11 +60,10 @@ describe('frontend/cards/poll', function () {
         });
     };
 
-    const setTrendRates = function (rates) {
-        const start = Date.parse('2026-06-10T22:30:00.000Z');
+    const setTrendRatesAtTimes = function (rates, sourceTimes) {
         const points = rates.map(function (rate, index) {
             return {
-                time: new Date(start + (index * 30 * 60 * 1000)).toISOString(),
+                time: sourceTimes[index],
                 options: [
                     {id: 'option_a', vote_rate: rate},
                     {id: 'option_b', vote_rate: 100 - rate}
@@ -73,6 +72,15 @@ describe('frontend/cards/poll', function () {
         });
 
         return setTrendPoints(points);
+    };
+
+    const setTrendRates = function (rates) {
+        const start = Date.parse('2026-06-10T22:30:00.000Z');
+        const sourceTimes = rates.map(function (_, index) {
+            return new Date(start + (index * 30 * 60 * 1000)).toISOString();
+        });
+
+        return setTrendRatesAtTimes(rates, sourceTimes);
     };
 
     const assertSeriesStaysWithinSegments = function (data, times, rates) {
@@ -560,6 +568,58 @@ describe('frontend/cards/poll', function () {
         const controller = global.document.querySelector('.kg-poll-card-chart').__kgChartController;
         assert.equal(controller.trendModel.buckets.length, rates.length);
         assert.deepEqual(controller.seriesRefs[0].values, rates);
+    });
+
+    it('densifies rapid subsecond trends with bounded Hermite samples', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRatesAtTimes(rates, [
+            '2026-06-10T22:30:00.100Z',
+            '2026-06-10T22:30:00.500Z',
+            '2026-06-10T22:30:00.900Z'
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assert.equal(chartSeriesData[0].length, 17, 'Expected eight samples per rapid segment plus the final source point');
+        assert.equal(chartSeriesData[1].length, 17, 'Expected eight inverse-series samples per rapid segment plus the final source point');
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = times[0] + ((times[1] - times[0]) / 2);
+        const midpoint = chartSeriesData[0][4];
+        assert.ok(Math.abs(midpoint.time - midpointTime) < 0.000001, `Expected rapid midpoint time near ${midpointTime}; found ${midpoint.time}`);
+        assert.ok(Math.abs(midpoint.value - 43.75) < 0.001, `Expected rapid midpoint near 43.75; found ${midpoint.value}`);
+        assert.ok(Math.abs(midpoint.value - 40) > 1, `Expected rapid midpoint to differ from linear value 40; found ${midpoint.value}`);
+    });
+
+    it('keeps fractional Hermite sample times aligned with their positions', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRatesAtTimes(rates, [
+            '2026-06-10T22:30:00.100Z',
+            '2026-06-10T22:30:09.600Z',
+            '2026-06-10T22:30:19.100Z'
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assert.equal(chartSeriesData[0].length, 17, 'Expected eight samples per fractional segment plus the final source point');
+        assert.equal(chartSeriesData[1].length, 17, 'Expected eight inverse-series samples per fractional segment plus the final source point');
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = times[0] + ((times[1] - times[0]) / 2);
+        const midpoint = chartSeriesData[0][4];
+        assert.ok(Math.abs(midpoint.time - midpointTime) < 0.000001, `Expected fractional midpoint time near ${midpointTime}; found ${midpoint.time}`);
     });
 
     it('keeps the desktop trend plot at least 60px tall when the legend grows', async function () {
