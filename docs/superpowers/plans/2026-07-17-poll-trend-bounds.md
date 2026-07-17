@@ -315,7 +315,7 @@ pnpm exec eslint -c test/.eslintrc.js --ignore-path test/.eslintignore test/unit
 pnpm lint:frontend
 ```
 
-The production file `core/frontend/src/cards/js/poll.js` matches the `.eslintignore` rule `core/frontend/src/**/*.js`, so the repository's project-level `pnpm lint:frontend` script is used for production frontend verification. Expected: both commands exit 0 with zero errors and zero warnings.
+The production file `core/frontend/src/cards/js/poll.js` matches the `.eslintignore` rule `core/frontend/src/**/*.js`, so the repository's project-level `pnpm lint:frontend` script is used for production frontend verification. Expected: both commands exit 0, and ESLint reports zero errors and zero warnings. `pnpm lint:frontend` still prints the known Node engine warning because its runtime reports `v24.14.0` while the project requires `^22.13.1`; record that environment warning separately from the lint result.
 
 - [x] **Step 3: Build frontend JavaScript assets**
 
