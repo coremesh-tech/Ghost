@@ -542,6 +542,48 @@ describe('frontend/cards/poll', function () {
         assert.equal(chartElement.__kgChartController, undefined);
     });
 
+    it('rejects non-increasing source timestamps before trend sampling', async function () {
+        const start = Date.parse('2026-06-10T22:30:00.000Z');
+        const points = Array.from({length: 13}, function (_, index) {
+            const minuteOffset = index === 6 ? 4 : index;
+            const rate = index * 5;
+
+            return {
+                time: new Date(start + (minuteOffset * 60 * 1000)).toISOString(),
+                options: [
+                    {id: 'option_a', vote_rate: rate},
+                    {id: 'option_b', vote_rate: 100 - rate}
+                ]
+            };
+        });
+        const sampledIndices = Array.from({length: 12}, function (_, index) {
+            return Math.round(index * ((points.length - 1) / (12 - 1)));
+        });
+        const rawTimes = points.map(function (point) {
+            return Date.parse(point.time);
+        });
+        const sampledTimes = sampledIndices.map(function (index) {
+            return rawTimes[index];
+        });
+
+        assert.deepEqual(sampledIndices, [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12]);
+        assert.ok(rawTimes[6] <= rawTimes[5], 'Expected raw index 6 to be non-increasing');
+        for (let index = 1; index < sampledTimes.length; index += 1) {
+            assert.ok(sampledTimes[index] > sampledTimes[index - 1], 'Expected sampled timestamps to hide the raw ordering issue');
+        }
+
+        setTrendPoints(points);
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected invalid raw trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected invalid raw trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
     it('uses bounded Hermite samples instead of dense straight lines', async function () {
         const rates = [0, 80, 100];
         const times = setTrendRates(rates);

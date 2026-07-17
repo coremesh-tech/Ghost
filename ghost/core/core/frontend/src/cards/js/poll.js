@@ -230,6 +230,22 @@
         return out;
     };
 
+    const hasStrictlyIncreasingTrendTimes = function (points) {
+        let previousMs = null;
+
+        for (let index = 0; index < points.length; index += 1) {
+            const currentMs = Date.parse(points[index] && points[index].time);
+
+            if (!Number.isFinite(currentMs) || (previousMs !== null && currentMs <= previousMs)) {
+                return false;
+            }
+
+            previousMs = currentMs;
+        }
+
+        return true;
+    };
+
     /**
      * 把 trends 接口的响应映射成图表用的 trendModel.
      * 与 Koenig 编辑器的 mapTrendsResponseToModel 保持同一份语义:
@@ -241,6 +257,10 @@
         const bucketCount = targetBuckets || TREND_BUCKET_COUNT;
         const points = response && Array.isArray(response.points) ? response.points : [];
         if (points.length === 0 || !Array.isArray(options) || options.length === 0) {
+            return null;
+        }
+
+        if (!hasStrictlyIncreasingTrendTimes(points)) {
             return null;
         }
 
