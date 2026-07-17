@@ -33,27 +33,46 @@ describe('frontend/cards/poll', function () {
         }
     };
 
+    const setTrendPoints = function (points) {
+        const trendsPayload = {points: points};
+        const fetchWithoutTrendOverride = global.fetch;
+
+        global.document.querySelector('.kg-poll-card').__kgPollTrends = trendsPayload;
+        global.fetch = async function (url) {
+            const requestUrl = new URL(url, 'https://example.com');
+
+            if (requestUrl.pathname === '/members/api/polls/poll_123/trends') {
+                return {
+                    ok: true,
+                    status: 200,
+                    json: async function () {
+                        return trendsPayload;
+                    }
+                };
+            }
+
+            return fetchWithoutTrendOverride(url);
+        };
+        global.window.fetch = global.fetch;
+
+        return points.map(function (point) {
+            return Date.parse(point.time) / 1000;
+        });
+    };
+
     const setTrendRates = function (rates) {
         const start = Date.parse('2026-06-10T22:30:00.000Z');
-        const times = rates.map(function (_, index) {
-            return new Date(start + (index * 30 * 60 * 1000)).toISOString();
+        const points = rates.map(function (rate, index) {
+            return {
+                time: new Date(start + (index * 30 * 60 * 1000)).toISOString(),
+                options: [
+                    {id: 'option_a', vote_rate: rate},
+                    {id: 'option_b', vote_rate: 100 - rate}
+                ]
+            };
         });
 
-        global.document.querySelector('.kg-poll-card').__kgPollTrends = {
-            points: rates.map(function (rate, index) {
-                return {
-                    time: times[index],
-                    options: [
-                        {id: 'option_a', vote_rate: rate},
-                        {id: 'option_b', vote_rate: 100 - rate}
-                    ]
-                };
-            })
-        };
-
-        return times.map(function (time) {
-            return Date.parse(time) / 1000;
-        });
+        return setTrendPoints(points);
     };
 
     const assertSeriesStaysWithinSegments = function (data, times, rates) {
@@ -411,6 +430,136 @@ describe('frontend/cards/poll', function () {
         }), `Expected upper plateau values to stay at 100; found ${plateauPoints.map(function (point) {
             return `${point.time}:${point.value}`;
         }).join(', ')}`);
+    });
+
+    it('preserves subsecond source times without duplicating chart timestamps', async function () {
+        const rates = [25, 75];
+        const points = [
+            {
+                time: '2026-06-10T22:30:00.100Z',
+                options: [
+                    {id: 'option_a', vote_rate: rates[0]},
+                    {id: 'option_b', vote_rate: 100 - rates[0]}
+                ]
+            },
+            {
+                time: '2026-06-10T22:30:00.900Z',
+                options: [
+                    {id: 'option_a', vote_rate: rates[1]},
+                    {id: 'option_b', vote_rate: 100 - rates[1]}
+                ]
+            }
+        ];
+        const times = setTrendPoints(points);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        [rates, inverseRates].forEach(function (seriesRates, seriesIndex) {
+            const data = chartSeriesData[seriesIndex];
+
+            assert.equal(chartSeriesOptions[seriesIndex].lineType, global.window.LightweightCharts.LineType.Simple);
+            assert.deepEqual(data.map(function (point) {
+                return point.time;
+            }), times);
+            assertSeriesPreservesSourcePoints(data, times, seriesRates);
+            assertSeriesStaysWithinSegments(data, times, seriesRates);
+        });
+
+        const controller = global.document.querySelector('.kg-poll-card-chart').__kgChartController;
+        assert.equal(controller.trendModel.buckets.length, rates.length);
+        assert.deepEqual(controller.seriesRefs[0].values, rates);
+    });
+
+    it('rejects duplicate trend timestamps before creating line series', async function () {
+        const duplicateTime = '2026-06-10T22:30:00.100Z';
+        setTrendPoints([
+            {
+                time: duplicateTime,
+                options: [
+                    {id: 'option_a', vote_rate: 25},
+                    {id: 'option_b', vote_rate: 75}
+                ]
+            },
+            {
+                time: duplicateTime,
+                options: [
+                    {id: 'option_a', vote_rate: 75},
+                    {id: 'option_b', vote_rate: 25}
+                ]
+            }
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected duplicate trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected duplicate trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
+    it('rejects out-of-order trend timestamps before creating line series', async function () {
+        setTrendPoints([
+            {
+                time: '2026-06-10T22:30:01.000Z',
+                options: [
+                    {id: 'option_a', vote_rate: 25},
+                    {id: 'option_b', vote_rate: 75}
+                ]
+            },
+            {
+                time: '2026-06-10T22:30:00.000Z',
+                options: [
+                    {id: 'option_a', vote_rate: 75},
+                    {id: 'option_b', vote_rate: 25}
+                ]
+            }
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected out-of-order trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected out-of-order trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
+    it('uses bounded Hermite samples instead of dense straight lines', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = (times[0] + times[1]) / 2;
+        const midpoint = chartSeriesData[0].find(function (point) {
+            return point.time === midpointTime;
+        });
+
+        assert.ok(midpoint, `Expected a Hermite sample at midpoint time=${midpointTime}`);
+        assert.ok(Math.abs(midpoint.value - 43.75) < 0.001, `Expected midpoint near 43.75; found ${midpoint.value}`);
+        assert.ok(Math.abs(midpoint.value - 40) > 1, `Expected midpoint to differ from linear value 40; found ${midpoint.value}`);
+
+        const controller = global.document.querySelector('.kg-poll-card-chart').__kgChartController;
+        assert.equal(controller.trendModel.buckets.length, rates.length);
+        assert.deepEqual(controller.seriesRefs[0].values, rates);
     });
 
     it('keeps the desktop trend plot at least 60px tall when the legend grows', async function () {

@@ -382,7 +382,7 @@
         }
 
         return {
-            seconds: Math.floor(ms / 1000),
+            seconds: ms / 1000,
             milliseconds: ms
         };
     };
@@ -403,9 +403,15 @@
         });
 
         if (buckets.length === 0 || buckets.some(function (bucket) {
-            return bucket.chartTime === null;
+            return !Number.isFinite(bucket.chartTime);
         })) {
             return null;
+        }
+
+        for (let index = 1; index < buckets.length; index += 1) {
+            if (buckets[index].chartTime <= buckets[index - 1].chartTime) {
+                return null;
+            }
         }
 
         const series = trendModel.series.map(function (item) {
