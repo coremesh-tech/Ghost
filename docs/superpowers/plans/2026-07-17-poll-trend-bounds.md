@@ -22,7 +22,7 @@
 - Modify: `ghost/core/test/unit/frontend/src/poll.test.js:4-215`
 - Test: `ghost/core/test/unit/frontend/src/poll.test.js`
 
-- [ ] **Step 1: Extend the Lightweight Charts test double**
+- [x] **Step 1: Extend the Lightweight Charts test double**
 
 Add `chartSeriesOptions` and `chartSeriesData` arrays to the suite state, reset them in `beforeEach`, and make the existing test double record real inputs rather than asserting on the mock itself:
 
@@ -67,7 +67,7 @@ global.window.LightweightCharts = {
 };
 ```
 
-- [ ] **Step 2: Add helpers for deterministic trend rates and segment assertions**
+- [x] **Step 2: Add helpers for deterministic trend rates and segment assertions**
 
 ```js
 const setTrendRates = function (rates) {
@@ -110,7 +110,7 @@ const assertSeriesStaysWithinSegments = function (data, times, rates) {
 };
 ```
 
-- [ ] **Step 3: Add the lower-bound test**
+- [x] **Step 3: Add the lower-bound test**
 
 ```js
 it('keeps smoothed trend data above zero without losing source buckets', async function () {
@@ -138,7 +138,7 @@ it('keeps smoothed trend data above zero without losing source buckets', async f
 });
 ```
 
-- [ ] **Step 4: Add the upper-bound test**
+- [x] **Step 4: Add the upper-bound test**
 
 ```js
 it('keeps smoothed trend data below one hundred across a maximum plateau', async function () {
@@ -161,7 +161,7 @@ it('keeps smoothed trend data below one hundred across a maximum plateau', async
 });
 ```
 
-- [ ] **Step 5: Run the focused test and verify RED**
+- [x] **Step 5: Run the focused test and verify RED**
 
 Run:
 
@@ -170,7 +170,7 @@ cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Expected: both new tests fail because current production code selects `LineType.Curved` and passes only the four source points.
+Historical RED: `4 passing / 2 failing`; both new tests failed because production selected `LineType.Curved` and passed only the four source points.
 
 ### Task 2: Implement bounded monotone curve data
 
@@ -178,7 +178,7 @@ Expected: both new tests fail because current production code selects `LineType.
 - Modify: `ghost/core/core/frontend/src/cards/js/poll.js:18-19,372-434,771-839`
 - Test: `ghost/core/test/unit/frontend/src/poll.test.js`
 
-- [ ] **Step 1: Add the interpolation density and pure helper**
+- [x] **Step 1: Add the interpolation density and pure helper**
 
 Add `TREND_CURVE_SAMPLES_PER_SEGMENT = 8`. Implement `buildBoundedTrendData(buckets, rates)` beside `prepareTrendModelForChart`:
 
@@ -236,7 +236,7 @@ const buildBoundedTrendData = function (buckets, rates) {
         const start = points[index];
         const end = points[index + 1];
         const duration = end.time - start.time;
-        const sampleCount = Math.max(1, Math.min(TREND_CURVE_SAMPLES_PER_SEGMENT, Math.floor(duration)));
+        const sampleCount = TREND_CURVE_SAMPLES_PER_SEGMENT;
         const segmentMin = Math.max(Math.min(start.value, end.value), CHART_RATE_MIN);
         const segmentMax = Math.min(Math.max(start.value, end.value), CHART_RATE_MAX);
 
@@ -250,7 +250,7 @@ const buildBoundedTrendData = function (buckets, rates) {
                 + ((positionCubed - positionSquared) * duration * tangents[index + 1]);
 
             data.push({
-                time: start.time + Math.round(duration * position),
+                time: start.time + (duration * position),
                 value: clampNumber(value, segmentMin, segmentMax)
             });
         }
@@ -261,7 +261,7 @@ const buildBoundedTrendData = function (buckets, rates) {
 };
 ```
 
-- [ ] **Step 2: Render the generated data as a simple line**
+- [x] **Step 2: Render the generated data as a simple line**
 
 ```js
 const lineType = chartLibrary.LineType && typeof chartLibrary.LineType.Simple === 'number'
@@ -274,7 +274,7 @@ lineSeries.setData(buildBoundedTrendData(
 ));
 ```
 
-- [ ] **Step 3: Run the focused test and verify GREEN**
+- [x] **Step 3: Run the focused test and verify GREEN**
 
 Run:
 
@@ -283,7 +283,13 @@ cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Expected: all six tests pass.
+Expected: `12 passing` and zero failures.
+
+#### Review follow-ups (completed)
+
+- [x] **Subsecond timestamp TDD:** Preserve subsecond chart times with `chartTime = ms / 1000`, and reject exact duplicate or out-of-order timestamps before series creation. The focused suite moved from RED (`7 passing / 3 failing`) to GREEN (`10 passing`).
+- [x] **Rapid smoothing TDD:** Use exactly eight samples for every positive-duration segment and retain fractional sample times rather than rounding. The focused suite moved from RED (`10 passing / 2 failing`) to GREEN (`12 passing`).
+- [x] **Coverage:** Verify the Hermite midpoint is approximately `43.75`, controller hover state remains isolated from interpolated data, same-second subsecond buckets stay distinct, invalid timestamp ordering is rejected, rapid three-point trends emit 17 samples, and non-integer midpoint times remain aligned.
 
 ### Task 3: Verify the complete change
 
@@ -292,45 +298,46 @@ Expected: all six tests pass.
 - Verify: `ghost/core/test/unit/frontend/src/poll.test.js`
 - Verify: `docs/superpowers/specs/2026-07-17-poll-trend-bounds-design.md`
 
-- [ ] **Step 1: Run focused unit coverage**
+- [x] **Step 1: Run focused unit coverage**
 
 ```bash
 cd ghost/core
 pnpm test:single test/unit/frontend/src/poll.test.js
 ```
 
-Expected: six passing tests and zero failures.
+Expected: `12 passing` and zero failures.
 
-- [ ] **Step 2: Lint the touched production and test files**
+- [x] **Step 2: Lint the touched test file and frontend project**
 
 ```bash
 cd ghost/core
-pnpm exec eslint --ignore-path .eslintignore core/frontend/src/cards/js/poll.js
 pnpm exec eslint -c test/.eslintrc.js --ignore-path test/.eslintignore test/unit/frontend/src/poll.test.js
+pnpm lint:frontend
 ```
 
-Expected: both commands exit 0 without lint errors.
+The production file `core/frontend/src/cards/js/poll.js` matches the `.eslintignore` rule `core/frontend/src/**/*.js`, so the repository's project-level `pnpm lint:frontend` script is used for production frontend verification. Expected: both commands exit 0 with zero errors and zero warnings.
 
-- [ ] **Step 3: Build frontend JavaScript assets**
+- [x] **Step 3: Build frontend JavaScript assets**
 
 ```bash
 cd ghost/core
 pnpm build:assets:js
 ```
 
-Expected: exit 0. Do not commit generated/minified output unless it is already tracked and changed by the repository build convention.
+Expected: exit 0. The build reports `tsconfig.json` duplicate `esModuleInterop` key warnings that are unrelated to this diff, and `git status --short` plus `git diff --stat` remain empty afterward with no tracked generated changes.
 
-- [ ] **Step 4: Review invariants and repository diff**
+- [x] **Step 4: Review invariants and repository diff**
 
 ```bash
-git diff --check
+git diff --check origin/master...HEAD
 git diff --stat origin/master...HEAD
+git diff --name-only origin/master...HEAD
 git status --short
 ```
 
-Expected: no whitespace errors; only the design/plan, `poll.js`, and `poll.test.js` are relevant to the fix.
+Expected: no whitespace errors; the focused suite reports `12 passing`; and the range contains exactly four files: the plan, design spec, `poll.js`, and `poll.test.js`.
 
-- [ ] **Step 5: Commit the verified implementation**
+- [x] **Step 5: Commit the verified implementation**
 
 ```bash
 git add docs/superpowers/plans/2026-07-17-poll-trend-bounds.md \
