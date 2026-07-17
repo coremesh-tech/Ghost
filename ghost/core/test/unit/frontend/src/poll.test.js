@@ -57,18 +57,49 @@ describe('frontend/cards/poll', function () {
     };
 
     const assertSeriesStaysWithinSegments = function (data, times, rates) {
-        data.forEach(function (point) {
-            assert.ok(point.value >= 0 && point.value <= 100);
-            let segmentIndex = rates.length - 2;
+        assert.ok(Array.isArray(data) && data.length > 0, 'Expected chart series data to be non-empty');
+        assert.ok(times.length >= 2, 'Expected at least two source timestamps');
+        assert.equal(times.length, rates.length, 'Expected one source rate for every timestamp');
+
+        data.forEach(function (point, pointIndex) {
+            const pointDescription = `point time=${String(point.time)} value=${String(point.value)}`;
+            const sourceTimeBounds = `${times[0]}..${times[times.length - 1]}`;
+
+            assert.ok(Number.isFinite(point.time), `${pointDescription}; expected a finite timestamp within source time bounds ${sourceTimeBounds}`);
+            assert.ok(point.time >= times[0] && point.time <= times[times.length - 1], `${pointDescription}; expected source time bounds ${sourceTimeBounds}`);
+
+            if (pointIndex > 0) {
+                assert.ok(point.time > data[pointIndex - 1].time, `${pointDescription}; expected a timestamp strictly after ${data[pointIndex - 1].time} within source time bounds ${sourceTimeBounds}`);
+            }
+
+            assert.ok(point.value >= 0 && point.value <= 100, `${pointDescription}; expected chart value bounds 0..100`);
+
+            let segmentIndex = -1;
             for (let index = 0; index < times.length - 1; index += 1) {
                 if (point.time >= times[index] && point.time <= times[index + 1]) {
                     segmentIndex = index;
                     break;
                 }
             }
+
+            assert.notEqual(segmentIndex, -1, `${pointDescription}; expected a neighbouring source segment within time bounds ${sourceTimeBounds}`);
             const segmentMin = Math.min(rates[segmentIndex], rates[segmentIndex + 1]);
             const segmentMax = Math.max(rates[segmentIndex], rates[segmentIndex + 1]);
-            assert.ok(point.value >= segmentMin && point.value <= segmentMax);
+            assert.ok(point.value >= segmentMin && point.value <= segmentMax, `${pointDescription}; expected segment value bounds ${segmentMin}..${segmentMax}`);
+        });
+    };
+
+    const assertSeriesPreservesSourcePoints = function (data, times, rates) {
+        assert.ok(Array.isArray(data), 'Expected chart series data before checking source points');
+
+        times.forEach(function (time, index) {
+            const expectedValue = rates[index];
+            const matches = data.filter(function (point) {
+                return point.time === time;
+            });
+
+            assert.equal(matches.length, 1, `Expected source point time=${time} value=${expectedValue} exactly once; found ${matches.length}`);
+            assert.equal(matches[0].value, expectedValue, `Expected source point time=${time} value=${expectedValue}; found value=${matches[0].value}`);
         });
     };
 
@@ -326,19 +357,26 @@ describe('frontend/cards/poll', function () {
         await flushMicrotasks();
 
         const data = chartSeriesData[0];
-        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple);
-        assert.ok(data.length > rates.length);
-        times.forEach(function (time, index) {
-            assert.equal(data.find(function (point) {
-                return point.time === time;
-            }).value, rates[index]);
-        });
+        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple, 'Expected bounded trend data to use LineType.Simple');
+        assert.ok(data.length > rates.length, `Expected smoothed data to contain more than ${rates.length} source points; found ${data.length}`);
+        assertSeriesPreservesSourcePoints(data, times, rates);
         assertSeriesStaysWithinSegments(data, times, rates);
-        assert.ok(data.filter(function (point) {
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesPreservesSourcePoints(chartSeriesData[1], times, inverseRates);
+        assertSeriesStaysWithinSegments(chartSeriesData[1], times, inverseRates);
+
+        const plateauPoints = data.filter(function (point) {
             return point.time >= times[1] && point.time <= times[2];
-        }).every(function (point) {
+        });
+        assert.ok(plateauPoints.length > 0, `Expected lower plateau points between ${times[1]} and ${times[2]}`);
+        assert.ok(plateauPoints.every(function (point) {
             return point.value === 0;
-        }));
+        }), `Expected lower plateau values to stay at 0; found ${plateauPoints.map(function (point) {
+            return `${point.time}:${point.value}`;
+        }).join(', ')}`);
     });
 
     it('keeps smoothed trend data below one hundred across a maximum plateau', async function () {
@@ -350,14 +388,26 @@ describe('frontend/cards/poll', function () {
         await flushMicrotasks();
 
         const data = chartSeriesData[0];
-        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple);
-        assert.ok(data.length > rates.length);
+        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple, 'Expected bounded trend data to use LineType.Simple');
+        assert.ok(data.length > rates.length, `Expected smoothed data to contain more than ${rates.length} source points; found ${data.length}`);
+        assertSeriesPreservesSourcePoints(data, times, rates);
         assertSeriesStaysWithinSegments(data, times, rates);
-        assert.ok(data.filter(function (point) {
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesPreservesSourcePoints(chartSeriesData[1], times, inverseRates);
+        assertSeriesStaysWithinSegments(chartSeriesData[1], times, inverseRates);
+
+        const plateauPoints = data.filter(function (point) {
             return point.time >= times[1] && point.time <= times[2];
-        }).every(function (point) {
+        });
+        assert.ok(plateauPoints.length > 0, `Expected upper plateau points between ${times[1]} and ${times[2]}`);
+        assert.ok(plateauPoints.every(function (point) {
             return point.value === 100;
-        }));
+        }), `Expected upper plateau values to stay at 100; found ${plateauPoints.map(function (point) {
+            return `${point.time}:${point.value}`;
+        }).join(', ')}`);
     });
 
     it('keeps the desktop trend plot at least 60px tall when the legend grows', async function () {
