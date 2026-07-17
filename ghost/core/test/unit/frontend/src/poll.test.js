@@ -72,6 +72,7 @@ describe('frontend/cards/poll', function () {
                 assert.ok(point.time > data[pointIndex - 1].time, `${pointDescription}; expected a timestamp strictly after ${data[pointIndex - 1].time} within source time bounds ${sourceTimeBounds}`);
             }
 
+            assert.ok(Number.isFinite(point.value), `${pointDescription}; expected a finite value within chart bounds 0..100`);
             assert.ok(point.value >= 0 && point.value <= 100, `${pointDescription}; expected chart value bounds 0..100`);
 
             let segmentIndex = -1;
@@ -101,6 +102,18 @@ describe('frontend/cards/poll', function () {
             assert.equal(matches.length, 1, `Expected source point time=${time} value=${expectedValue} exactly once; found ${matches.length}`);
             assert.equal(matches[0].value, expectedValue, `Expected source point time=${time} value=${expectedValue}; found value=${matches[0].value}`);
         });
+    };
+
+    const assertSeriesMatchesContract = function (seriesIndex, times, rates) {
+        const options = chartSeriesOptions[seriesIndex];
+        const data = chartSeriesData[seriesIndex];
+
+        assert.ok(options, `Expected chart options for series ${seriesIndex}`);
+        assert.equal(options.lineType, global.window.LightweightCharts.LineType.Simple, `Expected bounded trend series ${seriesIndex} to use LineType.Simple`);
+        assert.ok(Array.isArray(data), `Expected chart data for series ${seriesIndex}`);
+        assert.ok(data.length > rates.length, `Expected smoothed series ${seriesIndex} to contain more than ${rates.length} source points; found ${data.length}`);
+        assertSeriesPreservesSourcePoints(data, times, rates);
+        assertSeriesStaysWithinSegments(data, times, rates);
     };
 
     beforeEach(function () {
@@ -356,18 +369,13 @@ describe('frontend/cards/poll', function () {
         global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
         await flushMicrotasks();
 
-        const data = chartSeriesData[0];
-        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple, 'Expected bounded trend data to use LineType.Simple');
-        assert.ok(data.length > rates.length, `Expected smoothed data to contain more than ${rates.length} source points; found ${data.length}`);
-        assertSeriesPreservesSourcePoints(data, times, rates);
-        assertSeriesStaysWithinSegments(data, times, rates);
-
         const inverseRates = rates.map(function (rate) {
             return 100 - rate;
         });
-        assertSeriesPreservesSourcePoints(chartSeriesData[1], times, inverseRates);
-        assertSeriesStaysWithinSegments(chartSeriesData[1], times, inverseRates);
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
 
+        const data = chartSeriesData[0];
         const plateauPoints = data.filter(function (point) {
             return point.time >= times[1] && point.time <= times[2];
         });
@@ -387,18 +395,13 @@ describe('frontend/cards/poll', function () {
         global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
         await flushMicrotasks();
 
-        const data = chartSeriesData[0];
-        assert.equal(chartSeriesOptions[0].lineType, global.window.LightweightCharts.LineType.Simple, 'Expected bounded trend data to use LineType.Simple');
-        assert.ok(data.length > rates.length, `Expected smoothed data to contain more than ${rates.length} source points; found ${data.length}`);
-        assertSeriesPreservesSourcePoints(data, times, rates);
-        assertSeriesStaysWithinSegments(data, times, rates);
-
         const inverseRates = rates.map(function (rate) {
             return 100 - rate;
         });
-        assertSeriesPreservesSourcePoints(chartSeriesData[1], times, inverseRates);
-        assertSeriesStaysWithinSegments(chartSeriesData[1], times, inverseRates);
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
 
+        const data = chartSeriesData[0];
         const plateauPoints = data.filter(function (point) {
             return point.time >= times[1] && point.time <= times[2];
         });
