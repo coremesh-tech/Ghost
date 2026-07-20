@@ -132,6 +132,11 @@ module.exports = {
             });
         }
 
+        module.exports.requestIntegrityTokenProvider = new RequestIntegrityTokenProvider({
+            themeSecret: settingsCache.get('theme_session_secret'),
+            tokenDuration: 1000 * 60 * 5
+        });
+
         module.exports.ssr = MembersSSR({
             cookieSecure: urlUtils.isSSL(urlUtils.getSiteUrl()),
             cookieKeys: [settingsCache.get('theme_session_secret')],
@@ -171,6 +176,10 @@ module.exports = {
     },
     contentGating: require('./content-gating'),
 
+    // Create an "all active paid tiers" member shim for rendering gated content
+    // without a logged-in member (post previews, gift-links reader path).
+    createPaidMemberShim: require('./create-paid-member-shim').createPaidMemberShim,
+
     config: membersConfig,
 
     get api() {
@@ -180,10 +189,7 @@ module.exports = {
     ssr: null,
     verificationTrigger: null,
 
-    requestIntegrityTokenProvider: new RequestIntegrityTokenProvider({
-        themeSecret: settingsCache.get('theme_session_secret'),
-        tokenDuration: 1000 * 60 * 5
-    }),
+    requestIntegrityTokenProvider: null,
 
     stripeConnect: require('./stripe-connect'),
 

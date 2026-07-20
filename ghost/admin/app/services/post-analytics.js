@@ -42,6 +42,11 @@ export default class PostAnalyticsService extends Service {
      * @type {Set} Post IDs we've already fetched read counts for
      */
     _fetchedReadCountIds = new Set();
+    /*
+     * @type {number} Bumped by reset() so requests in flight from a previous
+     * filter/view can tell they're stale and skip writing back once they resolve
+     */
+    _generation = 0;
 
     /**
      * Load visitor counts for the given post UUIDs
@@ -67,8 +72,8 @@ export default class PostAnalyticsService extends Service {
         
         // Mark these UUIDs as being fetched
         newUuids.forEach(uuid => this._fetchedUuids.add(uuid));
-        
-        return this._loadVisitorCounts.perform(newUuids);
+
+        return this._loadVisitorCounts.perform(newUuids, this._generation);
     }
 
     /**
@@ -104,8 +109,8 @@ export default class PostAnalyticsService extends Service {
         
         // Mark these post IDs as being fetched
         newPosts.forEach(post => this._fetchedMemberIds.add(post.id));
-        
-        return this._loadMemberCounts.perform(newPosts);
+
+        return this._loadMemberCounts.perform(newPosts, this._generation);
     }
 
     /**
@@ -155,6 +160,7 @@ export default class PostAnalyticsService extends Service {
      * Reset the analytics cache - call this when filters change or on route transitions
      */
     reset() {
+        this._generation += 1;
         this.visitorCounts = {};
         this.memberCounts = {};
         this.readCounts = {};
@@ -164,7 +170,7 @@ export default class PostAnalyticsService extends Service {
     }
 
     @task
-    *_loadVisitorCounts(postUuids) {
+    *_loadVisitorCounts(postUuids, generation) {
         try {
             const statsUrl = this.ghostPaths.url.api('stats/posts-visitor-counts');
             const result = yield this.ajax.request(statsUrl, {
@@ -172,24 +178,33 @@ export default class PostAnalyticsService extends Service {
                 data: JSON.stringify({postUuids}),
                 contentType: 'application/json'
             });
+
+            // A reset() (e.g. filters changed) happened while this request was
+            // in flight - the cache has moved on, so don't write this back
+            if (generation !== this._generation) {
+                return;
+            }
+
             // Parse the nested response structure
             const statsData = result.stats?.[0]?.data?.visitor_counts || {};
-            
+
             // Merge with existing visitor counts instead of replacing
             this.visitorCounts = {
                 ...this.visitorCounts,
                 ...statsData
             };
         } catch (error) {
-            // Rollback: remove failed UUIDs from fetched set to allow retry
-            postUuids.forEach(uuid => this._fetchedUuids.delete(uuid));
-            // Silent failure - visitor counts are not critical
-            this.visitorCounts = this.visitorCounts || {};
+            if (generation === this._generation) {
+                // Rollback: remove failed UUIDs from fetched set to allow retry
+                postUuids.forEach(uuid => this._fetchedUuids.delete(uuid));
+                // Silent failure - visitor counts are not critical
+                this.visitorCounts = this.visitorCounts || {};
+            }
         }
     }
 
     @task
-    *_loadMemberCounts(posts) {
+    *_loadMemberCounts(posts, generation) {
         try {
             const postIds = posts.map(post => post.id);
             const statsUrl = this.ghostPaths.url.api('stats/posts-member-counts');
@@ -198,10 +213,16 @@ export default class PostAnalyticsService extends Service {
                 data: JSON.stringify({postIds}),
                 contentType: 'application/json'
             });
-            
+
+            // A reset() (e.g. filters changed) happened while this request was
+            // in flight - the cache has moved on, so don't write this back
+            if (generation !== this._generation) {
+                return;
+            }
+
             // Parse the nested response structure - similar to visitor counts
             const memberData = result.stats?.[0] || {};
-            
+
             // Convert from post ID -> counts to post UUID -> counts for consistency
             const memberCountsByUuid = {};
             posts.forEach((post) => {
@@ -213,17 +234,19 @@ export default class PostAnalyticsService extends Service {
                     };
                 }
             });
-            
+
             // Merge with existing member counts instead of replacing
             this.memberCounts = {
                 ...this.memberCounts,
                 ...memberCountsByUuid
             };
         } catch (error) {
-            // Rollback: remove failed post IDs from fetched set to allow retry
-            posts.forEach(post => this._fetchedMemberIds.delete(post.id));
-            // Silent failure - member counts are not critical
-            this.memberCounts = this.memberCounts || {};
+            if (generation === this._generation) {
+                // Rollback: remove failed post IDs from fetched set to allow retry
+                posts.forEach(post => this._fetchedMemberIds.delete(post.id));
+                // Silent failure - member counts are not critical
+                this.memberCounts = this.memberCounts || {};
+            }
         }
     }
 

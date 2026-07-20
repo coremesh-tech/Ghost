@@ -12,6 +12,7 @@ const subscribeEmail = require('./emails/subscribe');
 const updateEmail = require('./emails/update-email');
 const SingleUseTokenProvider = require('./single-use-token-provider');
 const urlUtils = require('../../../shared/url-utils');
+const urlService = require('../url');
 const labsService = require('../../../shared/labs');
 const offersService = require('../offers');
 const tiersService = require('../tiers');
@@ -21,6 +22,7 @@ const emailSuppressionList = require('../email-suppression-list');
 const commentsService = require('../comments');
 const emailAddressService = require('../email-address');
 const giftService = require('../gifts');
+const customFieldsService = require('../members-custom-fields');
 const {t} = require('../i18n');
 const sentry = require('../../../shared/sentry');
 
@@ -52,6 +54,7 @@ function trimLeadingWhitespace(strings, ...values) {
 
 function createApiInstance(config) {
     const membersApiInstance = MembersApi({
+        urlService: urlService.facade,
         tokenConfig: config.getTokenConfig(),
         auth: {
             getSigninURL: config.getSigninURL.bind(config),
@@ -170,7 +173,6 @@ function createApiInstance(config) {
                         `;
                 case 'signin':
                 default:
-                    /* eslint-disable indent */
                     return trimLeadingWhitespace`
                         ${t(`Hey there,`)}
 
@@ -190,7 +192,6 @@ function createApiInstance(config) {
                         ${t('Sent to {email}', {email})}
                         ${t('If you did not make this request, you can safely ignore this email.')}
                     `;
-                    /* eslint-enable indent */
                 }
             },
             getHTML(url, type, email, otc) {
@@ -241,7 +242,6 @@ function createApiInstance(config) {
             Comment: models.Comment,
             MemberFeedback: models.MemberFeedback,
             EmailSpamComplaintEvent: models.EmailSpamComplaintEvent,
-            Outbox: models.Outbox,
             Automation: models.Automation,
             WelcomeEmailAutomationRun: models.WelcomeEmailAutomationRun,
             AutomatedEmailRecipient: models.AutomatedEmailRecipient,
@@ -260,7 +260,8 @@ function createApiInstance(config) {
         urlUtils,
         commentsService,
         emailAddressService: emailAddressService.service,
-        giftService
+        giftService,
+        customFieldsService
     });
 
     return membersApiInstance;

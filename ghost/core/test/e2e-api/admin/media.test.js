@@ -14,13 +14,13 @@ describe('Media API', function () {
     const media = [];
     let request;
 
-    before(async function () {
+    beforeAll(async function () {
         await localUtils.startGhost();
         request = supertest.agent(config.get('url'));
         await localUtils.doAuth(request);
     });
 
-    after(function () {
+    afterAll(function () {
         media.forEach(function (image) {
             fs.removeSync(config.get('paths').appRoot + image);
         });
@@ -175,7 +175,7 @@ describe('Media API', function () {
         });
 
         it('Rejects non-media file type', async function () {
-            const loggingStub = sinon.stub(logging, 'error');
+            const loggingStub = sinon.stub(logging, 'warn');
             const res = await request.post(localUtils.API.getApiQuery('media/upload'))
                 .set('Origin', config.get('url'))
                 .expect('Content-Type', /json/)

@@ -227,6 +227,70 @@ describe('EventRepository', function () {
         });
     });
 
+    describe('attribution event queries', function () {
+        // The lazy URL service needs the attributed post's relations to
+        // build its URL; a bare postAttribution row is rejected as thin.
+        function makeRepository(modelName, requiredRelations = ['tags', 'authors']) {
+            const fake = sinon.fake.resolves({data: [], meta: {}});
+            const eventRepository = new EventRepository({
+                EmailRecipient: null,
+                MemberSubscribeEvent: null,
+                MemberPaymentEvent: null,
+                MemberStatusEvent: null,
+                MemberLoginEvent: null,
+                MemberPaidSubscriptionEvent: null,
+                labsService: null,
+                urlService: {getRequiredRelations: () => requiredRelations},
+                [modelName]: {findPage: fake}
+            });
+            return {eventRepository, fake};
+        }
+
+        it('getSignupEvents loads the attributed post relations', async function () {
+            const {eventRepository, fake} = makeRepository('MemberCreatedEvent');
+
+            await eventRepository.getSignupEvents({}, {});
+
+            sinon.assert.calledOnceWithMatch(fake, {
+                withRelated: sinon.match.array.contains(['postAttribution', 'postAttribution.tags', 'postAttribution.authors'])
+            });
+        });
+
+        it('getDonationEvents loads the attributed post relations', async function () {
+            const {eventRepository, fake} = makeRepository('DonationPaymentEvent');
+
+            await eventRepository.getDonationEvents({}, {});
+
+            sinon.assert.calledOnceWithMatch(fake, {
+                withRelated: sinon.match.array.contains(['postAttribution', 'postAttribution.tags', 'postAttribution.authors'])
+            });
+        });
+
+        it('getSubscriptionEvents loads the attributed post relations', async function () {
+            const {eventRepository, fake} = makeRepository('MemberPaidSubscriptionEvent');
+
+            await eventRepository.getSubscriptionEvents({}, {});
+
+            sinon.assert.calledOnceWithMatch(fake, {
+                withRelated: sinon.match.array.contains([
+                    'subscriptionCreatedEvent.postAttribution',
+                    'subscriptionCreatedEvent.postAttribution.tags',
+                    'subscriptionCreatedEvent.postAttribution.authors'
+                ])
+            });
+        });
+
+        it('loads no extra relations when the URL service requires none', async function () {
+            const {eventRepository, fake} = makeRepository('MemberCreatedEvent', []);
+
+            await eventRepository.getSignupEvents({}, {});
+
+            const withRelated = fake.getCall(0).args[0].withRelated;
+            assert.ok(!withRelated.includes('postAttribution.tags'));
+            assert.ok(withRelated.includes('postAttribution'));
+        });
+    });
+
     describe('getEmailFailedEvents', function () {
         let eventRepository;
         let fake;
@@ -298,10 +362,22 @@ describe('EventRepository', function () {
     describe('getAutomatedEmailSentEvents', function () {
         let eventRepository;
         let fake;
+        let fakeKnex;
+        let models;
+        let automationActionRevisionSubject;
 
-        beforeAll(function () {
-            fake = sinon.fake.returns({data: [{
+        const makeAutomatedEmailRecipient = ({
+            automatedEmailId = 'ae123',
+            automationActionRevisionId = null
+        } = {}) => {
+            return {
                 get: (key) => {
+                    if (key === 'automated_email_id') {
+                        return automatedEmailId;
+                    }
+                    if (key === 'automation_action_revision_id') {
+                        return automationActionRevisionId;
+                    }
                     if (key === 'member_id') {
                         return '123';
                     }
@@ -313,22 +389,46 @@ describe('EventRepository', function () {
                     if (relation === 'member') {
                         return {toJSON: () => ({id: '123', email: 'test@example.com'})};
                     }
-                    if (relation === 'automatedEmail') {
-                        return {
-                            id: 'ae123',
-                            related: (rel) => {
-                                if (rel === 'automation') {
-                                    return {
-                                        id: 'auto123',
-                                        get: key => (key === 'slug' ? 'member-welcome-email-free' : undefined)
-                                    };
-                                }
-                            }
-                        };
-                    }
                 },
                 id: 'aer123'
-            }]});
+            };
+        };
+
+        beforeAll(function () {
+            models = [makeAutomatedEmailRecipient()];
+            automationActionRevisionSubject = 'Here is how to get started';
+            fake = sinon.fake(() => ({data: models}));
+            fakeKnex = sinon.fake((tableName) => {
+                return {
+                    select() {
+                        return this;
+                    },
+                    innerJoin() {
+                        return this;
+                    },
+                    whereIn(_column, ids) {
+                        if (tableName === 'welcome_email_automated_emails as email') {
+                            return [{
+                                id: ids[0],
+                                slug: 'member-welcome-email-free',
+                                name: 'Free member welcome flow',
+                                subject: 'Welcome to the free tier'
+                            }];
+                        }
+
+                        if (tableName === 'automation_action_revisions as revision') {
+                            return [{
+                                id: ids[0],
+                                slug: 'member-welcome-email-free',
+                                name: 'New member onboarding',
+                                subject: automationActionRevisionSubject
+                            }];
+                        }
+
+                        return [];
+                    }
+                };
+            });
             eventRepository = new EventRepository({
                 EmailRecipient: null,
                 MemberSubscribeEvent: null,
@@ -341,10 +441,14 @@ describe('EventRepository', function () {
                     findPage: fake
                 }
             });
+            eventRepository._knex = fakeKnex;
         });
 
         afterEach(function () {
+            models = [makeAutomatedEmailRecipient()];
+            automationActionRevisionSubject = 'Here is how to get started';
             fake.resetHistory();
+            fakeKnex.resetHistory();
         });
 
         it('works when setting no filters', async function () {
@@ -356,7 +460,7 @@ describe('EventRepository', function () {
             });
 
             sinon.assert.calledOnceWithMatch(fake, {
-                withRelated: ['member', 'automatedEmail.automation'],
+                withRelated: ['member'],
                 filter: 'custom:true',
                 order: 'created_at desc, id desc'
             });
@@ -370,7 +474,7 @@ describe('EventRepository', function () {
             });
 
             sinon.assert.calledOnceWithMatch(fake, {
-                withRelated: ['member', 'automatedEmail.automation'],
+                withRelated: ['member'],
                 filter: 'custom:true',
                 order: 'created_at desc, id desc'
             });
@@ -385,7 +489,7 @@ describe('EventRepository', function () {
             });
 
             sinon.assert.calledOnceWithMatch(fake, {
-                withRelated: ['member', 'automatedEmail.automation'],
+                withRelated: ['member'],
                 filter: 'custom:true',
                 order: 'created_at desc, id desc'
             });
@@ -406,10 +510,60 @@ describe('EventRepository', function () {
                     member: {id: '123', email: 'test@example.com'},
                     automatedEmail: {
                         id: 'ae123',
-                        slug: 'member-welcome-email-free'
+                        source: 'automated_email',
+                        slug: 'member-welcome-email-free',
+                        name: 'Free member welcome flow',
+                        subject: 'Welcome to the free tier'
                     }
                 }
             });
+        });
+
+        it('returns correctly formatted automated_email_sent_event for automation action revision rows', async function () {
+            models = [makeAutomatedEmailRecipient({
+                automatedEmailId: null,
+                automationActionRevisionId: 'aar123'
+            })];
+
+            const result = await eventRepository.getAutomatedEmailSentEvents({
+                order: 'created_at desc, id desc'
+            }, {});
+
+            assert.equal(result.data.length, 1);
+            assert.deepEqual(result.data[0], {
+                type: 'automated_email_sent_event',
+                data: {
+                    id: 'aer123',
+                    member_id: '123',
+                    created_at: new Date('2024-01-01'),
+                    member: {id: '123', email: 'test@example.com'},
+                    automatedEmail: {
+                        id: 'aar123',
+                        source: 'automation_action_revision',
+                        slug: 'member-welcome-email-free',
+                        name: 'New member onboarding',
+                        subject: 'Here is how to get started'
+                    }
+                }
+            });
+        });
+
+        it('throws when an automation action revision row has no subject', async function () {
+            models = [makeAutomatedEmailRecipient({
+                automatedEmailId: null,
+                automationActionRevisionId: 'aar123'
+            })];
+            automationActionRevisionSubject = null;
+
+            await assert.rejects(
+                () => eventRepository.getAutomatedEmailSentEvents({
+                    order: 'created_at desc, id desc'
+                }, {}),
+                {
+                    name: 'InternalServerError',
+                    message: 'Automated email recipient aer123 has no associated automation email subject'
+                }
+            );
         });
     });
 

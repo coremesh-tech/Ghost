@@ -8,28 +8,22 @@ import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
 
 const INJECTED_CSS = `
-html::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    background: transparent
-}
 html {
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+html::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+html::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
 }
 `;
-
-const FREE_SEGMENT = 'status:free';
-const PAID_SEGMENT = 'status:-free';
-
-const SEGMENT_OPTIONS = [{
-    name: 'Free member',
-    value: FREE_SEGMENT,
-    alias: 'free'
-}, {
-    name: 'Paid member',
-    value: PAID_SEGMENT,
-    alias: 'paid'
-}];
 
 // TODO: remove duplication with <ModalPostEmailPreview>
 export default class ModalPostPreviewEmailComponent extends Component {
@@ -49,8 +43,6 @@ export default class ModalPostPreviewEmailComponent extends Component {
     @tracked newsletter = this.args.post.newsletter || this.args.newsletter;
     @tracked newslettersList;
 
-    segments = SEGMENT_OPTIONS;
-
     constructor() {
         super(...arguments);
         this.loadNewslettersTask.perform();
@@ -61,8 +53,20 @@ export default class ModalPostPreviewEmailComponent extends Component {
             !!(this.settings.mailgunApiKey && this.settings.mailgunDomain && this.settings.mailgunBaseUrl);
     }
 
-    get selectedSegment() {
-        return this.segments.find(segment => segment.alias === this.args.memberSegment);
+    // older backends only understand the deprecated memberSegment param;
+    // remove the legacy branch when the previewByTier flag is GA
+    get _audienceParams() {
+        const {memberStatus, memberTier} = this.args;
+
+        if (!this.feature.previewByTier) {
+            return {memberSegment: memberStatus === 'paid' ? 'status:-free' : 'status:free'};
+        }
+
+        const params = {member_status: memberStatus};
+        if (memberTier) {
+            params.member_tier = memberTier;
+        }
+        return params;
     }
 
     @action
@@ -80,12 +84,28 @@ export default class ModalPostPreviewEmailComponent extends Component {
         }
     }
 
+    @action
+    focusPreviewFrame(event) {
+        const iframe = event?.target;
+        const body = iframe?.contentDocument?.body;
+
+        if (!body) {
+            iframe?.contentWindow?.focus();
+            return;
+        }
+
+        if (!body.hasAttribute('tabindex')) {
+            body.setAttribute('tabindex', '-1');
+        }
+
+        body.focus({preventScroll: true});
+    }
+
     @task({drop: true})
     *sendPreviewEmailTask() {
         try {
             const resourceId = this.args.post.id;
             const testEmail = this.previewEmailAddress.trim();
-            const memberSegment = this.selectedSegment.value;
 
             if (!validator.isEmail(testEmail)) {
                 this.sendPreviewEmailError = 'Please enter a valid email';
@@ -98,7 +118,7 @@ export default class ModalPostPreviewEmailComponent extends Component {
             this.sendPreviewEmailError = '';
 
             const url = this.ghostPaths.url.api('/email_previews/posts', resourceId);
-            const data = {emails: [testEmail], memberSegment, newsletter: this.newsletter.slug};
+            const data = {emails: [testEmail], newsletter: this.newsletter.slug, ...this._audienceParams};
             const options = {
                 data,
                 dataType: 'json'
@@ -126,13 +146,14 @@ export default class ModalPostPreviewEmailComponent extends Component {
     async _fetchEmailData() {
         let {html, subject, newsletter} = this;
         let {post} = this.args;
-        const memberSegment = this.selectedSegment.value;
+        const {memberStatus, memberTier} = this.args;
 
-        if (html && subject && memberSegment === this._lastMemberSegment && newsletter.slug === this._lastNewsletterSlug) {
+        if (html && subject && memberStatus === this._lastMemberStatus && memberTier === this._lastMemberTier && newsletter.slug === this._lastNewsletterSlug) {
             return {html, subject};
         }
 
-        this._lastMemberSegment = memberSegment;
+        this._lastMemberStatus = memberStatus;
+        this._lastMemberTier = memberTier;
         this._lastNewsletterSlug = newsletter.slug;
 
         // model is an email
@@ -146,7 +167,9 @@ export default class ModalPostPreviewEmailComponent extends Component {
         // model is a post, fetch email preview
         } else {
             let url = new URL(this.ghostPaths.url.api('/email_previews/posts', post.id), window.location.href);
-            url.searchParams.set('memberSegment', memberSegment);
+            for (const [param, value] of Object.entries(this._audienceParams)) {
+                url.searchParams.set(param, value);
+            }
             url.searchParams.set('newsletter', this.newsletter.slug);
 
             let response = await this.ajax.request(url.href);
@@ -155,7 +178,7 @@ export default class ModalPostPreviewEmailComponent extends Component {
             subject = emailPreview.subject;
         }
 
-        // inject extra CSS into the html for disabling links and scrollbars etc
+        // inject extra CSS so the preview behaves consistently inside the iframe
         let domParser = new DOMParser();
         let htmlDoc = domParser.parseFromString(html, 'text/html');
         let stylesheet = htmlDoc.querySelector('style');

@@ -10,21 +10,20 @@ Shared dependency versions are pinned in `pnpm-workspace.yaml` under `catalog:` 
 
 ## Monorepo Structure
 
-Ghost is a pnpm + Nx monorepo with three workspace groups:
+Ghost is a pnpm + Nx monorepo with four workspace groups:
 
 ### ghost/* - Core Ghost packages
 - **ghost/core** - Main Ghost application (Node.js/Express backend)
   - Core server: `ghost/core/core/server/`
   - Frontend rendering: `ghost/core/core/frontend/`
 - **ghost/admin** - Ember.js admin client (legacy, being migrated to React)
-- **ghost/i18n** - Centralized internationalization for all apps
 
 ### apps/* - React-based UI applications
 Two categories of apps:
 
 **Admin Apps** (embedded in Ghost Admin):
-- `admin-x-settings`, `admin-x-activitypub` - Settings and integrations
-- `posts`, `stats` - Post analytics and site-wide analytics
+- `admin` - The consolidated React admin shell, organized by domain (`src/{analytics,members,posts,tags,comments,automations,...}`)
+- `admin-x-settings`, `activitypub` - Settings and ActivityPub integration (route-composed into `admin`)
 - Built with Vite + React + `@tanstack/react-query`
 
 **Public Apps** (served to site visitors):
@@ -36,6 +35,57 @@ Two categories of apps:
 - `admin-x-design-system` - Legacy design system (being phased out)
 - `shade` - New design system (shadcn/ui + Radix UI + react-hook-form + zod)
 
+### koenig/* - Ghost editor (Koenig) packages
+Merged from the former TryGhost/Koenig repo with full git history:
+
+- **koenig-lexical** - The Lexical-based rich text editor UI. Bundled into
+  Ghost Admin at build time (`ghost/admin` copies its UMD build into admin
+  assets; `apps/admin` imports it directly)
+- **kg-*** - Editor support packages: server-side renderers and converters
+  consumed by `ghost/core` (kg-default-nodes, kg-lexical-html-renderer,
+  kg-html-to-lexical, ...) plus frontend helpers (kg-unsplash-selector)
+
+All Koenig packages resolve via `workspace:` — nothing in dev, CI, or the
+release archive installs them from npm. They are published to npm for
+external consumers only, automatically as part of the Ghost release lane
+(see `publish_koenig_packages` in ci.yml).
+
+**Zero-build dev via the `source` export condition.** The `kg-*` libraries
+consumed by `ghost/core` (and `packages/parse-email-address`) declare a `source`
+condition in their `package.json` `exports` that points at the raw
+`src/*.ts`, listed *before* `types`/`import`/`require`:
+
+```jsonc
+".": {
+  "source": "./src/index.ts",     // dev/test: read raw TS
+  "types": "./build/esm/index.d.ts",
+  "import": "./build/esm/index.js",
+  "require": "./build/cjs/index.js" // prod/published: compiled JS
+}
+```
+
+`ghost/core`'s dev runner (`nodemon.json`: `node --conditions=source --import=tsx`)
+and its Vitest configs (`resolve.conditions: ['source', 'node']` +
+`--import tsx --conditions=source`) activate this condition, so a source change
+in a `kg-*` package is picked up with **no `tsc` rebuild**. Production and the
+published npm tarball run plain `node`, which ignores `source` and uses
+`build/` — and `src/` is excluded from each package's `files` array, so it is
+never shipped. When adding a new backend-consumed TS workspace package, copy
+this `exports` shape (see `packages/parse-email-address`) so it works build-free
+in dev from day one; keep the `^build` graph for `tsc`/type-checking and prod.
+
+### packages/* - Shared workspace libraries
+Backend and shared libraries consumed via `workspace:` — not published to npm:
+
+- **i18n** - Centralized internationalization for all apps
+- **parse-email-address** - Email address parsing (see the `source` export
+  condition above)
+- **adapters/** - Adapter base classes (`adapter-base-*`: scheduling, storage,
+  SSO, redirects, route settings)
+- **custom-field-types**, **testing** - Shared field-type definitions and test
+  helpers
+- **_template** - Scaffold for new packages; excluded from the workspace
+
 ### e2e/ - End-to-end tests
 - Playwright-based E2E tests with Docker container isolation
 - See `e2e/CLAUDE.md` for detailed testing guidance
@@ -45,9 +95,11 @@ Two categories of apps:
 ### Development
 ```bash
 corepack enable pnpm           # Enable corepack to use the correct pnpm version
-pnpm run setup                 # First-time setup (installs deps + submodules)
+pnpm run setup                 # First-time setup (installs deps + submodules + builds workspace packages)
 pnpm dev                       # Start development (Docker backend + host frontend dev servers)
 ```
+
+> **Fresh worktree / first run — run `pnpm setup` before anything else.** It installs deps and syncs submodules. `pnpm fix` does a clean reinstall if anything misbehaves after a branch switch.
 
 ### Building
 ```bash
@@ -66,15 +118,23 @@ cd ghost/core
 pnpm test:unit                 # Unit tests only (Vitest, run once)
 pnpm test:watch                # Watch mode — ghost/core unit tests only
 pnpm test:integration          # Integration tests
-pnpm test:e2e                  # E2E API tests (not browser)
+pnpm test:e2e                  # Server-side e2e suites (webhooks/server/frontend/api) — not browser
 pnpm test:all                  # All test types
+
+# These run on sqlite with no extra services. The Redis/MinIO/S3 adapter suites
+# probe for their service and auto-skip when it's down (run `pnpm dev:storage`
+# etc. to exercise them); they always run in CI, which starts the services.
 
 # E2E browser tests (from root)
 pnpm test:e2e                  # Run e2e/ Playwright tests
 
 # Running a single test
 cd ghost/core
-pnpm test:single test/unit/path/to/test.test.js
+pnpm test:single test/unit/path/to/test.test.js   # routes test/unit/* → unit config, test/* → DB config
+
+# Watch a single DB-backed file (integration/e2e) — the default test:watch only
+# covers unit tests, so point it at the DB config explicitly:
+pnpm exec vitest -c vitest.config.db.ts test/integration/path/to/test.test.js
 ```
 
 ### Linting
@@ -107,19 +167,30 @@ The `pnpm dev` command uses a **hybrid Docker + host development** setup:
 - MySQL, Redis, Mailpit
 - Caddy gateway/reverse proxy
 
-**What runs on host:**
-- Frontend dev servers (Admin, Portal, Comments UI, etc.) in watch mode with HMR
-- Foundation libraries (shade, admin-x-framework, etc.)
+**What runs on host by default:**
+- Admin, legacy Ember admin, Portal, and foundation library dev watchers
+- Optional public UMD app watchers can be added when needed
 
 **Setup:**
 ```bash
-# Start everything (Docker + frontend dev servers)
+# Start Ghost backend, Admin, Portal, and Docker services
 pnpm dev
+
+# Add optional public apps (comments-ui, sodo-search, signup-form, admin-toolbar)
+pnpm dev:public
+
+# Develop the Koenig editor against Ghost Admin (adds a koenig-lexical rebuild
+# watcher + preview server; Admin loads the editor from your local build)
+pnpm dev:lexical
 
 # With optional services (uses Docker Compose file composition)
 pnpm dev:analytics             # Include Tinybird analytics
 pnpm dev:storage               # Include MinIO S3-compatible object storage
-pnpm dev:all                   # Include all optional services
+pnpm dev:stripe                # Include Stripe webhook forwarding
+pnpm dev:full                  # Include analytics, storage, Stripe, and public app watchers
+
+# Everything available
+pnpm dev:all                   #
 ```
 
 **Accessing Services:**
@@ -154,10 +225,10 @@ pnpm dev:all                   # Include all optional services
 ### i18n Architecture
 
 **Centralized Translations:**
-- Single source: `ghost/i18n/locales/{locale}/{namespace}.json`
+- Single source: `packages/i18n/locales/{locale}/{namespace}.json`
 - Namespaces: `ghost`, `portal`, `signup-form`, `comments`, `search`
 - 60+ supported locales
-- Context descriptions: `ghost/i18n/locales/context.json` — every key must have a non-empty description
+- Context descriptions: `packages/i18n/locales/context.json` — every key must have a non-empty description
 
 **Translation Workflow:**
 ```bash
@@ -204,12 +275,12 @@ Critical build order (Nx handles automatically):
 
 ### TailwindCSS v4 Setup
 
-Ghost Admin uses **TailwindCSS v4** via the `@tailwindcss/vite` plugin. CSS processing is centralized — only `apps/admin/vite.config.ts` loads the `@tailwindcss/vite` plugin. All embedded React apps (posts, stats, activitypub, admin-x-settings, admin-x-design-system) are scanned from this single entry point.
+Ghost Admin uses **TailwindCSS v4** via the `@tailwindcss/vite` plugin. CSS processing is centralized — only `apps/admin/vite.config.ts` loads the `@tailwindcss/vite` plugin. All embedded React apps (activitypub, admin-x-settings, admin-x-design-system) are scanned from this single entry point.
 
 ### Entry Point
 
 `apps/admin/src/index.css` is the main CSS entry point. It contains:
-- `@source` directives that scan class usage in shade, posts, stats, activitypub, admin-x-settings, admin-x-design-system, and kg-unsplash-selector
+- `@source` directives that scan class usage in shade, activitypub, admin-x-settings, admin-x-design-system, and kg-unsplash-selector
 - `@import "@tryghost/shade/styles.css"` which loads the Shade design system styles
 
 ### Shade Styles
@@ -229,7 +300,7 @@ Theme tokens/variants/animations are defined in CSS (`apps/shade/tailwind.theme.
 
 ### Critical Rule: Embedded Apps Must NOT Import Shade Independently
 
-Apps consumed via `@source` (posts, stats, activitypub) must **NOT** import `@tryghost/shade/styles.css` in their own CSS. Doing so causes duplicate Tailwind utilities and cascade conflicts. All Tailwind CSS is generated once via the admin entry point.
+Apps consumed via `@source` (activitypub, admin-x-settings) must **NOT** import `@tryghost/shade/styles.css` in their own CSS. Doing so causes duplicate Tailwind utilities and cascade conflicts. All Tailwind CSS is generated once via the admin entry point.
 
 ### Public Apps
 
@@ -244,11 +315,33 @@ Public-facing apps (`comments-ui`, `signup-form`, `sodo-search`, `portal`, `anno
 ### Commit Messages
 When the user asks you to create a commit or draft a commit message, load and follow the `commit` skill from `.agents/skills/commit`.
 
+### ESLint Config
+Source of truth: two internal config packages — [`@internal/cfg-eslint`](configs/eslint/index.mjs) (shared rule atoms + the `nodeLibConfig` factory for Node libs) and [`@internal/cfg-eslint-react`](configs/eslint-react/index.mjs) (the `reactAppConfig` factory for every `apps/*` workspace). Both factories are synchronous and have full JSDoc with `@example`s; hover the call site in your editor. Consume them by name — declare the package as a `workspace:*` devDependency.
+
+Minimal example for a new admin React app (`apps/new-feature/eslint.config.js`):
+
+```js
+import {reactAppConfig} from '@internal/cfg-eslint-react';
+export default reactAppConfig({
+    tailwindCssPath: `${import.meta.dirname}/../admin/src/index.css`,
+    shadeRestricted: true
+});
+```
+
+Conventions:
+- **Rules are `'error'` or `'off'` — never `'warn'`.** Warnings get ignored and pollute output. Applies to every workspace covered by the factories above + the standalones; `e2e/` has its own setup (see [e2e/CLAUDE.md](e2e/CLAUDE.md)) and currently still uses warn-level Playwright rules — a separate cleanup.
+- **Params prefixed `legacy*`** (`legacyTailwindV3ConfigPath`, `legacyJsTsSplit`) are escape hatches for migrations that haven't shipped yet. Intentional and visible — PRs to remove them are scoped.
+- **Standalone configs** (`ghost/core`, `ghost/admin`, `apps/admin`, `apps/admin-toolbar`) exist because their rule sets genuinely don't fit a factory — read the file directly. They import shared atoms (`correctnessRules`, `nodeLibRules`, `localFilenamesPlugin`, `strictLinterOptions`) from `@internal/cfg-eslint`.
+- **Plugin deps**: a workspace must declare every eslint plugin its config resolves. Two cases:
+  - *Factory consumers* only import a factory, which supplies its plugins as objects from the config package — so they need just the config package (`@internal/cfg-eslint` / `@internal/cfg-eslint-react`) as a `workspace:*` devDependency, not the individual plugins.
+  - *Hand-rolled configs* (the standalones above, plus the inline configs in `koenig/kg-*` and `e2e/`) `import` plugins directly, so each must list those plugins in its own `devDependencies` — most commonly `eslint-plugin-ghost: catalog:`. Don't rely on the root hoisting a plugin for you; there are no eslint plugins left in the root `package.json` (only `eslint` itself and `globals`, which the root config uses).
+  - Exception: Tailwind — a workspace that uses it must list `tailwindcss` as its own (dev)Dependency regardless (the settings-based resolver requires it locally), and the legacy v3 apps pin `eslint-plugin-tailwindcss` via `catalog:tailwind3`.
+
 ### When Working on Admin UI
-- **New features:** Build in React (`apps/admin-x-*` or `apps/posts`)
+- **New features:** Build in React in `apps/admin` (domain folders under `src/`)
 - **Use:** `admin-x-framework` for API hooks (`useBrowse`, `useEdit`, etc.)
 - **Use:** `shade` design system for new components (not admin-x-design-system)
-- **Translations:** Add to `ghost/i18n/locales/en/ghost.json`
+- **Translations:** Add to `packages/i18n/locales/en/ghost.json`
 
 ### When Working on Public UI
 - **Edit:** `apps/portal`, `apps/comments-ui`, etc.

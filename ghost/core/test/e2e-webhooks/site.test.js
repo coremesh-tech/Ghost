@@ -1,17 +1,18 @@
-const {agentProvider, mockManager, fixtureManager, matchers} = require('../utils/e2e-framework');
+const {agentProvider, mockManager, fixtureManager, dbUtils, matchers} = require('../utils/e2e-framework');
 const {anyGhostAgent, anyContentVersion, anyContentLength} = matchers;
 
 describe('site.* events', function () {
     let adminAPIAgent;
     let webhookMockReceiver;
 
-    before(async function () {
+    beforeAll(async function () {
         adminAPIAgent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init('integrations');
         await adminAPIAgent.loginAsOwner();
     });
 
-    beforeEach(function () {
+    beforeEach(async function () {
+        await dbUtils.truncate('webhooks');
         webhookMockReceiver = mockManager.mockWebhookRequests();
     });
 
@@ -33,7 +34,7 @@ describe('site.* events', function () {
                 posts: [{
                     title: 'webhookz',
                     status: 'published',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -68,7 +69,7 @@ describe('site.* events', function () {
                 posts: [{
                     title: 'webhookz',
                     status: 'published',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -108,7 +109,7 @@ describe('site.* events', function () {
                 posts: [{
                     title: 'webhookz',
                     status: 'published',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -138,7 +139,7 @@ describe('site.* events', function () {
                 posts: [{
                     title: 'webhookz',
                     status: 'draft',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -172,13 +173,18 @@ describe('site.* events', function () {
             url: webhookURL
         });
 
+        mockManager.mockLimitService('customIntegrations', {
+            isLimited: true,
+            wouldGoOverLimit: true
+        });
+
         await adminAPIAgent
             .post('posts/')
             .body({
                 posts: [{
                     title: 'bulk draft webhookz',
                     status: 'draft',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -211,7 +217,7 @@ describe('site.* events', function () {
                 posts: [{
                     title: 'published webhookz',
                     status: 'published',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -238,7 +244,7 @@ describe('site.* events', function () {
                 pages: [{
                     title: 'draft page webhookz',
                     status: 'draft',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -272,13 +278,18 @@ describe('site.* events', function () {
             url: webhookURL
         });
 
+        mockManager.mockLimitService('customIntegrations', {
+            isLimited: true,
+            wouldGoOverLimit: true
+        });
+
         await adminAPIAgent
             .post('pages/')
             .body({
                 pages: [{
                     title: 'bulk draft page webhookz',
                     status: 'draft',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);
@@ -311,7 +322,7 @@ describe('site.* events', function () {
                 pages: [{
                     title: 'published page webhookz',
                     status: 'published',
-                    mobiledoc: fixtureManager.get('posts', 1).mobiledoc
+                    lexical: fixtureManager.get('posts', 1).lexical
                 }]
             })
             .expectStatus(201);

@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import windowProxy from 'ghost-admin/utils/window-proxy';
 import {authenticateSession, invalidateSession} from 'ember-simple-auth/test-support';
 import {beforeEach, describe, it} from 'mocha';
-import {blur, click, currentURL, fillIn, find, findAll, triggerEvent, triggerKeyEvent, visit} from '@ember/test-helpers';
+import {blur, click, currentURL, fillIn, find, findAll, settled, triggerEvent, triggerKeyEvent, visit} from '@ember/test-helpers';
 import {clickTrigger, selectChoose, selectSearch} from 'ember-power-select/test-support/helpers';
 import {expect} from 'chai';
 import {setupApplicationTest} from 'ember-mocha';
@@ -281,6 +281,61 @@ describe('Acceptance: Posts / Pages', function () {
                     expect(findAll('[data-test-post-id]').length, 'editor count').to.equal(1);
                 });
 
+                it('loads authors lazily and searches via the API', async function () {
+                    this.server.createList('user', 120);
+                    const zed = this.server.create('user', {name: 'Zed Zeta', slug: 'zed-zeta'});
+
+                    const userRequests = () => this.server.pretender.handledRequests
+                        .filter(r => r.method === 'GET' && r.url.includes('/users/') && !r.url.includes('/users/me'));
+
+                    await visit('/posts');
+
+                    // authors are no longer loaded up-front
+                    expect(userRequests().length, 'user requests before opening author filter').to.equal(0);
+
+                    await clickTrigger('[data-test-author-select]');
+
+                    // opening the dropdown loads the first page of authors
+                    expect(userRequests().length, 'user requests after opening author filter').to.equal(1);
+                    expect(userRequests()[0].queryParams.limit, 'author request limit').to.equal('100');
+
+                    // vertical-collection only renders visible options so we can't
+                    // assert on the full "All authors" + 100 page-1 authors count
+                    let options = findAll('.ember-power-select-option');
+                    expect(options.length, 'options count').to.be.greaterThan(10);
+                    expect(options[0].textContent.trim()).to.equal('All authors');
+
+                    // searching queries the API rather than filtering the loaded page
+                    await selectSearch('[data-test-author-select]', 'zed');
+
+                    options = findAll('.ember-power-select-option');
+                    expect(options.length, 'search result count').to.equal(1);
+                    expect(options[0].textContent.trim()).to.equal('Zed Zeta');
+
+                    await selectChoose('[data-test-author-select]', 'Zed Zeta');
+
+                    const postsRequests = this.server.pretender.handledRequests.filter(r => r.url.includes('/posts/') && r.method === 'GET');
+                    const lastPostsRequest = postsRequests[postsRequests.length - 1];
+                    expect(lastPostsRequest.queryParams.allFilter, '"author" request filter param')
+                        .to.have.string(`authors:${zed.slug}`);
+                });
+
+                it('resolves the author filter from a query param without loading all users', async function () {
+                    this.server.createList('user', 120);
+                    const author = this.server.create('user', {name: 'Filtered Author', slug: 'filtered-author'});
+                    this.server.create('post', {authors: [author], status: 'published', title: 'Filtered Author Post'});
+
+                    await visit('/posts?author=filtered-author');
+
+                    const userBrowseRequests = this.server.pretender.handledRequests
+                        .filter(r => r.method === 'GET' && /\/users\/\?/.test(r.url));
+                    expect(userBrowseRequests.length, 'user browse requests').to.equal(0);
+
+                    expect(find('[data-test-author-select]').textContent, 'author filter trigger')
+                        .to.have.string('Filtered Author');
+                    expect(findAll('[data-test-post-id]').length, 'filtered posts count').to.equal(1);
+                });
+
                 it('can filter by visibility', async function () {
                     await visit('/posts');
 
@@ -314,7 +369,7 @@ describe('Acceptance: Posts / Pages', function () {
                     expect(options.length, 'options count').to.equal(4); // 3 tags + "All tags", we populate the tags when opening the dropdown
                     expect(options[0].textContent.trim()).to.equal('All tags');
 
-                    // search lazy-loads tags from the API, and sorts them alphabetically
+                    // search results are sorted alphabetically
                     await selectSearch('[data-test-tag-select]', 's');
 
                     options = findAll('.ember-power-select-option');
@@ -380,21 +435,111 @@ describe('Acceptance: Posts / Pages', function () {
                         let buttons = contextMenu.querySelectorAll('button');
 
                         expect(contextMenu, 'context menu').to.exist;
-                        expect(buttons.length, 'context menu buttons').to.equal(6);
+                        expect(buttons.length, 'context menu buttons').to.equal(7);
                         expect(buttons[0].innerText.trim(), 'context menu button 1').to.contain('Copy link to post');
-                        expect(buttons[1].innerText.trim(), 'context menu button 1').to.contain('Unpublish');
-                        expect(buttons[2].innerText.trim(), 'context menu button 2').to.contain('Feature'); // or Unfeature
-                        expect(buttons[3].innerText.trim(), 'context menu button 3').to.contain('Add a tag');
-                        expect(buttons[4].innerText.trim(), 'context menu button 4').to.contain('Duplicate');
-                        expect(buttons[5].innerText.trim(), 'context menu button 5').to.contain('Delete');
+                        expect(buttons[1].innerText.trim(), 'context menu button 2').to.contain('Share as a gift');
+                        expect(buttons[2].innerText.trim(), 'context menu button 3').to.contain('Unpublish');
+                        expect(buttons[3].innerText.trim(), 'context menu button 4').to.contain('Feature'); // or Unfeature
+                        expect(buttons[4].innerText.trim(), 'context menu button 5').to.contain('Add a tag');
+                        expect(buttons[5].innerText.trim(), 'context menu button 6').to.contain('Duplicate');
+                        expect(buttons[6].innerText.trim(), 'context menu button 7').to.contain('Delete');
 
                         // duplicate the post
-                        await click(buttons[4]);
+                        await click(buttons[5]);
 
                         const posts = findAll('[data-test-post-id]');
                         expect(posts.length, 'all posts count').to.equal(5);
                         let [lastRequest] = this.server.pretender.handledRequests.slice(-1);
                         expect(lastRequest.url, 'request url').to.match(new RegExp(`/posts/${publishedPost.id}/copy/`));
+                    });
+
+                    it('opens the context menu via long-press and keeps it open on release', async function () {
+                        await visit('/posts');
+
+                        const post = find(`[data-test-post-id="${publishedPost.id}"]`);
+                        expect(post, 'post').to.exist;
+
+                        // touch devices have no contextmenu gesture, so a long-press opens the menu
+                        await triggerEvent(post, 'touchstart', {touches: [{clientX: 10, clientY: 10}]});
+
+                        // wait for the long-press timer to fire, then let the menu render
+                        await new Promise((resolve) => {
+                            setTimeout(resolve, 700);
+                        });
+                        await settled();
+
+                        expect(find('.gh-posts-context-menu'), 'context menu visible after long-press').to.be.visible;
+
+                        // the browser's own long-press fires a native contextmenu while held; it must not close the menu
+                        await triggerEvent(find('.gh-context-menu-overlay'), 'contextmenu');
+                        expect(find('.gh-posts-context-menu'), 'context menu stays visible while held').to.be.visible;
+
+                        // releasing the long-press fires a synthetic click at the touch point; it must not close the menu
+                        await triggerEvent(post, 'touchend');
+                        await triggerEvent(find('.gh-context-menu-overlay'), 'click', {clientX: 10, clientY: 10});
+                        expect(find('.gh-posts-context-menu'), 'context menu stays visible after release click').to.be.visible;
+
+                        const contextMenu = find('.gh-posts-context-menu');
+                        const buttons = [...contextMenu.querySelectorAll('button')];
+                        const duplicate = buttons.find(button => button.innerText.trim().includes('Duplicate'));
+                        expect(duplicate, 'duplicate button').to.exist;
+
+                        await click(duplicate);
+
+                        const posts = findAll('[data-test-post-id]');
+                        expect(posts.length, 'all posts count').to.equal(5);
+                        const [lastRequest] = this.server.pretender.handledRequests.slice(-1);
+                        expect(lastRequest.url, 'request url').to.match(new RegExp(`/posts/${publishedPost.id}/copy/`));
+                    });
+
+                    it('does not discard a real tap on a menu action after a long-press', async function () {
+                        await visit('/posts');
+
+                        const post = find(`[data-test-post-id="${publishedPost.id}"]`);
+                        expect(post, 'post').to.exist;
+
+                        await triggerEvent(post, 'touchstart', {touches: [{clientX: 10, clientY: 10}]});
+                        await new Promise((resolve) => {
+                            setTimeout(resolve, 700);
+                        });
+                        await settled();
+                        // arm the ghost-click suppressor, but emit no synthetic release click
+                        await triggerEvent(post, 'touchend');
+
+                        // a real tap on a menu action (away from the touch point) must still go through,
+                        // even though the suppressor is armed and no ghost click was consumed
+                        const contextMenu = find('.gh-posts-context-menu');
+                        const buttons = [...contextMenu.querySelectorAll('button')];
+                        const duplicate = buttons.find(button => button.innerText.trim().includes('Duplicate'));
+                        expect(duplicate, 'duplicate button').to.exist;
+
+                        await click(duplicate);
+
+                        const posts = findAll('[data-test-post-id]');
+                        expect(posts.length, 'all posts count').to.equal(5);
+                        const [lastRequest] = this.server.pretender.handledRequests.slice(-1);
+                        expect(lastRequest.url, 'request url').to.match(new RegExp(`/posts/${publishedPost.id}/copy/`));
+                    });
+
+                    it('does not open the context menu when a touch becomes a scroll', async function () {
+                        await visit('/posts');
+
+                        const post = find(`[data-test-post-id="${publishedPost.id}"]`);
+                        expect(post, 'post').to.exist;
+
+                        await triggerEvent(post, 'touchstart', {touches: [{clientX: 10, clientY: 10}]});
+                        // a press that drifts past the threshold is a scroll and cancels the long-press
+                        await triggerEvent(post, 'touchmove', {touches: [{clientX: 10, clientY: 60}]});
+
+                        await new Promise((resolve) => {
+                            setTimeout(resolve, 700);
+                        });
+                        await settled();
+
+                        // the menu markup is always present; open-state lives on the container,
+                        // and the Duplicate action only renders once a row is selected
+                        expect(find('.gh-context-menu-container').getAttribute('data-open'), 'context menu open state').to.not.equal('true');
+                        expect(find('[data-test-post-context-menu] [data-test-button="duplicate"]'), 'duplicate button').to.not.exist;
                     });
 
                     it('can copy a post link', async function () {
@@ -413,13 +558,14 @@ describe('Acceptance: Posts / Pages', function () {
                         let buttons = contextMenu.querySelectorAll('button');
 
                         expect(contextMenu, 'context menu').to.exist;
-                        expect(buttons.length, 'context menu buttons').to.equal(6);
+                        expect(buttons.length, 'context menu buttons').to.equal(7);
                         expect(buttons[0].innerText.trim(), 'context menu button 1').to.contain('Copy link to post');
-                        expect(buttons[1].innerText.trim(), 'context menu button 1').to.contain('Unpublish');
-                        expect(buttons[2].innerText.trim(), 'context menu button 2').to.contain('Feature'); // or Unfeature
-                        expect(buttons[3].innerText.trim(), 'context menu button 3').to.contain('Add a tag');
-                        expect(buttons[4].innerText.trim(), 'context menu button 4').to.contain('Duplicate');
-                        expect(buttons[5].innerText.trim(), 'context menu button 5').to.contain('Delete');
+                        expect(buttons[1].innerText.trim(), 'context menu button 2').to.contain('Share as a gift');
+                        expect(buttons[2].innerText.trim(), 'context menu button 3').to.contain('Unpublish');
+                        expect(buttons[3].innerText.trim(), 'context menu button 4').to.contain('Feature'); // or Unfeature
+                        expect(buttons[4].innerText.trim(), 'context menu button 5').to.contain('Add a tag');
+                        expect(buttons[5].innerText.trim(), 'context menu button 6').to.contain('Duplicate');
+                        expect(buttons[6].innerText.trim(), 'context menu button 7').to.contain('Delete');
 
                         // Copy the post link
                         await click(buttons[0]);

@@ -4,8 +4,10 @@ import React, {useEffect, useState} from 'react';
 import {AlreadyExistsError} from '@tryghost/admin-x-framework/errors';
 import {type EditOrAddRecommendation, useCheckRecommendation} from '@tryghost/admin-x-framework/api/recommendations';
 import {type ErrorMessages, useForm} from '@tryghost/admin-x-framework/hooks';
-import {Form, LoadingIndicator, Modal, TextField, dismissAllToasts, formatUrl, showToast} from '@tryghost/admin-x-design-system';
+import {Form, Modal, TextField, dismissAllToasts, showToast} from '@tryghost/admin-x-design-system';
+import {LoadingIndicator} from '@tryghost/shade/components';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
+import {formatUrl} from '../../../../utils/format-url';
 
 interface AddRecommendationModalProps {
     recommendation?: EditOrAddRecommendation,
@@ -57,8 +59,7 @@ const AddRecommendationModal: React.FC<RoutingModalProps & AddRecommendationModa
             one_click_subscribe: false
         },
         onSave: async () => {
-            let validatedUrl: URL;
-            validatedUrl = new URL(formState.url);
+            const validatedUrl: URL = new URL(formState.url);
 
             // Use the hostname as fallback title
             const defaultTitle = validatedUrl.hostname.replace('www.', '');
@@ -155,7 +156,6 @@ const AddRecommendationModal: React.FC<RoutingModalProps & AddRecommendationModa
             onOk();
             setEnterPressed(false); // Reset for future use
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formState]);
 
     if (showLoadingView) {
@@ -171,7 +171,9 @@ const AddRecommendationModal: React.FC<RoutingModalProps & AddRecommendationModa
             size='sm'
         >
             <div className="flex flex-col items-center justify-center p-8">
-                <LoadingIndicator />
+                <div className="flex h-64 items-center justify-center">
+                    <LoadingIndicator size='lg' />
+                </div>
             </div>
         </Modal>;
     }

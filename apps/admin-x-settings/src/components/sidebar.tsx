@@ -55,20 +55,38 @@ const Sidebar: React.FC = () => {
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const {isAnyTextFieldFocused} = useFocusContext();
     const {settings, config} = useGlobalData();
-    const [hasTipsAndDonations, isPrivate, paidMembersEnabled] = getSettingValues(settings, ['donations_enabled', 'is_private', 'paid_members_enabled']) as [string, boolean, boolean];
+    const [hasTipsAndDonations, isPrivate, paidMembersEnabled, newslettersEnabled] = getSettingValues(settings, ['donations_enabled', 'is_private', 'paid_members_enabled', 'editor_default_email_recipients']) as [boolean, boolean, boolean, string];
     const hasStripeEnabled = checkStripeEnabled(settings || [], config || {});
     const hasAutomations = useFeatureFlag('automations');
+    const hasCustomFields = useFeatureFlag('membersCustomFields');
+    const hasNewslettersEnabled = newslettersEnabled !== 'disabled';
+    const mailgunIsConfigured = Boolean(config.mailgunIsConfigured);
+    const hasMailgun = hasNewslettersEnabled && !mailgunIsConfigured;
     const visibleMembershipSearchKeywords = React.useMemo(() => [
         membershipSearchKeywords.access,
         membershipSearchKeywords.tiers,
         membershipSearchKeywords.portal,
         ...(paidMembersEnabled ? [membershipSearchKeywords.giftSubscriptions] : []),
         ...(hasAutomations ? [] : [membershipSearchKeywords.memberEmails]),
-        membershipSearchKeywords.tips
-    ].flat(), [hasAutomations, paidMembersEnabled]);
-    const visibleEmailSearchKeywords = React.useMemo(() => (
-        Object.values(hasAutomations ? emailsSearchKeywords : emailSearchKeywords).flat()
-    ), [hasAutomations]);
+        ...(hasTipsAndDonations && hasStripeEnabled ? [membershipSearchKeywords.tips] : []),
+        ...(hasCustomFields ? [membershipSearchKeywords.customFields] : [])
+    ].flat(), [hasStripeEnabled, hasTipsAndDonations, paidMembersEnabled, hasAutomations, hasCustomFields]);
+    const visibleEmailSearchKeywords = React.useMemo(() => {
+        const keywords = hasAutomations ? emailsSearchKeywords : emailSearchKeywords;
+        return [
+            keywords.enableNewsletters,
+            ...(hasNewslettersEnabled ? [keywords.defaultRecipients] : []),
+            ...(hasAutomations ? [emailsSearchKeywords.emails] : (hasNewslettersEnabled ? [emailSearchKeywords.newsletters] : [])),
+            ...(hasMailgun ? [keywords.mailgun] : [])
+        ].flat();
+    }, [hasAutomations, hasNewslettersEnabled, hasMailgun]);
+    const visibleGrowthSearchKeywords = React.useMemo(() => [
+        growthSearchKeywords.network,
+        growthSearchKeywords.explore,
+        growthSearchKeywords.recommendations,
+        growthSearchKeywords.embedSignupForm,
+        ...(hasStripeEnabled ? [growthSearchKeywords.offers] : [])
+    ].flat(), [hasStripeEnabled]);
 
     // Focus in on search field when pressing "/"
     useEffect(() => {
@@ -101,15 +119,14 @@ const Sidebar: React.FC = () => {
     useEffect(() => {
         if (!checkVisible(Object.values(generalSearchKeywords).flat()) &&
             !checkVisible(Object.values(siteSearchKeywords).flat()) &&
-            !checkVisible(visibleMembershipSearchKeywords) &&
-            !checkVisible(Object.values(growthSearchKeywords).flat()) &&
-            !checkVisible(visibleEmailSearchKeywords) &&
+            !checkVisible([...visibleMembershipSearchKeywords, ...visibleEmailSearchKeywords]) &&
+            !checkVisible(visibleGrowthSearchKeywords) &&
             !checkVisible(Object.values(advancedSearchKeywords).flat())) {
             setNoResult(true);
         } else {
             setNoResult(false);
         }
-    }, [checkVisible, setNoResult, filter, visibleEmailSearchKeywords, visibleMembershipSearchKeywords]);
+    }, [checkVisible, setNoResult, filter, visibleEmailSearchKeywords, visibleMembershipSearchKeywords, visibleGrowthSearchKeywords]);
 
     useEffect(() => {
         const searchInput = searchInputRef.current;
@@ -208,7 +225,7 @@ const Sidebar: React.FC = () => {
                 </SettingNavSection>
 
                 {/* Membership settings */}
-                <SettingNavSection isVisible={checkVisible([...visibleMembershipSearchKeywords, ...(hasAutomations ? emailsSearchKeywords.emailsNavMenu : emailSearchKeywords.newslettersNavMenu)])} title="Membership">
+                <SettingNavSection isVisible={checkVisible([...visibleMembershipSearchKeywords, ...visibleEmailSearchKeywords])} title="Membership">
                     <NavItem
                         icon='key'
                         keywords={membershipSearchKeywords.access}
@@ -226,14 +243,15 @@ const Sidebar: React.FC = () => {
                     {paidMembersEnabled && <NavItem icon='gift' keywords={membershipSearchKeywords.giftSubscriptions} navid='gift-subscriptions' title="Gift subscriptions" onClick={handleSectionClick} />}
                     {!hasAutomations && <NavItem icon='mailplus' keywords={membershipSearchKeywords.memberEmails} navid='memberemails' title="Welcome emails" onClick={handleSectionClick} />}
                     {hasTipsAndDonations && hasStripeEnabled && <NavItem icon='piggybank' keywords={membershipSearchKeywords.tips} navid='tips-and-donations' title="Tips & donations" onClick={handleSectionClick} />}
+                    {hasCustomFields && <NavItem icon='textfield' keywords={membershipSearchKeywords.customFields} navid='custom-fields' title="Custom fields" onClick={handleSectionClick} />}
                     {hasAutomations
-                        ? <NavItem icon='email' keywords={emailsSearchKeywords.emailsNavMenu} navid={['enable-newsletters', 'default-recipients', 'emails', 'mailgun']} title="Email" onClick={handleSectionClick} />
-                        : <NavItem icon='email' keywords={emailSearchKeywords.newslettersNavMenu} navid={['enable-newsletters', 'default-recipients', 'newsletters', 'mailgun']} title="Newsletters" onClick={handleSectionClick} />
+                        ? <NavItem icon='email' keywords={visibleEmailSearchKeywords} navid={['enable-newsletters', 'default-recipients', 'emails', 'mailgun']} title="Email" onClick={handleSectionClick} />
+                        : <NavItem icon='email' keywords={visibleEmailSearchKeywords} navid={['enable-newsletters', 'default-recipients', 'newsletters', 'mailgun']} title="Newsletters" onClick={handleSectionClick} />
                     }
                 </SettingNavSection>
 
                 {/* Growth */}
-                <SettingNavSection isVisible={checkVisible(Object.values(growthSearchKeywords).flat())} title="Growth">
+                <SettingNavSection isVisible={checkVisible(visibleGrowthSearchKeywords)} title="Growth">
                     <NavItem icon='ap-network' keywords={growthSearchKeywords.network} navid='network' title="Network" onClick={handleSectionClick} />
                     <NavItem icon='globe-simple' keywords={growthSearchKeywords.explore} navid='explore' title="Ghost Explore" onClick={handleSectionClick} />
                     <NavItem icon='heart' keywords={growthSearchKeywords.recommendations} navid='recommendations' title="Recommendations" onClick={handleSectionClick} />

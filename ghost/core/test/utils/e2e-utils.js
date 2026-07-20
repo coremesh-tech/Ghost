@@ -11,7 +11,7 @@ const boot = require('../../core/boot');
 const models = require('../../core/server/models');
 const urlService = require('../../core/server/services/url');
 const settingsService = require('../../core/server/services/settings/settings-service');
-const adapterManager = require('../../core/server/services/adapter-manager');
+const adapterManager = require('../../core/server/services/adapter-manager').default;
 
 // Other Test Utilities
 const configUtils = require('./config-utils');
@@ -99,13 +99,17 @@ const _startGhost = async (options) => {
     // Stop the server -- noops if it's not running
     await stopGhost();
 
+    urlServiceUtils.resetGenerators();
+
     // Adapter cache has to be cleared to avoid reusing cached adapter instances between restarts
     adapterManager.clearCache();
+
+    require('../../core/server/lib/image').cachedImageSizeFromUrl.cache.reset();
 
     // Reset the settings cache and disable listeners so they don't get triggered further
     settingsService.reset();
 
-    await dbUtils.reset();
+    await dbUtils.reset({truncate: true});
 
     await settingsService.init();
 

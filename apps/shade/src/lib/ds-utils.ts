@@ -36,6 +36,24 @@ export function debounce<T extends unknown[]>(func: (...args: T) => void, wait: 
     };
 }
 
+// Helper to find scroll parent of element
+export function getScrollParent(node: Node | null): HTMLElement | null {
+    if (!node) {
+        return null;
+    }
+
+    if (node instanceof HTMLElement) {
+        const overflowY = window.getComputedStyle(node).overflowY;
+        const isScrollable = overflowY !== 'visible' && overflowY !== 'hidden';
+
+        if (isScrollable && node.scrollHeight >= node.clientHeight) {
+            return node;
+        }
+    }
+
+    return getScrollParent(node.parentNode) || document.body;
+}
+
 /* Data formatters
 /* -------------------------------------------------------------------------- */
 
@@ -162,11 +180,13 @@ export const formatTimestamp = (timestamp: string) => {
 };
 
 // Add thousands indicator to numbers
-export const formatNumber = (value: number): string => {
+export const formatNumber = (value: number, options?: Pick<Intl.NumberFormatOptions, 'minimumFractionDigits' | 'maximumFractionDigits'>): string => {
     if (isNaN(value) || !isFinite(value)) {
         return '0';
     }
-    return new Intl.NumberFormat('en-US').format(Math.round(value));
+
+    const formattedValue = options ? value : Math.round(value);
+    return new Intl.NumberFormat('en-US', options).format(formattedValue);
 };
 
 // Abbreviate numbers

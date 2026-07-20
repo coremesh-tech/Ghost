@@ -1,5 +1,8 @@
-import {ButtonColor} from '@tryghost/admin-x-design-system';
 import {useCallback, useEffect, useState} from 'react';
+
+// Structurally matches admin-x-design-system's ButtonColor so okProps.color stays
+// assignable to its Button color prop.
+export type ButtonColor = 'clear' | 'light-grey' | 'grey' | 'black' | 'green' | 'red' | 'white' | 'outline';
 
 export type Dirtyable<Data> = Data & {
     dirty?: boolean;
@@ -65,7 +68,7 @@ const useForm = <State>({initialState, savingDelay, savedDelay = 2000, onSave, o
                 setSaveState(state => (state === 'saved' ? '' : state));
             }, savedDelay);
         }
-    }, [saveState, savedDelay]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [saveState, savedDelay]);  
 
     const isValid = (errs: ErrorMessages) => Object.values(errs).filter(Boolean).length === 0;
 

@@ -8,6 +8,7 @@ const crypto = require('node:crypto');
 const {assertExists, assertArrayContainsDeep, assertObjectMatches, assertArrayMatchesWithoutOrder} = require('../../utils/assertions');
 const nock = require('nock');
 const sinon = require('sinon');
+const {mockSystemTime} = require('../../utils/clock-utils');
 
 const testUtils = require('../../utils');
 
@@ -76,6 +77,42 @@ async function createGiftMember(data) {
         to_status: 'gift'
     });
     return member;
+}
+
+async function createStripeCustomerWithSubscription(member, customerId, subscriptionId, {status = 'active', cancelAtPeriodEnd = false} = {}) {
+    const now = new Date();
+
+    await knex('members_stripe_customers').insert({
+        id: ObjectId().toHexString(),
+        member_id: member.id,
+        customer_id: customerId,
+        email: member.get('email'),
+        created_at: now,
+        updated_at: now
+    });
+
+    await knex('members_stripe_customers_subscriptions').insert({
+        id: ObjectId().toHexString(),
+        customer_id: customerId,
+        subscription_id: subscriptionId,
+        status,
+        cancel_at_period_end: cancelAtPeriodEnd,
+        current_period_end: now,
+        start_date: now,
+        created_at: now,
+        updated_at: now,
+        plan_id: 'plan_test',
+        plan_nickname: 'Test plan',
+        plan_interval: 'month',
+        plan_amount: 500,
+        plan_currency: 'usd'
+    });
+}
+
+async function deleteMembersWithStripeData(emails, customerIds) {
+    await knex('members_stripe_customers_subscriptions').whereIn('customer_id', customerIds).del();
+    await knex('members_stripe_customers').whereIn('customer_id', customerIds).del();
+    await knex('members').whereIn('email', emails).del();
 }
 
 const newsletterSnapshot = {
@@ -234,7 +271,7 @@ const createMemberThroughApi = async (options) => {
 let agent;
 
 describe('Members API without Stripe', function () {
-    before(async function () {
+    beforeAll(async function () {
         agent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init();
         await agent.loginAsOwner();
@@ -278,7 +315,7 @@ describe('Members API without Stripe', function () {
 describe('Members API - member attribution', function () {
     const signupAttributions = [];
 
-    before(async function () {
+    beforeAll(async function () {
         agent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init('posts', 'newsletters', 'members:newsletters', 'comments');
         await agent.loginAsOwner();
@@ -534,7 +571,7 @@ describe('Members API', function () {
     let newsletters;
     let emailMockReceiver;
 
-    before(async function () {
+    beforeAll(async function () {
         agent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init('posts', 'newsletters', 'members:newsletters', 'comments', 'redirects', 'clicks');
         await agent.loginAsOwner();
@@ -649,6 +686,155 @@ describe('Members API', function () {
                 'content-version': anyContentVersion,
                 etag: anyEtag
             });
+    });
+
+    it('Can filter members with active subscriptions across multiple Stripe customers', async function () {
+        const emails = [
+            'multiple-active-stripe-customers@example.com',
+            'same-active-stripe-customer@example.com',
+            'trialing-stripe-customers@example.com',
+            'cancelling-stripe-customers@example.com'
+        ];
+        const customerIds = ['cus_matching_1', 'cus_matching_2', 'cus_same_1', 'cus_trialing_1', 'cus_trialing_2', 'cus_cancelling_1', 'cus_cancelling_2'];
+
+        try {
+            const matchingMember = await createMember({
+                email: emails[0],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(matchingMember, 'cus_matching_1', 'sub_matching_1');
+            await createStripeCustomerWithSubscription(matchingMember, 'cus_matching_2', 'sub_matching_2');
+
+            const sameCustomerMember = await createMember({
+                email: emails[1],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(sameCustomerMember, 'cus_same_1', 'sub_same_1');
+            await knex('members_stripe_customers_subscriptions').insert({
+                id: ObjectId().toHexString(),
+                customer_id: 'cus_same_1',
+                subscription_id: 'sub_same_2',
+                status: 'active',
+                current_period_end: new Date(),
+                start_date: new Date(),
+                created_at: new Date(),
+                updated_at: new Date(),
+                plan_id: 'plan_test',
+                plan_nickname: 'Test plan',
+                plan_interval: 'month',
+                plan_amount: 500,
+                plan_currency: 'usd'
+            });
+
+            const trialingMember = await createMember({
+                email: emails[2],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(trialingMember, 'cus_trialing_1', 'sub_trialing_1', {status: 'trialing'});
+            await createStripeCustomerWithSubscription(trialingMember, 'cus_trialing_2', 'sub_trialing_2', {status: 'trialing'});
+
+            const cancellingMember = await createMember({
+                email: emails[3],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(cancellingMember, 'cus_cancelling_1', 'sub_cancelling_1');
+            await createStripeCustomerWithSubscription(cancellingMember, 'cus_cancelling_2', 'sub_cancelling_2', {cancelAtPeriodEnd: true});
+
+            const filter = encodeURIComponent('count.active_stripe_customers:>1');
+            const res = await agent
+                .get(`/members/?filter=${filter}&limit=1&fields=id,email&order=id`)
+                .expectStatus(200);
+
+            assert.equal(res.body.meta.pagination.total, 1);
+            assert.equal(res.body.members.length, 1);
+            assert.equal(res.body.members[0].email, emails[0]);
+
+            const combinedFilter = encodeURIComponent(`count.active_stripe_customers:>1+email:'${emails[1]}'`);
+            const combinedRes = await agent
+                .get(`/members/?filter=${combinedFilter}&fields=id,email`)
+                .expectStatus(200);
+
+            assert.equal(combinedRes.body.meta.pagination.total, 0);
+
+            const orFilter = encodeURIComponent(`count.active_stripe_customers:>1,email:'${emails[1]}'`);
+            const orRes = await agent
+                .get(`/members/?filter=${orFilter}&fields=id,email`)
+                .expectStatus(200);
+
+            assert.equal(orRes.body.meta.pagination.total, 2);
+            assert.deepEqual(orRes.body.members.map(member => member.email).sort(), [emails[0], emails[1]].sort());
+        } finally {
+            await deleteMembersWithStripeData(emails, customerIds);
+        }
+    });
+
+    it('Can bulk edit members with active subscriptions across multiple Stripe customers filter', async function () {
+        const emails = [
+            'bulk-multiple-active-stripe-customers@example.com',
+            'bulk-single-active-stripe-customer@example.com'
+        ];
+        const customerIds = ['cus_bulk_matching_1', 'cus_bulk_matching_2', 'cus_bulk_single_1'];
+        const label = await models.Label.add({name: 'bulk-multiple-active-stripe-customers'});
+
+        try {
+            const matchingMember = await createMember({
+                email: emails[0],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(matchingMember, 'cus_bulk_matching_1', 'sub_bulk_matching_1');
+            await createStripeCustomerWithSubscription(matchingMember, 'cus_bulk_matching_2', 'sub_bulk_matching_2');
+
+            const singleCustomerMember = await createMember({
+                email: emails[1],
+                status: 'free'
+            });
+            await createStripeCustomerWithSubscription(singleCustomerMember, 'cus_bulk_single_1', 'sub_bulk_single_1');
+
+            const filter = encodeURIComponent('count.active_stripe_customers:>1');
+            await agent
+                .put(`/members/bulk/?filter=${filter}`)
+                .body({bulk: {
+                    action: 'addLabel',
+                    meta: {
+                        label: {
+                            id: label.id
+                        }
+                    }
+                }})
+                .expectStatus(200)
+                .matchBodySnapshot({
+                    bulk: {
+                        meta: {
+                            stats: {
+                                successful: 1,
+                                unsuccessful: 0
+                            },
+                            unsuccessfulData: [],
+                            errors: []
+                        }
+                    }
+                });
+
+            const updatedMatchingMember = await models.Member.findOne({id: matchingMember.id}, {withRelated: 'labels'});
+            const updatedSingleCustomerMember = await models.Member.findOne({id: singleCustomerMember.id}, {withRelated: 'labels'});
+
+            assert(updatedMatchingMember.related('labels').models.some(model => model.id === label.id));
+            assert.equal(updatedSingleCustomerMember.related('labels').models.some(model => model.id === label.id), false);
+        } finally {
+            await deleteMembersWithStripeData(emails, customerIds);
+        }
+    });
+
+    it('Returns a bad request for non-numeric active Stripe customer count filters', async function () {
+        const nullFilter = encodeURIComponent('count.active_stripe_customers:null');
+        await agent
+            .get(`/members/?filter=${nullFilter}`)
+            .expectStatus(400);
+
+        const stringFilter = encodeURIComponent('count.active_stripe_customers:\'abc\'');
+        await agent
+            .get(`/members/?filter=${stringFilter}`)
+            .expectStatus(400);
     });
 
     it('Can filter by signup attribution', async function () {
@@ -1139,7 +1325,7 @@ describe('Members API', function () {
         const newMember = await createMemberThroughApi({member, agent});
 
         // Cannot add same member twice
-        const loggingStub = sinon.stub(logging, 'error');
+        const loggingStub = sinon.stub(logging, 'warn');
         await agent
             .post(`/members/`)
             .body({members: [member]})
@@ -1155,122 +1341,6 @@ describe('Members API', function () {
                     to_status: 'free'
                 }
             ]
-        });
-    });
-
-    describe('Email verification trigger', function () {
-        beforeEach(async function () {
-            agent = await agentProvider.getAdminAPIAgent();
-            await fixtureManager.init('posts', 'newsletters', 'members:newsletters', 'comments', 'redirects', 'clicks');
-            await agent.loginAsOwner();
-
-            newsletters = await getNewsletters();
-        });
-
-        afterEach(async function () {
-            await restoreEmailVerificationUtils();
-        });
-
-        it('Can add a member and trigger host email verification limits', async function () {
-            const {webhookSecret, receivedWebhookRequests} = await setupEmailVerificationUtils({
-                adminThreshold: 1
-            });
-
-            assert.equal(settingsCache.get('email_verification_required'), false, 'Before import: email verification should NOT be required');
-
-            const member = {
-                name: 'pass webhook verification',
-                email: 'memberPassWebhookVerification@test.com'
-            };
-
-            const passVerificationMember = await createMemberThroughApi({member, agent, tiersCount: 0, newsletterCount: 2});
-
-            await DomainEvents.allSettled();
-
-            assert.equal(settingsCache.get('email_verification_required'), false, 'After one import: Email verification should NOT be required');
-
-            const memberFailLimit = {
-                name: 'fail webhook verification',
-                email: 'memberFailWebhookVerification@test.com'
-            };
-
-            const triggerVerificationMember = await createMemberThroughApi({member: memberFailLimit, agent, tiersCount: 0, newsletterCount: 2});
-
-            await DomainEvents.allSettled();
-
-            // Crossing the admin threshold must flip email verification on.
-            //
-            // The verification trigger and the members_created_events writer are
-            // two independent MemberCreatedEvent subscribers (VerificationTrigger
-            // and EventStorage) with no ordering guarantee between them. When the
-            // trigger's count query beats EventStorage's insert, it misses the
-            // row for the member that just crossed the threshold, undercounts by
-            // one, and fires one member creation late instead of on the boundary.
-            // This is a known, low-impact off-by-one with no user-facing effect
-            // (the next member creation re-counts and triggers). See BER-3507.
-            //
-            // To stay deterministic the test adds a second member past the
-            // boundary: by the time its event is handled the two earlier members'
-            // rows are guaranteed committed, so the trigger reliably counts past
-            // the threshold however the race landed. This member only needs to
-            // emit a MemberCreatedEvent, so it skips the response-body snapshot.
-            //
-            // TODO: once the trigger no longer depends on a sibling subscriber's
-            // write (e.g. it counts signup events excluding the current member,
-            // then adds a deterministic +1), restore the precise assertion:
-            // create exactly one member past the threshold, assert verification
-            // triggered on that member, and assert the webhook reported
-            // amountTriggered === 2.
-            const {body: recoveryMemberBody} = await agent
-                .post('/members/')
-                .body({members: [{
-                    name: 'fail webhook verification recovery',
-                    email: 'memberFailWebhookVerificationRecovery@test.com'
-                }]})
-                .expectStatus(201);
-            const recoveryMember = recoveryMemberBody.members[0];
-
-            await DomainEvents.allSettled();
-
-            assert.equal(settingsCache.get('email_verification_required'), true, 'After exceeding limit: Email verification should be required');
-
-            emailMockReceiver.assertSentEmailCount(0, 'No verification email to be sent when webhook verification is enabled');
-
-            // Verification triggers at most once: once email_verification_required
-            // is set, later member creations short-circuit, so exactly one webhook
-            // is sent regardless of which member crossed the boundary.
-            const matchingRequests = receivedWebhookRequests.filter((request) => {
-                return request.body.type === 'mock_verification_event' &&
-                    request.body.siteId === '1' &&
-                    request.body.threshold === 1 &&
-                    request.body.method === 'admin';
-            });
-
-            assert.equal(matchingRequests.length, 1, 'Expected exactly one verification webhook to be sent');
-
-            const matchingRequest = matchingRequests[0];
-
-            // amountTriggered is the member count observed when verification fired.
-            // It is past the threshold (1); the exact value (2 or 3) depends on the
-            // off-by-one race described above.
-            assert.ok(matchingRequest.body.amountTriggered >= 2, 'Expected the webhook to report a member count past the threshold');
-
-            const requestTimestamp = Array.isArray(matchingRequest.headers['x-ghost-request-timestamp']) ?
-                matchingRequest.headers['x-ghost-request-timestamp'][0] :
-                matchingRequest.headers['x-ghost-request-timestamp'];
-            const requestSignature = Array.isArray(matchingRequest.headers['x-ghost-signature']) ?
-                matchingRequest.headers['x-ghost-signature'][0] :
-                matchingRequest.headers['x-ghost-signature'];
-            const expectedSignature = crypto.createHmac('sha256', webhookSecret)
-                .update(`${requestTimestamp}:${matchingRequest.rawBody}`)
-                .digest('base64');
-
-            assert.ok(requestTimestamp, 'Expected the verification webhook request to include a timestamp header');
-            assert.equal(requestSignature, expectedSignature, 'Expected the verification webhook request to be signed');
-
-            await agent.delete(`/members/${passVerificationMember.id}`);
-            await agent.delete(`/members/${triggerVerificationMember.id}`);
-            await agent.delete(`/members/${recoveryMember.id}`);
         });
     });
 
@@ -2129,18 +2199,14 @@ describe('Members API', function () {
     });
 
     it('Returns an identical member format for read, edit and browse', async function () {
-        if (!memberWithPaidSubscription) {
-            // Previous test failed
-            this.skip();
-        }
-
         // Check status has been updated to 'free' after cancelling
         const {body: readBody} = await agent.get('/members/' + memberWithPaidSubscription.id + '/');
         assert.equal(readBody.members.length, 1, 'The member was not found in read');
         const readMember = readBody.members[0];
 
-        // Note that we explicitly need to ask to include tiers while browsing
-        const {body: browseBody} = await agent.get(`/members/?search=${memberWithPaidSubscription.email}&include=tiers`);
+        // Note that we explicitly need to ask to include tiers and custom fields
+        // while browsing — a read carries both without being asked
+        const {body: browseBody} = await agent.get(`/members/?search=${memberWithPaidSubscription.email}&include=tiers,custom_fields`);
         assert.equal(browseBody.members.length, 1, 'The member was not found in browse');
         const browseMember = browseBody.members[0];
 
@@ -2185,10 +2251,6 @@ describe('Members API', function () {
     });
 
     it('Cannot add complimentary subscriptions to a member with an active subscription', async function () {
-        if (!memberWithPaidSubscription) {
-            // Previous test failed
-            this.skip();
-        }
         const product = await getOtherPaidProduct();
 
         const compedPayload = {
@@ -2209,11 +2271,6 @@ describe('Members API', function () {
     });
 
     it('Cannot remove non complimentary subscriptions directly from a member', async function () {
-        if (!memberWithPaidSubscription) {
-            // Previous test failed
-            this.skip();
-        }
-
         const compedPayload = {
             id: memberWithPaidSubscription.id,
             // Remove all paid subscriptions (= not allowed atm)
@@ -2230,11 +2287,6 @@ describe('Members API', function () {
     it('Can remove a complimentary subscription directly from a member with other active subscriptions', async function () {
         // This tests for an edge case that shouldn't be possible, but the API should support this to resolve issues
         // refs https://github.com/TryGhost/Team/issues/1859
-
-        if (!memberWithPaidSubscription) {
-            // Previous test failed
-            this.skip();
-        }
 
         // Check that the product that we are going to add is not the same as the existing one
         const product = await getOtherPaidProduct();
@@ -2288,11 +2340,6 @@ describe('Members API', function () {
     });
 
     it('Can keep tiers unchanged when modifying a paid member', async function () {
-        if (!memberWithPaidSubscription) {
-            // Previous test failed
-            this.skip();
-        }
-
         const compedPayload = {
             id: memberWithPaidSubscription.id,
             // Not changed tiers
@@ -2431,8 +2478,7 @@ describe('Members API', function () {
     });
 
     it('Can subscribe to a newsletter', async function () {
-        // TODO: shouldAdvanceTime is a fake-timer + HTTP-await workaround; see docs/dep-consolidation.md
-        const clock = sinon.useFakeTimers({now: Date.now(), shouldAdvanceTime: true});
+        const clock = mockSystemTime(Date.now());
         const memberToChange = {
             name: 'change me',
             email: 'member3change@test.com',
@@ -3700,6 +3746,122 @@ describe('Members API', function () {
                     newsletter_id: n.id
                 };
             })
+        });
+    });
+
+    describe('Email verification trigger', function () {
+        beforeEach(async function () {
+            agent = await agentProvider.getAdminAPIAgent();
+            await fixtureManager.init('posts', 'newsletters', 'members:newsletters', 'comments', 'redirects', 'clicks');
+            await agent.loginAsOwner();
+
+            newsletters = await getNewsletters();
+        });
+
+        afterEach(async function () {
+            await restoreEmailVerificationUtils();
+        });
+
+        it('Can add a member and trigger host email verification limits', async function () {
+            const {webhookSecret, receivedWebhookRequests} = await setupEmailVerificationUtils({
+                adminThreshold: 1
+            });
+
+            assert.equal(settingsCache.get('email_verification_required'), false, 'Before import: email verification should NOT be required');
+
+            const member = {
+                name: 'pass webhook verification',
+                email: 'memberPassWebhookVerification@test.com'
+            };
+
+            const passVerificationMember = await createMemberThroughApi({member, agent, tiersCount: 0, newsletterCount: 2});
+
+            await DomainEvents.allSettled();
+
+            assert.equal(settingsCache.get('email_verification_required'), false, 'After one import: Email verification should NOT be required');
+
+            const memberFailLimit = {
+                name: 'fail webhook verification',
+                email: 'memberFailWebhookVerification@test.com'
+            };
+
+            const triggerVerificationMember = await createMemberThroughApi({member: memberFailLimit, agent, tiersCount: 0, newsletterCount: 2});
+
+            await DomainEvents.allSettled();
+
+            // Crossing the admin threshold must flip email verification on.
+            //
+            // The verification trigger and the members_created_events writer are
+            // two independent MemberCreatedEvent subscribers (VerificationTrigger
+            // and EventStorage) with no ordering guarantee between them. When the
+            // trigger's count query beats EventStorage's insert, it misses the
+            // row for the member that just crossed the threshold, undercounts by
+            // one, and fires one member creation late instead of on the boundary.
+            // This is a known, low-impact off-by-one with no user-facing effect
+            // (the next member creation re-counts and triggers). See BER-3507.
+            //
+            // To stay deterministic the test adds a second member past the
+            // boundary: by the time its event is handled the two earlier members'
+            // rows are guaranteed committed, so the trigger reliably counts past
+            // the threshold however the race landed. This member only needs to
+            // emit a MemberCreatedEvent, so it skips the response-body snapshot.
+            //
+            // TODO: once the trigger no longer depends on a sibling subscriber's
+            // write (e.g. it counts signup events excluding the current member,
+            // then adds a deterministic +1), restore the precise assertion:
+            // create exactly one member past the threshold, assert verification
+            // triggered on that member, and assert the webhook reported
+            // amountTriggered === 2.
+            const {body: recoveryMemberBody} = await agent
+                .post('/members/')
+                .body({members: [{
+                    name: 'fail webhook verification recovery',
+                    email: 'memberFailWebhookVerificationRecovery@test.com'
+                }]})
+                .expectStatus(201);
+            const recoveryMember = recoveryMemberBody.members[0];
+
+            await DomainEvents.allSettled();
+
+            assert.equal(settingsCache.get('email_verification_required'), true, 'After exceeding limit: Email verification should be required');
+
+            emailMockReceiver.assertSentEmailCount(0, 'No verification email to be sent when webhook verification is enabled');
+
+            // Verification triggers at most once: once email_verification_required
+            // is set, later member creations short-circuit, so exactly one webhook
+            // is sent regardless of which member crossed the boundary.
+            const matchingRequests = receivedWebhookRequests.filter((request) => {
+                return request.body.type === 'mock_verification_event' &&
+                    request.body.siteId === '1' &&
+                    request.body.threshold === 1 &&
+                    request.body.method === 'admin';
+            });
+
+            assert.equal(matchingRequests.length, 1, 'Expected exactly one verification webhook to be sent');
+
+            const matchingRequest = matchingRequests[0];
+
+            // amountTriggered is the member count observed when verification fired.
+            // It is past the threshold (1); the exact value (2 or 3) depends on the
+            // off-by-one race described above.
+            assert.ok(matchingRequest.body.amountTriggered >= 2, 'Expected the webhook to report a member count past the threshold');
+
+            const requestTimestamp = Array.isArray(matchingRequest.headers['x-ghost-request-timestamp']) ?
+                matchingRequest.headers['x-ghost-request-timestamp'][0] :
+                matchingRequest.headers['x-ghost-request-timestamp'];
+            const requestSignature = Array.isArray(matchingRequest.headers['x-ghost-signature']) ?
+                matchingRequest.headers['x-ghost-signature'][0] :
+                matchingRequest.headers['x-ghost-signature'];
+            const expectedSignature = crypto.createHmac('sha256', webhookSecret)
+                .update(`${requestTimestamp}:${matchingRequest.rawBody}`)
+                .digest('base64');
+
+            assert.ok(requestTimestamp, 'Expected the verification webhook request to include a timestamp header');
+            assert.equal(requestSignature, expectedSignature, 'Expected the verification webhook request to be signed');
+
+            await agent.delete(`/members/${passVerificationMember.id}`);
+            await agent.delete(`/members/${triggerVerificationMember.id}`);
+            await agent.delete(`/members/${recoveryMember.id}`);
         });
     });
 });

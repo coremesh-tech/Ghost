@@ -5,6 +5,7 @@ import {
     defaultMatcher,
     filterOptions
 } from 'ember-power-select/utils/group-utils';
+import {escapeNqlString} from '../utils/escape-nql-string';
 import {inject as service} from '@ember/service';
 import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
@@ -162,13 +163,13 @@ export default class GhResourceSelect extends Component {
         const options = yield [];
 
         if (this.args.type === 'email') {
-            const posts = yield this.store.query('post', {filter: '(status:published,status:sent)+newsletter_id:-null+title:~\'' + searchTerm.replace('\'', '\\\'') + '\'', limit: '10', fields: 'id,title'});
+            const posts = yield this.store.query('post', {filter: '(status:published,status:sent)+newsletter_id:-null+title:~' + escapeNqlString(searchTerm), limit: '10', fields: 'id,title'});
             options.push(...posts.map(mapResource));
             return options;
         }
 
-        const posts = yield this.store.query('post', {filter: 'status:published+title:~\'' + searchTerm.replace('\'', '\\\'') + '\'', limit: '10', fields: 'id,title'});
-        const pages = yield this.store.query('page', {filter: 'status:published+title:~\'' + searchTerm.replace('\'', '\\\'') + '\'', limit: '10', fields: 'id,title'});
+        const posts = yield this.store.query('post', {filter: 'status:published+title:~' + escapeNqlString(searchTerm), limit: '10', fields: 'id,title'});
+        const pages = yield this.store.query('page', {filter: 'status:published+title:~' + escapeNqlString(searchTerm), limit: '10', fields: 'id,title'});
 
         if (posts.length > 0) {
             options.push(...posts.map(mapResource));

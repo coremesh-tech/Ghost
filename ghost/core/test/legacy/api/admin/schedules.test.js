@@ -4,27 +4,26 @@ const _ = require('lodash');
 const supertest = require('supertest');
 const sinon = require('sinon');
 const moment = require('moment-timezone');
-const SchedulingDefault = require('../../../../core/server/adapters/scheduling/scheduling-default');
+const SchedulingDefault = require('../../../../core/server/adapters/scheduling/scheduling-default').default;
 const models = require('../../../../core/server/models');
 const config = require('../../../../core/shared/config');
 const testUtils = require('../../../utils');
 const localUtils = require('./utils');
-const {sequence} = require('@tryghost/promise');
 
 describe('Schedules API', function () {
     const resources = [];
     let request;
 
-    before(function () {
+    beforeAll(function () {
         // @NOTE: mock the post scheduler, otherwise it will auto publish the post
         sinon.stub(SchedulingDefault.prototype, '_pingUrl').resolves();
     });
 
-    after(function () {
+    afterAll(function () {
         sinon.restore();
     });
 
-    before(async function () {
+    beforeAll(async function () {
         await localUtils.startGhost();
 
         request = supertest.agent(config.get('url'));
@@ -80,7 +79,7 @@ describe('Schedules API', function () {
             }]
         }));
 
-        const result = await sequence(resources.map(post => async () => {
+        const result = await Promise.all(resources.map((post) => {
             return models.Post.add(post, {context: {internal: true}});
         }));
 
@@ -90,7 +89,7 @@ describe('Schedules API', function () {
     describe('publish', function () {
         let token;
 
-        before(function () {
+        beforeAll(function () {
             const schedulerKey = _.find(testUtils.getExistingData().apiKeys, {integration: {slug: 'ghost-scheduler'}});
 
             token = localUtils.getValidAdminToken('/admin/', schedulerKey);
@@ -126,6 +125,10 @@ describe('Schedules API', function () {
         });
 
         it('no access', function () {
+            // Also guards the missing-resource tolerance in the `permissions`
+            // handler: this key lacks publish permission and the post exists, so
+            // it must get a 403 — proving only NotFoundError is swallowed there,
+            // never NoPermissionError.
             const zapierKey = _.find(testUtils.getExistingData().apiKeys, {integration: {slug: 'ghost-backup'}});
             const zapierToken = localUtils.getValidAdminToken('/admin/', zapierKey);
 
@@ -152,12 +155,37 @@ describe('Schedules API', function () {
                 .expect(200);
         });
 
-        it('not found', function () {
-            return request
+        it('firing ahead of the scheduled time is a no-op, not an error', async function () {
+            // resources[2] is scheduled 10 minutes out, beyond tolerance.
+            const res = await request
                 .put(localUtils.API.getApiQuery(`schedules/posts/${resources[2].id}/?token=${token}`))
                 .expect('Content-Type', /json/)
                 .expect('Cache-Control', testUtils.cacheRules.private)
+                .expect(200);
+
+            assert.deepEqual(res.body.posts, []);
+        });
+
+        it('firing well after the scheduled time without force stays an error', function () {
+            // resources[3] is scheduled 10 minutes in the past, beyond tolerance.
+            return request
+                .put(localUtils.API.getApiQuery(`schedules/posts/${resources[3].id}/?token=${token}`))
+                .expect('Content-Type', /json/)
+                .expect('Cache-Control', testUtils.cacheRules.private)
                 .expect(404);
+        });
+
+        it('a deleted resource is a no-op, not an error', async function () {
+            // A scheduler that can't invalidate its jobs may fire one for a post
+            // that has since been deleted. That should be a 2xx no-op it won't
+            // retry, not a 404. (The id below is well-formed but does not exist.)
+            const res = await request
+                .put(localUtils.API.getApiQuery(`schedules/posts/619000000000000000000000/?token=${token}`))
+                .expect('Content-Type', /json/)
+                .expect('Cache-Control', testUtils.cacheRules.private)
+                .expect(200);
+
+            assert.deepEqual(res.body.posts, []);
         });
 
         it('force publish', function () {

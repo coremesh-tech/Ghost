@@ -1,19 +1,16 @@
 import Component from '@glimmer/component';
 import {TrackedArray} from 'tracked-built-ins';
 import {action} from '@ember/object';
+import {escapeNqlString} from '../utils/escape-nql-string';
 import {inject as service} from '@ember/service';
-import {task} from 'ember-concurrency';
-import {tracked} from '@glimmer/tracking';
 
-const PAGE_SIZE = 100;
+const SEARCH_DEBOUNCE_MS = 250;
 
 export default class GhTagsTokenInput extends Component {
     @service store;
     @service tagsManager;
 
-    // internal attrs
-    @tracked _initialTags = new TrackedArray();
-    @tracked _searchedTags = new TrackedArray();
+    _knownTags = new TrackedArray();
 
     _initialTagsMeta = null;
     _hasLoadedInitialTags = false;
@@ -139,9 +136,39 @@ export default class GhTagsTokenInput extends Component {
     showCreateWhen(term) {
         const availableTagNames = this._searchedTags.map(tag => tag.name.toLowerCase());
         availableTagNames.push(...this.args.selected.map(tag => tag.name.toLowerCase()));
+    }
+    @action
+    loadTagsPage({limit, page}) {
+        return this.store.query('tag', {limit, page, order: 'name asc'}).then((tags) => {
+            this._addKnownTags(tags.toArray());
+            return tags;
+        });
+    }
+
+    @action
+    searchTagsPage(term, {limit, page}) {
+        return this.store.query('tag', {filter: `tags.name:~${escapeNqlString(term)}`, limit, page, order: 'name asc'}).then((tags) => {
+            this._addKnownTags(tags.toArray());
+            return tags;
+        });
+    }
+
+    @action
+    sortTags(tags) {
+        return this.tagsManager.sortTags(tags);
+    }
+
+    @action
+    showCreateWhen(term, tags) {
+        const availableTagNames = tags.map(tag => tag.name.toLowerCase());
+        availableTagNames.push(...(this.args.selected || []).map(tag => tag.name.toLowerCase()));
 
         const foundMatchingTagName = availableTagNames.includes(term.toLowerCase());
         return !foundMatchingTagName;
+    }
+
+    get searchDebounceMs() {
+        return SEARCH_DEBOUNCE_MS;
     }
 
     @action
@@ -209,6 +236,12 @@ export default class GhTagsTokenInput extends Component {
             return tag.name.toLowerCase() === name.toLowerCase();
         };
 
-        return this._searchedTags.find(withMatchingName) || this._initialTags.find(withMatchingName);
+        return this._knownTags.find(withMatchingName);
+    }
+
+    _addKnownTags(tags) {
+        const knownTagIds = new Set(this._knownTags.map(tag => tag.id));
+        const deduplicatedTags = tags.filter(tag => !knownTagIds.has(tag.id));
+        this._knownTags.push(...deduplicatedTags);
     }
 }

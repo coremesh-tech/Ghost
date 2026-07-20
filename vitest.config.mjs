@@ -4,16 +4,17 @@ import {defineConfig} from 'vitest/config';
 // Root Vitest config — a single watcher across every Vitest-based package in
 // the monorepo. `pnpm test:watch` runs this. Each package is a project that
 // keeps its own config (environment, setup, pool); scope to one with a path
-// filter, e.g. `pnpm test:watch apps/posts`.
+// filter, e.g. `pnpm test:watch apps/admin`.
 //
-// Not included: ghost/i18n and ghost/parse-email-address (still on Mocha) and
-// ghost-admin (Ember QUnit). admin-x-activitypub is a dead directory with no
-// package.json or test config. signup-form has no Vitest unit tests (its
+// Not included: ghost-admin (Ember Mocha, pending the Ember retirement).
+// signup-form has no Vitest unit tests (its
 // test:unit is a build; test/unit holds only an empty placeholder).
 export default defineConfig({
     test: {
         projects: [
             'ghost/core',
+            'packages/**',
+            '!packages/_template',
             'apps/*',
             '!apps/admin-x-activitypub',
             '!apps/signup-form'

@@ -1,9 +1,17 @@
 import * as Sentry from '@sentry/react';
-import {showToast} from '@tryghost/admin-x-design-system';
 import {useCallback} from 'react';
 import toast from 'react-hot-toast';
 import {useFramework} from '../providers/framework-provider';
-import {APIError, ValidationError} from '../utils/errors';
+import {APIError, SessionExpiredError, getErrorMessage} from '../utils/errors';
+import {showToast} from '../utils/toast';
+
+function showErrorToast(message: React.ReactNode) {
+    toast.remove();
+    showToast({
+        message,
+        type: 'error'
+    });
+}
 
 /**
  * Generic error handling for API calls. This is enabled by default for queries (can be disabled by
@@ -24,7 +32,7 @@ const useHandleError = () => {
         // eslint-disable-next-line no-console
         console.error(error);
 
-        if (sentryDSN) {
+        if (sentryDSN && !(error instanceof SessionExpiredError)) {
             Sentry.withScope((scope) => {
                 if (error instanceof APIError && error.response) {
                     scope.setTag('api_url', error.response.url);
@@ -38,26 +46,19 @@ const useHandleError = () => {
             return;
         }
 
-        toast.remove();
-
         if (error instanceof APIError && error.response?.status === 418) {
             // We use this status in tests to indicate the API request was not mocked -
-            // don't show a toast because it may block clicking things in the test
-        } else if (error instanceof ValidationError && error.data?.errors[0]) {
-            showToast({
-                message: error.data.errors[0].context || error.data.errors[0].message,
-                type: 'error'
-            });
+            // don't show a toast because it may block clicking things in the test,
+            // but still clear lingering toasts that would block clicks the same way
+            toast.remove();
+        } else if (error instanceof SessionExpiredError) {
+            // Session-expiry 401s trigger a redirect to signin in the fetch
+            // layer - a toast would only flash while the page unloads
+            toast.remove();
         } else if (error instanceof APIError) {
-            showToast({
-                message: error.message,
-                type: 'error'
-            });
+            showErrorToast(getErrorMessage(error, error.message));
         } else {
-            showToast({
-                message: 'Something went wrong, please try again.',
-                type: 'error'
-            });
+            showErrorToast('Something went wrong, please try again.');
         }
     }, [sentryDSN]);
 

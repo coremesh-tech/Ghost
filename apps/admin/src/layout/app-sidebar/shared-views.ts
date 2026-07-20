@@ -1,8 +1,8 @@
 import {useMemo} from 'react';
-import {parseAllSharedViewsJSON} from '@tryghost/posts/api';
+import {parseAllSharedViewsJSON} from '@/members/shared-views';
 import {getSettingValue, useBrowseSettings} from '@tryghost/admin-x-framework/api/settings';
 
-export type {SharedView} from '@tryghost/posts/api';
+export type {SharedView} from '@/members/shared-views';
 
 export function getColorHex(color: string): string {
     const colorMap: Record<string, string> = {
@@ -24,11 +24,11 @@ export function useSharedViews(route?: string) {
     const {data: settingsData} = useBrowseSettings();
 
     return useMemo(() => {
-        // TODO: Consolidate shared view parsing once the admin and posts apps are merged.
         const sharedViewsJson = getSettingValue<string>(settingsData?.settings, 'shared_views') ?? '[]';
         const parsed = parseAllSharedViewsJSON(sharedViewsJson);
 
         if (!parsed.ok) {
+            // eslint-disable-next-line no-console
             console.error('Failed to parse shared_views setting:', parsed.error);
             return [];
         }

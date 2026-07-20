@@ -4,10 +4,10 @@ import AuthFrame from './auth-frame';
 import ContentBox from './components/content-box';
 import PopupBox from './components/popup-box';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import i18nLib from '@tryghost/i18n';
+import i18nLib from '@tryghost/i18n/registry/comments';
 import setupGhostApi from './utils/api';
 import {ActionHandler, SyncActionHandler, isSyncAction} from './actions';
-import {AppContext, CapabilitiesContextType, Comment, DispatchActionType, EditableAppContext} from './app-context';
+import {AppContext, Comment, DispatchActionType, EditableAppContext} from './app-context';
 import {CommentsFrame} from './components/frame';
 import {setupAdminAPI} from './utils/admin-api';
 import {useOptions} from './utils/options';
@@ -15,16 +15,16 @@ import {useOptions} from './utils/options';
 type AppProps = {
     scriptTag: HTMLElement;
     initialCommentId: string | null;
-    pageUrl: string;
+};
+
+type AdminUser = {
+    roles: {
+        name: string;
+    }[];
 };
 
 const ALLOWED_MODERATORS = ['Owner', 'Administrator', 'Super Editor'];
-const LIKES_ORDER = 'count__likes desc, created_at desc';
 const NET_SCORE_ORDER = 'count__net_score desc, created_at desc';
-
-function getDefaultOrder(capabilities: CapabilitiesContextType) {
-    return capabilities.dislikes === true ? NET_SCORE_ORDER : LIKES_ORDER;
-}
 
 /**
  * Check if a comment ID exists in the comments array (either as a top-level comment or reply)
@@ -33,7 +33,7 @@ function isCommentLoaded(comments: Comment[], targetId: string): boolean {
     return comments.some(c => c.id === targetId || c.replies?.some(r => r.id === targetId));
 }
 
-const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
+const App: React.FC<AppProps> = ({scriptTag, initialCommentId}) => {
     const options = useOptions(scriptTag);
     const [state, setFullState] = useState<EditableAppContext>({
         initStatus: 'running',
@@ -45,15 +45,13 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
         openCommentForms: [],
         popup: null,
         labs: {},
-        capabilities: {},
-        order: LIKES_ORDER,
+        order: NET_SCORE_ORDER,
         adminApi: null,
         commentsIsLoading: false,
         commentIdToHighlight: null,
         commentIdToScrollTo: initialCommentId,
         commentIdFromHash: initialCommentId,
         showMissingCommentNotice: false,
-        pageUrl,
         supportEmail: null,
         isMember: false,
         isAdmin: false,
@@ -137,7 +135,7 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
                 adminUrl: options.adminUrl
             });
 
-            let admin = null;
+            let admin: AdminUser | null = null;
             try {
                 admin = await adminApi.getUser();
 
@@ -164,8 +162,7 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
                             admin,
                             isAdmin: true,
                             comments: adminComments.comments,
-                            pagination: adminComments.meta.pagination,
-                            capabilities: adminComments.meta?.capabilities ?? currentState.capabilities
+                            pagination: adminComments.meta.pagination
                         };
                     });
                 }
@@ -196,8 +193,7 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
         return {
             comments: data.comments,
             pagination: data.meta.pagination,
-            count: count,
-            capabilities: data.meta?.capabilities ?? {}
+            count: count
         };
     };
 
@@ -275,16 +271,8 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
     const initSetup = async () => {
         try {
             const {member, labs, supportEmail} = await api.init();
-            let {count, comments: initialComments, pagination: initialPagination, capabilities} = await fetchComments(LIKES_ORDER);
-            const defaultOrder = getDefaultOrder(capabilities);
-
-            if (defaultOrder !== LIKES_ORDER) {
-                const sortedData = await fetchComments(defaultOrder);
-                count = sortedData.count;
-                initialComments = sortedData.comments;
-                initialPagination = sortedData.pagination;
-                capabilities = sortedData.capabilities.dislikes === true ? sortedData.capabilities : capabilities;
-            }
+            const {count, comments: initialComments, pagination: initialPagination} = await fetchComments(NET_SCORE_ORDER);
+            const defaultOrder = NET_SCORE_ORDER;
 
             let comments = initialComments;
             let pagination = initialPagination;
@@ -315,7 +303,6 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
                 commentCount: count,
                 order: defaultOrder,
                 labs: labs,
-                capabilities,
                 commentsIsLoading: false,
                 commentIdToHighlight: null,
                 commentIdToScrollTo: scrollTargetFound ? initialCommentId : null,
@@ -377,7 +364,7 @@ const App: React.FC<AppProps> = ({scriptTag, initialCommentId, pageUrl}) => {
             <CommentsFrame ref={iframeRef}>
                 <ContentBox done={done} />
             </CommentsFrame>
-            {done && <AuthFrame adminUrl={options.adminUrl} onLoad={initAdminAuth}/>}
+            {done && options.adminUrl && <AuthFrame adminUrl={options.adminUrl} onLoad={initAdminAuth}/>}
             <PopupBox />
         </AppContext.Provider>
     );

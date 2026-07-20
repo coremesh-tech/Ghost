@@ -40,10 +40,10 @@ class PostsInfinityModel extends InfinityModel {
             promises.push(this.postAnalytics.loadReadCounts(publishedPosts));
         }
 
-        if (promises.length > 0) {
-            await Promise.all(promises);
+        if (this.settings.membersTrackSources) {
+            this.postAnalytics.loadMemberCounts(publishedPosts);
         }
-        
+
         return posts;
     }
 }
@@ -294,10 +294,8 @@ export default class PostsRoute extends AuthenticatedRoute {
     setupController(controller, model) {
         super.setupController(...arguments);
 
-        if (!this.session.user.isAuthorOrContributor && !controller._hasLoadedAuthors) {
-            this.store.query('user', {limit: 'all'}).then(() => {
-                controller._hasLoadedAuthors = true;
-            });
+        if (!this.session.user.isAuthorOrContributor && controller.selectedAuthor?.slug === '!unknown') {
+            this.store.queryRecord('user', {slug: controller.author});
         }
 
         if (controller.tag && !controller.selectedTag?.slug || controller.selectedTag?.slug === '!unknown') {

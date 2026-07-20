@@ -4,6 +4,7 @@ import {Button} from '@tryghost/admin-x-design-system';
 import {type ErrorMessages, useForm} from '@tryghost/admin-x-framework/hooks';
 import {Form, Icon, PreviewModalContent, Select, type SelectOption, TextArea, TextField, showToast} from '@tryghost/admin-x-design-system';
 import {JSONError} from '@tryghost/admin-x-framework/errors';
+import {formatNumber} from '@tryghost/shade/utils';
 import {getHomepageUrl} from '@tryghost/admin-x-framework/api/site';
 import {getOfferPortalPreviewUrl, type offerPortalPreviewUrlTypes} from '../../../../utils/get-offers-portal-preview-url';
 import {getPaidActiveTiers, useBrowseTiers} from '@tryghost/admin-x-framework/api/tiers';
@@ -21,8 +22,8 @@ function slugify(text: string): string {
         .toLowerCase()
         .trim()
         .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-');
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-');
 }
 
 export interface OfferType {
@@ -156,14 +157,14 @@ const Sidebar: React.FC<SidebarProps> = ({tierOptions,
     };
 
     return (
-        <div className='pt-7' data-testId={testId}>
+        <div className='pt-7' data-testid={testId}>
             <Form>
                 <section>
                     <h2 className='mb-4 text-lg'>General</h2>
                     <div className='flex flex-col gap-6'>
                         <TextField
                             error={Boolean(errors.name)}
-                            hint={errors.name || <div className='flex justify-between'><span>Visible to members on Stripe Checkout page</span><strong><span className={`${nameLengthColor}`}>{nameLength}</span> / 40</strong></div>}
+                            hint={errors.name || <div className='flex justify-between'><span>Visible to members on Stripe Checkout page</span><strong><span className={`${nameLengthColor}`}>{formatNumber(nameLength)}</span> / {formatNumber(40)}</strong></div>}
                             maxLength={40}
                             placeholder='Black Friday'
                             title='Offer name'
@@ -524,7 +525,7 @@ const AddOfferModal = () => {
     const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
         updateForm((prevOverrides) => {
-            let newOverrides = {...prevOverrides};
+            const newOverrides = {...prevOverrides};
             newOverrides.name = newValue;
             if (!prevOverrides.code.isDirty) {
                 clearError('code');

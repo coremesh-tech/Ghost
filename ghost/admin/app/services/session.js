@@ -1,9 +1,9 @@
+import * as Sentry from '@sentry/ember';
 import AuthConfiguration from 'ember-simple-auth/configuration';
 import ESASessionService from 'ember-simple-auth/services/session';
 import RSVP from 'rsvp';
 import fetch from 'fetch';
 import windowProxy from 'ghost-admin/utils/window-proxy';
-import {configureScope} from '@sentry/ember';
 import {getOwner} from '@ember/application';
 import {inject} from 'ghost-admin/decorators/inject';
 import {run} from '@ember/runloop';
@@ -59,7 +59,7 @@ export default class SessionService extends ESASessionService {
 
         // update Sentry with the full Ghost version which we only get after authentication
         if (this.config.sentry_dsn) {
-            configureScope((scope) => {
+            Sentry.configureScope((scope) => {
                 scope.addEventProcessor((event) => {
                     return new Promise((resolve) => {
                         resolve({
@@ -88,6 +88,26 @@ export default class SessionService extends ESASessionService {
                     this.pollAccountStateTask.perform();
                 }
             }
+        }
+    }
+
+    // Some re-auth paths (`setup()` restoring a session, or `this.user` already
+    // being populated) reach an authenticated state without running
+    // `postAuthPreparation()`, leaving `config`/`settings` unloaded until a
+    // refresh. Run it once if that happened.
+    async ensurePostAuthPreparation(source) {
+        if (this.configManager.isConfigLoaded) {
+            return;
+        }
+
+        Sentry.captureMessage('Ran postAuthPreparation after authentication bypassed it', {
+            tags: {source, ref: 'ONC-1774'}
+        });
+
+        try {
+            await this.postAuthPreparation();
+        } catch (err) {
+            // continue the retry even if prep fails, as it did before this repair
         }
     }
 
@@ -134,6 +154,11 @@ export default class SessionService extends ESASessionService {
 
             if (this.user) {
                 await this.setup();
+
+                if (this.isAuthenticated) {
+                    await this.ensurePostAuthPreparation('requireAuthentication');
+                }
+
                 this.notifications.clearAll();
                 transition.retry();
             }
@@ -229,6 +254,10 @@ export default class SessionService extends ESASessionService {
             } catch (err) {
                 yield this.invalidate();
             }
+
+            yield this.postAuthPreparation();
+        } else {
+            yield this.ensurePostAuthPreparation('handleAuthentication');
         }
         
         // Ensure account state is fetched upon authentication (e.g. login)

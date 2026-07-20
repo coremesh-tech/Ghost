@@ -4,11 +4,12 @@ import React, {useCallback, useEffect, useState} from 'react';
 import useFeatureFlag from '../../../../hooks/use-feature-flag';
 import useSettingGroup from '../../../../hooks/use-setting-group';
 import validator from 'validator';
-import {Button, ButtonGroup, ColorPickerField, ConfirmationModal, Form, Heading, Hint, HtmlField, Icon, ImageUpload, LimitModal, PreviewModalContent, Select, type SelectOption, Separator, type Tab, TabView, TextArea, TextField, Toggle, ToggleGroup, showToast} from '@tryghost/admin-x-design-system';
+import {Button, ButtonGroup, ColorPickerField, ConfirmationModal, Form, Heading, Hint, HtmlField, Icon, ImageUpload, LimitModal, PreviewModalContent, Select, type SelectOption, type Tab, TabView, TextArea, TextField, Toggle, ToggleGroup, showToast} from '@tryghost/admin-x-design-system';
 import {type ErrorMessages, useForm, useHandleError} from '@tryghost/admin-x-framework/hooks';
 import {HostLimitError, useLimiter} from '../../../../hooks/use-limiter';
 import {type Newsletter, useBrowseNewsletters, useEditNewsletter} from '@tryghost/admin-x-framework/api/newsletters';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
+import {Separator} from '@tryghost/shade/components';
 import {getImageUrl, useUploadImage} from '@tryghost/admin-x-framework/api/images';
 import {getSettingValue, getSettingValues} from '@tryghost/admin-x-framework/api/settings';
 import {hasSendingDomain, isManagedEmail, sendingDomain} from '@tryghost/admin-x-framework/api/config';
@@ -30,7 +31,7 @@ const ReplyToEmailField: React.FC<{
     // Because 'newsletter' 'support' or an empty value can be mapped to a default value, we don't want those changes to happen when entering text
     const [senderReplyTo, setSenderReplyTo] = useState(renderReplyToEmail(newsletter, config, supportEmailAddress, defaultEmailAddress) || '');
 
-    let newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
+    const newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSenderReplyTo(e.target.value);
@@ -80,7 +81,7 @@ const Sidebar: React.FC<{
     const {data: {newsletters: apiNewsletters} = {}} = useBrowseNewsletters();
     const commentsEnabled = ['all', 'paid'].includes(getSettingValue(settings, 'comments_enabled') || '');
 
-    let newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
+    const newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
     const [newsletters, setNewsletters] = useState<Newsletter[]>(apiNewsletters || []);
     const activeNewsletters = newsletters.filter(n => n.status === 'active');
 

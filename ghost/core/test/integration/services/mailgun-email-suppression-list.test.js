@@ -11,7 +11,18 @@ describe('MailgunEmailSuppressionList', function () {
     let agent;
     let events = [];
 
-    before(async function () {
+    beforeAll(async function () {
+        // Pin the email-analytics fetch window to an old date before boot, so the
+        // year-2000 test events below fall inside it. Without this the window
+        // starts at ~now and the events (being "too close to NOW") are never
+        // fetched, so no suppression is created. The suite previously passed only
+        // by free-riding on an earlier file's timestamp state, which breaks under
+        // per-file isolation. Mirrors newsletter-email-event-storage.test.js.
+        const queries = require('../../../core/server/services/email-analytics/lib/queries');
+        sinon.stub(queries, 'getLastEventTimestamp').callsFake(async function () {
+            return new Date(2000, 0, 1);
+        });
+
         agent = await agentProvider.getAdminAPIAgent();
         await fixtureManager.init('newsletters', 'members:newsletters', 'members:emails:failed');
         await agent.loginAsOwner();
@@ -22,7 +33,7 @@ describe('MailgunEmailSuppressionList', function () {
         });
     });
 
-    after(function () {
+    afterAll(function () {
         sinon.restore();
     });
 
@@ -46,7 +57,7 @@ describe('MailgunEmailSuppressionList', function () {
             recipient
         })];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const {body: {members: [memberAfter]}} = await agent.get(`/members/${memberId}`);
@@ -74,7 +85,7 @@ describe('MailgunEmailSuppressionList', function () {
             recipient
         })];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const {body: {members: [memberAfter]}} = await agent.get(`/members/${memberId}`);
@@ -102,7 +113,7 @@ describe('MailgunEmailSuppressionList', function () {
             recipient
         })];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const {body: {members: [memberAfter]}} = await agent.get(`/members/${memberId}`);
@@ -130,7 +141,7 @@ describe('MailgunEmailSuppressionList', function () {
             recipient
         })];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const {body: {members: [memberAfter]}} = await agent.get(`/members/${memberId}`);
@@ -165,7 +176,7 @@ describe('MailgunEmailSuppressionList', function () {
             timestamp: Math.round(timestamp.getTime() / 1000)
         }];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const {body: {members: [memberAfter]}} = await agent.get(`/members/${memberId}`);
@@ -203,7 +214,7 @@ describe('MailgunEmailSuppressionList', function () {
             recipient
         })];
 
-        await emailAnalytics.fetchLatestOpenedEvents();
+        await emailAnalytics.newsletters.fetchLatestOpenedEvents();
         await DomainEvents.allSettled();
 
         const memberAfter = await models.Member.findOne({id: memberId}, {require: true});

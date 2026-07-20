@@ -24,17 +24,22 @@ export interface WaitAction {
     };
 }
 
+export interface AutomationEmailStats {
+    email_sent_count: number;
+    email_opened_count: number;
+    opened_rate: number | null;
+    clicked_rate: number | null;
+}
+
 export interface SendEmailAction {
     id: string;
     type: 'send_email';
     data: {
         email_subject: string;
         email_lexical: string;
-        email_sender_name: string | null;
-        email_sender_email: string | null;
-        email_sender_reply_to: string | null;
         email_design_setting_id: string;
     };
+    stats?: AutomationEmailStats;
 }
 
 export type AutomationAction = WaitAction | SendEmailAction;
@@ -64,6 +69,18 @@ export interface EditAutomationData {
     edges: AutomationEdge[];
 }
 
+export type AutomatedEmailRecipientWithMailgunId = {
+    id: string;
+    mailgun_message_id: string;
+    automation_action_revision_id: string;
+};
+
+export type AutomatedEmailEvents = {
+    deliveredAt?: Date;
+    openedAt?: Date;
+    automationActionRevisionId: string;
+};
+
 type AutomationStepBase = {
     id: string;
     locked_by: string;
@@ -88,9 +105,6 @@ export type AutomationStepToRun = ReadonlyDeep<AutomationStepBase & (
         type: 'send_email';
         email_subject: string;
         email_lexical: string;
-        email_sender_name: string | null;
-        email_sender_email: string | null;
-        email_sender_reply_to: string | null;
         email_design_setting_id: string | null;
     }
 )>;
@@ -153,4 +167,16 @@ export interface AutomationsRepository {
         step: Pick<AutomationStepToRun, 'id' | 'locked_by'>,
         retryAt: Readonly<Date>
     ): Promise<boolean>;
+    /**
+     * Fetch sent emails by their Mailgun IDs.
+     */
+    getAutomatedEmailRecipientsByMailgunIds(
+        mailgunMessageIds: ReadonlyArray<string>
+    ): Promise<AutomatedEmailRecipientWithMailgunId[]>;
+    /**
+     * Track delivery and open events.
+     */
+    trackEmailDeliveredAndOpened(
+        eventsByAutomatedEmailRecipientId: ReadonlyDeep<Map<string, AutomatedEmailEvents>>
+    ): Promise<void>;
 }

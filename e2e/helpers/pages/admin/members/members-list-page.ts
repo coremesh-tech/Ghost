@@ -1,3 +1,4 @@
+import * as membersSel from '@tryghost/test-data/selectors/members';
 import {AdminPage} from '@/admin-pages';
 import {Download, Locator, Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
@@ -16,6 +17,7 @@ export class MembersListPage extends AdminPage {
     readonly clearFiltersButton: Locator;
     readonly emptyState: Locator;
     readonly addYourselfButton: Locator;
+    readonly importCsvLink: Locator;
     readonly noResults: Locator;
     readonly showAllButton: Locator;
 
@@ -23,16 +25,19 @@ export class MembersListPage extends AdminPage {
         super(page);
         this.pageUrl = '/ghost/#/members';
 
-        this.memberRows = page.getByTestId('members-list-item');
-        this.searchInput = page.getByTestId('members-search-input');
-        this.actionsButton = page.getByTestId('members-actions');
-        this.newMemberButton = page.getByRole('link', {name: 'New member'});
-        this.filterButton = page.getByRole('button', {name: /^(Filter|Add filter)$/});
-        this.clearFiltersButton = page.getByRole('button', {name: 'Clear'});
-        this.emptyState = page.getByText('Start building your audience');
-        this.addYourselfButton = page.getByRole('button', {name: 'Add yourself as a member to test'});
-        this.noResults = page.getByText('No matching members found.');
-        this.showAllButton = page.getByRole('button', {name: 'Show all members'});
+        this.memberRows = page.getByTestId(membersSel.membersListItem);
+        this.searchInput = page.getByTestId(membersSel.membersSearchInput);
+        this.actionsButton = page.getByTestId(membersSel.membersActions);
+        this.newMemberButton = page.getByRole('link', {name: membersSel.newMemberLink});
+        this.filterButton = page.getByRole('button', {
+            name: new RegExp(`^(${membersSel.filterButton}|${membersSel.addFilterButton})$`)
+        });
+        this.clearFiltersButton = page.getByRole('button', {name: membersSel.clearFiltersButton});
+        this.emptyState = page.getByText(membersSel.emptyStateText);
+        this.addYourselfButton = page.getByRole('button', {name: membersSel.addYourselfButton});
+        this.importCsvLink = page.getByRole('link', {name: membersSel.importCsvLink});
+        this.noResults = page.getByText(membersSel.noResultsText);
+        this.showAllButton = page.getByRole('button', {name: membersSel.showAllButton});
     }
 
     getMemberByName(name: string): Locator {
@@ -78,8 +83,8 @@ export class MembersListPage extends AdminPage {
         await this.filterButton.click();
         await this.page.getByRole('option', {name: fieldName, exact: true}).click();
 
-        if (fieldName === 'Name' || fieldName === 'Email') {
-            const placeholder = fieldName === 'Name' ? 'Enter name...' : 'Enter email...';
+        const placeholder = membersSel.textFilterFields[fieldName as keyof typeof membersSel.textFilterFields];
+        if (placeholder) {
             await this.page.getByRole('textbox', {name: placeholder}).fill(value);
         } else {
             // For select-based filters (Label, Status, etc.)
@@ -124,8 +129,12 @@ export class MembersListPage extends AdminPage {
         await this.page.getByRole('option', {name: new RegExp(String.raw`^${escaped}\b`)}).click();
     }
 
+    get multiselectSearchInput(): Locator {
+        return this.page.locator('[cmdk-input]');
+    }
+
     async searchMultiselectOptions(query: string): Promise<void> {
-        await this.page.locator('[cmdk-input]').fill(query);
+        await this.multiselectSearchInput.fill(query);
     }
 
     get editLabelInput(): Locator {

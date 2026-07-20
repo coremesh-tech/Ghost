@@ -97,12 +97,13 @@ const ZapierModal = NiceModal.create(() => {
                 detail='Automation for your favorite apps'
                 extra={<div className='mt-1 -mb-4'><APIKeys keys={[
                     {
+                        id: 'admin-api-key',
                         label: 'Admin API key',
                         text: adminApiKey?.secret,
                         hint: regenerated ? <div className='text-green'>Admin API Key was successfully regenerated</div> : undefined,
                         onRegenerate: handleRegenerate
                     },
-                    {label: 'API URL', text: window.location.origin + getGhostPaths().subdir}
+                    {id: 'api-url', label: 'API URL', text: window.location.origin + getGhostPaths().subdir}
                 ]} /></div>}
                 icon={<Icon name='zapier' size={56} />}
                 title='Zapier'
@@ -111,6 +112,7 @@ const ZapierModal = NiceModal.create(() => {
             <List>
                 {zapierTemplates.map(template => (
                     <ListItem
+                        key={template.url}
                         action={<Button className='font-semibold whitespace-nowrap text-[#FF4A00]' href={template.url} label='Use this Zap' tag='a' target='_blank' link unstyled />}
                         bgOnHover={false}
                         className='flex items-center gap-3 py-2 pl-3'

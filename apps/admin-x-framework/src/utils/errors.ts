@@ -84,6 +84,14 @@ export class MaintenanceError extends APIError {
     }
 }
 
+export class UnauthorizedError extends APIError {
+    constructor(response: Response, data: unknown, errorOptions?: ErrorOptions) {
+        super(response, data, 'You are not authorised to make this request.', errorOptions);
+    }
+}
+
+export class SessionExpiredError extends UnauthorizedError {}
+
 export class ThemeValidationError extends JSONError {
     constructor(response: Response, data: ErrorResponse, errorOptions?: ErrorOptions) {
         super(response, data, 'Theme is not compatible or contains errors.', errorOptions);
@@ -109,6 +117,16 @@ export class ValidationError extends JSONError {
 }
 
 export const errorsWithMessage = [ValidationError, ThemeValidationError, HostLimitError, EmailError];
+
+// The API error serializer puts the human-readable text in `context`;
+// `message` is only a generic summary
+export function getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof ValidationError && error.data?.errors[0]) {
+        return error.data.errors[0].context || error.data.errors[0].message;
+    }
+
+    return fallback;
+}
 
 // Frontend errors
 

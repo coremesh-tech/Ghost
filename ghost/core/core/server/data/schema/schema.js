@@ -121,6 +121,20 @@ module.exports = {
         feature_image_caption: {type: 'text', maxlength: 65535, nullable: true},
         email_only: {type: 'boolean', nullable: false, defaultTo: false}
     },
+    // Every gift link added to a post; replaced tokens remain as history. Liveness lives in post_gift_links.
+    gift_links: {
+        token: {type: 'string', maxlength: 32, nullable: false, primary: true},
+        post_id: {type: 'string', maxlength: 24, nullable: false, references: 'posts.id', cascadeDelete: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: true}
+    },
+    // A row here is what makes a link live; UNIQUE(post_id) enforces "<=1 live link per post".
+    post_gift_links: {
+        post_id: {type: 'string', maxlength: 24, nullable: false, references: 'posts.id', cascadeDelete: true, unique: true},
+        gift_link_token: {type: 'string', maxlength: 32, nullable: false, references: 'gift_links.token', cascadeDelete: true, primary: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: true}
+    },
     // NOTE: this is the staff table
     users: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
@@ -445,6 +459,7 @@ module.exports = {
         note: {type: 'string', maxlength: 2000, nullable: true},
         geolocation: {type: 'string', maxlength: 2000, nullable: true},
         enable_comment_notifications: {type: 'boolean', nullable: false, defaultTo: true},
+        enable_updates_and_announcements: {type: 'boolean', nullable: true},
         email_count: {type: 'integer', unsigned: true, nullable: false, defaultTo: 0},
         email_opened_count: {type: 'integer', unsigned: true, nullable: false, defaultTo: 0},
         email_open_rate: {type: 'integer', unsigned: true, nullable: true, index: true},
@@ -654,6 +669,43 @@ module.exports = {
         member_id: {type: 'string', maxlength: 24, nullable: false, references: 'members.id', cascadeDelete: true},
         label_id: {type: 'string', maxlength: 24, nullable: false, references: 'labels.id', cascadeDelete: true},
         sort_order: {type: 'integer', nullable: false, unsigned: true, defaultTo: 0}
+    },
+    members_custom_fields: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        key: {type: 'string', maxlength: 191, nullable: false, unique: true},
+        name: {type: 'string', maxlength: 191, nullable: false, unique: true},
+        type: {
+            type: 'string',
+            maxlength: 50,
+            nullable: false,
+            // Keep in sync with FIELD_TYPE_IDS in @tryghost/custom-field-types,
+            // the source of truth (this static schema can't import it).
+            validations: {
+                isIn: [[
+                    'short_text',
+                    'long_text',
+                    'address'
+                ]]
+            }
+        },
+        status: {type: 'string', maxlength: 50, nullable: false, defaultTo: 'active', validations: {isIn: [['active', 'archived']]}},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: true}
+    },
+    members_custom_field_values: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        custom_field_id: {type: 'string', maxlength: 24, nullable: false, references: 'members_custom_fields.id', cascadeDelete: true},
+        member_id: {type: 'string', maxlength: 24, nullable: false, references: 'members.id', cascadeDelete: true},
+        // Exactly one value column is populated per row, chosen by the field
+        // type's storage type in @tryghost/custom-field-types, whose byte bound
+        // on long_text matches this column exactly.
+        value_text: {type: 'text', maxlength: 65535, nullable: true},
+        value_json: {type: 'text', maxlength: 65535, nullable: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: true},
+        '@@UNIQUE_CONSTRAINTS@@': [
+            ['member_id', 'custom_field_id']
+        ]
     },
     members_stripe_customers: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
@@ -1005,7 +1057,11 @@ module.exports = {
         created_at: {type: 'dateTime', nullable: false},
         updated_at: {type: 'dateTime', nullable: false},
         '@@INDEXES@@': [
-            ['post_id', 'parent_id', 'pinned_at']
+            ['post_id', 'parent_id', 'pinned_at'],
+            ['created_at'],
+            ['status'],
+            ['in_reply_to_id', 'status'],
+            ['parent_id', 'in_reply_to_id', 'status']
         ]
     },
     comment_likes: {
@@ -1192,6 +1248,9 @@ module.exports = {
         divider_color: {type: 'string', maxlength: 50, nullable: true},
         section_title_color: {type: 'string', maxlength: 50, nullable: true},
         show_badge: {type: 'boolean', nullable: false, defaultTo: true},
+        sender_name: {type: 'string', maxlength: 191, nullable: true},
+        sender_email: {type: 'string', maxlength: 191, nullable: true, validations: {isEmail: true}},
+        sender_reply_to: {type: 'string', maxlength: 191, nullable: true, validations: {isEmail: true}},
         created_at: {type: 'dateTime', nullable: false},
         updated_at: {type: 'dateTime', nullable: true}
     },
@@ -1202,6 +1261,56 @@ module.exports = {
         slug: {type: 'string', maxlength: 191, nullable: false, unique: true},
         created_at: {type: 'dateTime', nullable: false},
         updated_at: {type: 'dateTime', nullable: true}
+    },
+    automation_actions: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: false},
+        deleted_at: {type: 'dateTime', nullable: true},
+        automation_id: {type: 'string', maxlength: 24, nullable: false, references: 'automations.id', restrictDelete: true},
+        type: {type: 'string', maxlength: 50, nullable: false, validations: {isIn: [['wait', 'send_email']]}}
+    },
+    automation_action_revisions: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        created_at: {type: 'dateTime', nullable: false},
+        action_id: {type: 'string', maxlength: 24, nullable: false, references: 'automation_actions.id', restrictDelete: true},
+        wait_hours: {type: 'integer', nullable: true, unsigned: true},
+        email_subject: {type: 'string', maxlength: 300, nullable: true},
+        email_lexical: {type: 'text', maxlength: 1000000000, fieldtype: 'long', nullable: true},
+        email_design_setting_id: {type: 'string', maxlength: 24, nullable: true, references: 'email_design_settings.id', setNullDelete: true},
+        email_sent_count: {type: 'integer', nullable: true, unsigned: true},
+        email_tracked_sent_count: {type: 'integer', nullable: true, unsigned: true},
+        email_opened_count: {type: 'integer', nullable: true, unsigned: true},
+        '@@UNIQUE_CONSTRAINTS@@': [
+            ['created_at', 'action_id']
+        ]
+    },
+    automation_action_edges: {
+        source_action_id: {type: 'string', maxlength: 24, nullable: false, references: 'automation_actions.id', restrictDelete: true},
+        target_action_id: {type: 'string', maxlength: 24, nullable: false, references: 'automation_actions.id', restrictDelete: true},
+        '@@PRIMARY_KEY@@': ['source_action_id', 'target_action_id']
+    },
+    automation_runs: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: false},
+        automation_id: {type: 'string', maxlength: 24, nullable: false, references: 'automations.id', restrictDelete: true},
+        member_id: {type: 'string', maxlength: 24, nullable: true, references: 'members.id', setNullDelete: true, index: true},
+        member_email: {type: 'string', maxlength: 191, nullable: false, validations: {isEmail: true}}
+    },
+    automation_run_steps: {
+        id: {type: 'string', maxlength: 24, nullable: false, primary: true},
+        created_at: {type: 'dateTime', nullable: false},
+        updated_at: {type: 'dateTime', nullable: false},
+        automation_run_id: {type: 'string', maxlength: 24, nullable: false, references: 'automation_runs.id', restrictDelete: true},
+        automation_action_revision_id: {type: 'string', maxlength: 24, nullable: false, references: 'automation_action_revisions.id', restrictDelete: true},
+        ready_at: {type: 'dateTime', nullable: false},
+        step_attempts: {type: 'integer', nullable: false, unsigned: true, defaultTo: 0},
+        started_at: {type: 'dateTime', nullable: true},
+        finished_at: {type: 'dateTime', nullable: true},
+        status: {type: 'string', maxlength: 50, nullable: false, defaultTo: 'pending', validations: {isIn: [['pending', 'automation disabled', 'failed', 'finished', 'member changed status', 'member unsubscribed']]}},
+        locked_by: {type: 'string', maxlength: 191, nullable: true},
+        locked_at: {type: 'dateTime', nullable: true}
     },
     welcome_email_automated_emails: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
@@ -1234,11 +1343,16 @@ module.exports = {
     },
     automated_email_recipients: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},
-        automated_email_id: {type: 'string', maxlength: 24, nullable: false, references: 'welcome_email_automated_emails.id'},
+        automated_email_id: {type: 'string', maxlength: 24, nullable: true, references: 'welcome_email_automated_emails.id'},
+        automation_action_revision_id: {type: 'string', maxlength: 24, nullable: true, references: 'automation_action_revisions.id'},
         member_id: {type: 'string', maxlength: 24, nullable: false, index: true},
         member_uuid: {type: 'string', maxlength: 36, nullable: false},
         member_email: {type: 'string', maxlength: 191, nullable: false},
         member_name: {type: 'string', maxlength: 191, nullable: true},
+        mailgun_message_id: {type: 'string', maxlength: 1000, nullable: true},
+        delivered_at: {type: 'dateTime', nullable: true},
+        opened_at: {type: 'dateTime', nullable: true},
+        track_opens: {type: 'boolean', nullable: false, defaultTo: false},
         created_at: {type: 'dateTime', nullable: false},
         updated_at: {type: 'dateTime', nullable: true}
     },

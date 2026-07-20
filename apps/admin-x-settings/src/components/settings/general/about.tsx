@@ -1,5 +1,6 @@
 import NiceModal from '@ebay/nice-modal-react';
-import {GhostLogo, Icon, Modal, Separator} from '@tryghost/admin-x-design-system';
+import {GhostLogo, Separator} from '@tryghost/shade/components';
+import {Icon, Modal} from '@tryghost/admin-x-design-system';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
 import {linkToGitHubReleases} from '../../../utils/link-to-github-releases';
 import {showDatabaseWarning} from '../../../utils/show-database-warning';
@@ -19,10 +20,10 @@ function VersionLink({label, version}: {label: string; version: string}) {
     );
 }
 
-const AboutModal = NiceModal.create<RoutingModalProps>(({}) => {
+const AboutModal = NiceModal.create<RoutingModalProps>(() => {
     const {updateRoute} = useRouting();
     const globalData = useGlobalData();
-    let config = globalData.config;
+    const config = globalData.config;
     const upgradeStatus = useUpgradeStatus();
 
     function copyrightYear():number {

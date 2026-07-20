@@ -1,7 +1,12 @@
 // Feature flags behaviour in tests:
-// By default, all flags listed in GA_FEATURES, BETA_FEATURES, and ALPHA_FEATURES
-// are globally enabled during E2E tests. This ensures flagged code paths are tested
-// automatically.
+// E2E tests run with every flag on, so flagged code paths are exercised by
+// default — PRIVATE_FEATURES included, whether or not a test asks for them.
+// GA_FEATURES are always true everywhere, not only in tests. The rest are turned
+// on by fixture setup: enableAllLabsFeatures in test/utils/fixture-utils.js
+// enables every key in WRITABLE_KEYS_ALLOWLIST (PUBLIC_BETA_FEATURES plus
+// PRIVATE_FEATURES), and every fixture init runs it.
+// So adding a key to a response behind a private flag will still change E2E
+// snapshots, even though the flag is off in production.
 // For more details, see the E2E testing documentation:
 // https://www.notion.so/ghost/End-to-end-Testing-6a2ef073b1754b18aff42e24a632a007
 
@@ -12,6 +17,7 @@ const tpl = require('@tryghost/tpl');
 
 const settingsCache = require('./settings-cache');
 const config = require('./config');
+const flagOverrides = require('./labs-flag-overrides');
 
 const messages = {
     errorMessage: 'The \\{\\{{helperName}\\}\\} helper is not available.',
@@ -26,7 +32,9 @@ const GA_FEATURES = [
     'commentsThreads',
     'commentsPinning',
     'featurebaseFeedback',
-    'dangerZoneResetAuth'
+    'dangerZoneResetAuth',
+    'indexnow',
+    'llmsTxt'
 ];
 
 // These features are considered publicly available and can be enabled/disabled by users
@@ -40,8 +48,10 @@ const PUBLIC_BETA_FEATURES = [
 // Which is only visible if the developer experiments flag is enabled
 const PRIVATE_FEATURES = [
     'automations',
+    'automationAnalytics',
     'stripeAutomaticTax',
     'importMemberTier',
+    'csvContentImporter',
     'urlCache',
     'lexicalIndicators',
     'adminUIRefresh',
@@ -49,11 +59,12 @@ const PRIVATE_FEATURES = [
     'tagsX',
     'emailUniqueid',
     'themeTranslation',
-    'indexnow',
     'pictureImageFormats',
     'smarterCounts',
-    'llmsTxt',
-    'getHelperDeduplication'
+    'getHelperDeduplication',
+    'memberDetailsReact',
+    'membersCustomFields',
+    'previewByTier'
 ];
 
 module.exports.GA_KEYS = [...GA_FEATURES];
@@ -64,6 +75,14 @@ module.exports.getAll = () => {
 
     GA_FEATURES.forEach((gaKey) => {
         labs[gaKey] = true;
+    });
+
+    // Remote overrides sit above GA (so a remote entry can kill a GA flag) but below
+    // config.labs (so an explicit local pin wins): config.labs > remote > GA > DB.
+    // Empty on self-hosted, so this overlay is a no-op there.
+    const remoteOverrides = flagOverrides.getAll();
+    Object.keys(remoteOverrides).forEach((key) => {
+        labs[key] = remoteOverrides[key];
     });
 
     const labsConfig = config.get('labs') || {};
@@ -121,7 +140,6 @@ module.exports.enabledHelper = function enabledHelper(options, callback) {
     });
     errDetails.help = tpl(options.errorHelp || messages.errorHelp, {url: options.helpUrl});
 
-    // eslint-disable-next-line no-restricted-syntax
     logging.error(new errors.DisabledFeatureError({
         message: errDetails.message,
         context: errDetails.context,

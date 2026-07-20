@@ -28,6 +28,7 @@
         "^default"
       ],
       "outputs": [
+        "{projectRoot}/build",
         "{projectRoot}/dist",
         "{projectRoot}/es",
         "{projectRoot}/types",
@@ -47,6 +48,19 @@
         "build"
       ]
     },
+    "test:ci:*": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^default",
+        {
+          "env": "DB"
+        },
+        {
+          "env": "NODE_ENV"
+        }
+      ]
+    },
     "dev": {
       "dependsOn": [
         "^dev"
@@ -55,5 +69,6 @@
     }
   },
   "cacheDirectory": ".nxcache",
-  "analytics": false
+  "analytics": true,
+  "nxCloudId": "6a146249a88a39d9ffa5046c"
 }

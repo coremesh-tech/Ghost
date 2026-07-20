@@ -1,5 +1,6 @@
 import Service, {inject as service} from '@ember/service';
 import {TrackedArray} from 'tracked-built-ins';
+import {escapeNqlString} from '../utils/escape-nql-string';
 import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
 
@@ -73,8 +74,7 @@ export default class LabelsManagerService extends Service {
     @task({restartable: true})
     *searchLabelsTask(term, {page = 1} = {}) {
         yield timeout(250);
-        const safeTerm = term.replace(/'/g, `\\'`);
-        const labels = yield this.store.query('label', {filter: `name:~'${safeTerm}'`, limit: PAGE_SIZE, page, order: 'name asc'});
+        const labels = yield this.store.query('label', {filter: `name:~${escapeNqlString(term)}`, limit: PAGE_SIZE, page, order: 'name asc'});
 
         // Register search results so they can be resolved by findBySlug/selectedOptions
         // even if they weren't in the initially paginated set

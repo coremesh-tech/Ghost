@@ -1,7 +1,7 @@
 import EmailNotificationsTab from './users/email-notifications-tab';
 import NiceModal, {useModal} from '@ebay/nice-modal-react';
 import ProfileTab from './users/profile-tab';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import SocialLinksTab from './users/social-links-tab';
 import StripeAccountTab from './users/stripe-account-tab';
 import StripeAdminTab from './users/stripe-admin-tab';
@@ -10,11 +10,12 @@ import usePinturaEditor from '../../../hooks/use-pintura-editor';
 import useStaffUsers from '../../../hooks/use-staff-users';
 import validator from 'validator';
 import {APIError} from '@tryghost/admin-x-framework/errors';
-import {ConfirmationModal, Heading, Icon, ImageUpload, LimitModal, Menu, type MenuItem, Modal, TabView, showToast} from '@tryghost/admin-x-design-system';
+import {ConfirmationModal, Heading, Icon, ImageUpload, LimitModal, Modal, TabView, showToast} from '@tryghost/admin-x-design-system';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from '@tryghost/shade/components';
 import {type ErrorMessages, useForm, useHandleError} from '@tryghost/admin-x-framework/hooks';
 import {HostLimitError, useLimiter} from '../../../hooks/use-limiter';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
-import {SOCIAL_PLATFORM_CONFIGS, getSocialValidationError} from '../../../utils/social-urls/index';
+import {SOCIAL_PLATFORM_CONFIGS, SOCIAL_PLATFORM_KEYS, getSocialValidationError} from '../../../utils/social-urls/index';
 import {type User, canAccessSettings, hasAdminAccess, isAdminUser, isAuthorOrContributor, isEditorUser, isOwnerUser, useDeleteUser, useEditUser, useGetUserBySlug, useMakeOwner} from '@tryghost/admin-x-framework/api/users';
 import {getImageUrl, useUploadImage} from '@tryghost/admin-x-framework/api/images';
 import {useGlobalData} from '../../providers/global-data-provider';
@@ -89,6 +90,16 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
         savedDelay: 500,
         onValidate: (values) => {
             return Object.entries(validators).reduce<ErrorMessages>((newErrors, [key, validate]) => {
+                // a stored social handle that predates a validation-rule
+                // tightening (see ONC-1856 follow-ups) must not block saving
+                // an unrelated field on this modal — only re-validate a
+                // platform the user actually changed from what was loaded
+                const isUnchangedSocialField = (SOCIAL_PLATFORM_KEYS as readonly string[]).includes(key)
+                    && values[key as keyof User] === user[key as keyof User];
+                if (isUnchangedSocialField) {
+                    return newErrors;
+                }
+
                 const error = validate(values);
                 if (error) {
                     newErrors[key] = error;
@@ -97,7 +108,24 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
             }, {});
         },
         onSave: async (values) => {
-            await updateUser?.(values);
+            const response = await updateUser?.(values);
+            const savedUser = response?.users?.[0];
+
+            if (!savedUser) {
+                return;
+            }
+
+            // Sync the form with the saved user — the server may have
+            // modified submitted values, e.g. sanitizing the slug
+            setFormState(() => savedUser);
+
+            if (savedUser.slug !== user.slug) {
+                // Keep the URL in sync with the new slug, replacing the
+                // history entry so refresh and back button still work
+                const tab = getTabFromPath(route);
+                const urlSegment = tab === 'profile' ? '' : `/${tab}`;
+                updateRoute({route: `staff/${savedUser.slug}${urlSegment}`, replace: true});
+            }
         },
         onSaveError: handleError
     });
@@ -274,46 +302,12 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
     };
 
     const showMenu = hasAdminAccess(currentUser) || (isEditorUser(currentUser) && isAuthorOrContributor(user));
-    let menuItems: MenuItem[] = [];
-
-    if (isOwnerUser(currentUser) && isAdminUser(formState) && formState.status !== 'inactive') {
-        menuItems.push({
-            id: 'make-owner',
-            label: 'Make owner',
-            onClick: confirmMakeOwner
-        });
-    }
-
-    menuItems.push({
-        id: 'view-user-activity',
-        label: 'View user activity',
-        onClick: () => {
-            mainModal.remove();
-            updateRoute(`history/view/${formState.id}`);
-        }
-    });
-
-    if (formState.id !== currentUser.id && (
+    const canMakeOwner = isOwnerUser(currentUser) && isAdminUser(formState) && formState.status !== 'inactive';
+    const canSuspendUser = formState.id !== currentUser.id && (
         (hasAdminAccess(currentUser) && !isOwnerUser(user)) ||
         (isEditorUser(currentUser) && isAuthorOrContributor(user))
-    )) {
-        let suspendUserLabel = formState.status === 'inactive' ? 'Un-suspend user' : 'Suspend user';
-
-        menuItems.push({
-            id: 'suspend-user',
-            label: suspendUserLabel,
-            onClick: () => {
-                confirmSuspend(formState);
-            }
-        }, {
-            id: 'delete-user',
-            label: 'Delete user',
-            destructive: true,
-            onClick: () => {
-                confirmDelete(user, {owner: ownerUser});
-            }
-        });
-    }
+    );
+    const suspendUserLabel = formState.status === 'inactive' ? 'Un-suspend user' : 'Suspend user';
 
     const noCoverButtonClasses = 'rounded flex flex-nowrap items-center justify-center px-3 h-8 transition-all cursor-pointer font-medium border border-grey-300 bg-transparent text-black dark:border-grey-800 dark:text-white';
 
@@ -371,6 +365,7 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
             buttonsDisabled={okProps.disabled}
             cancelLabel='Close'
             dirty={saveState === 'unsaved'}
+            hideXOnMobile={true}
             okColor={okProps.color}
             okLabel={okProps.label || 'Save'}
             size={canAccessSettings(currentUser) ? 'md' : 'bleed'}
@@ -391,14 +386,15 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                             <div className='flex flex-nowrap items-start justify-between gap-3'>
                                 <div>
                                     <ImageUpload
-                                        deleteButtonClassName='md:invisible absolute pr-3 -right-2 -top-2 flex h-8 w-10 cursor-pointer items-center justify-end rounded-full bg-[rgba(0,0,0,0.75)] text-white group-hover:visible!'
+                                        deleteButtonClassName='md:invisible absolute -right-1 -top-2 flex size-8 cursor-pointer items-center justify-center rounded-full bg-[rgba(0,0,0,0.75)] text-white group-hover:visible!'
                                         deleteButtonContent={<Icon colorClass='text-white' name='trash' size='sm' />}
-                                        editButtonClassName='md:invisible absolute right-[22px] -top-2 flex h-8 w-8 cursor-pointer items-center justify-center text-white group-hover:visible! z-20'
+                                        editButtonClassName='md:invisible absolute -left-1 -top-2 flex size-8 cursor-pointer items-center justify-center rounded-full bg-[rgba(0,0,0,0.75)] text-white group-hover:visible!'
                                         fileUploadClassName='rounded-full bg-black flex items-center justify-center opacity-80 transition hover:opacity-100 -ml-2 cursor-pointer h-[80px] w-[80px]'
-                                        fileUploadProps={{dragIndicatorClassName: 'rounded-full'}}
+                                        fileUploadProps={{dragIndicatorClassName: 'rounded-full', inputTestId: 'profile-image-upload'}}
                                         id='avatar'
                                         imageClassName='w-full h-full object-cover rounded-full shrink-0'
-                                        imageContainerClassName='relative group bg-cover bg-center -ml-1 h-16 w-16 md:h-18 md:w-18 shrink-0'
+                                        imageContainerClassName='relative group bg-cover bg-center -ml-1 h-[80px] w-[80px] shrink-0'
+                                        imageTestId='profile-image-preview'
                                         imageURL={formState.profile_image ?? undefined}
                                         pintura={
                                             {
@@ -430,8 +426,10 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                                         deleteButtonContent='Delete cover image'
                                         editButtonClassName={coverButtonClasses}
                                         fileUploadClassName={noCoverButtonClasses}
+                                        fileUploadProps={{inputTestId: 'cover-image-upload'}}
                                         id='cover-image'
                                         imageClassName='hidden'
+                                        imageTestId='cover-image-preview'
                                         imageURL={formState.cover_image || ''}
                                         pintura={
                                             {
@@ -453,10 +451,8 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                                         }}
                                     >Upload cover image</ImageUpload>
                                     {showMenu && <div className="z-10">
-                                        <Menu
-                                            items={menuItems}
-                                            position='end'
-                                            trigger={
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
                                                 <button
                                                     className={clsx(
                                                         'flex h-8 cursor-pointer items-center justify-center rounded px-3',
@@ -473,8 +469,39 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
                                                         size='md'
                                                     />
                                                 </button>
-                                            }
-                                        />
+                                            </DropdownMenuTrigger>
+                                            {/* legacy Modal overlay is z-[1000]; keep the portalled menu above it */}
+                                            <DropdownMenuContent align='end' className='z-[9999]'>
+                                                {canMakeOwner && (
+                                                    <DropdownMenuItem onSelect={confirmMakeOwner}>
+                                                        Make owner
+                                                    </DropdownMenuItem>
+                                                )}
+                                                <DropdownMenuItem onSelect={() => {
+                                                    mainModal.remove();
+                                                    updateRoute(`history/view/${formState.id}`);
+                                                }}>
+                                                    View user activity
+                                                </DropdownMenuItem>
+                                                {canSuspendUser && (
+                                                    <>
+                                                        <DropdownMenuItem onSelect={() => {
+                                                            confirmSuspend(formState);
+                                                        }}>
+                                                            {suspendUserLabel}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className='text-destructive focus:text-destructive'
+                                                            onSelect={() => {
+                                                                confirmDelete(user, {owner: ownerUser});
+                                                            }}
+                                                        >
+                                                            Delete user
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>}
                                 </div>
                             </div>
@@ -499,24 +526,67 @@ const UserDetailModalContent: React.FC<{user: User}> = ({user}) => {
 
 const UserDetailModal: React.FC<RoutingModalProps> = ({params}) => {
     const {currentUser} = useGlobalData();
+    const {updateRoute} = useRouting();
+    const handleError = useHandleError();
 
     // Skip API call if it's the current user (we already have their data)
     const isCurrentUser = currentUser.slug === params?.slug;
 
     // Fetch user by slug if it's not the current user
-    const {data: fetchedUserData} = useGetUserBySlug(
+    const {data: fetchedUserData, error} = useGetUserBySlug(
         params?.slug || '',
-        {enabled: !isCurrentUser && !!params?.slug}
+        {enabled: !isCurrentUser && !!params?.slug, defaultErrorHandler: false}
     );
 
     // Use current user data or fetched user data
     const user = isCurrentUser ? currentUser : fetchedUserData?.users?.[0];
 
+    // Only a 404 (or an empty response) means the user doesn't exist — other
+    // errors (server/network issues) get the default error handling below
+    const isNotFoundError = error instanceof APIError && error.response?.status === 404;
+
+    useEffect(() => {
+        if (error && !isNotFoundError) {
+            handleError(error);
+        }
+    }, [error, isNotFoundError, handleError]);
+
+    // The slug lookup has settled without finding a user
+    const hasResolvedMissingUser = !isCurrentUser && !!params?.slug && !user && (isNotFoundError || fetchedUserData !== undefined);
+
+    // Keep showing the last loaded user while a refetch is in flight, e.g.
+    // when a slug change updates the URL and triggers a fetch by the new
+    // slug — but not once the lookup has settled without finding a user
+    const lastUserRef = useRef<User | undefined>(undefined);
     if (user) {
-        return <UserDetailModalContent user={user} />;
-    } else {
-        return null;
+        lastUserRef.current = user;
     }
+    const displayUser = user || (hasResolvedMissingUser ? undefined : lastUserRef.current);
+
+    const notFoundSlug = hasResolvedMissingUser ? (params?.slug ?? null) : null;
+    const notFoundHandledRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!notFoundSlug || notFoundHandledRef.current === notFoundSlug) {
+            return;
+        }
+        notFoundHandledRef.current = notFoundSlug;
+
+        showToast({
+            type: 'error',
+            message: 'User not found'
+        });
+
+        if (canAccessSettings(currentUser)) {
+            // Replace the history entry so the back button doesn't return
+            // to the dead URL and redirect again
+            updateRoute({route: 'staff', replace: true});
+        } else {
+            updateRoute({isExternal: true, route: ''});
+        }
+    }, [notFoundSlug, currentUser, updateRoute]);
+
+    return displayUser ? <UserDetailModalContent user={displayUser} /> : null;
 };
 
 export default NiceModal.create(UserDetailModal);

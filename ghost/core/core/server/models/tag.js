@@ -82,21 +82,27 @@ Tag = ghostBookshelf.Model.extend({
     },
 
     onCreated: function onCreated(model, options) {
-        ghostBookshelf.Model.prototype.onCreated.apply(this, arguments);
+        const result = ghostBookshelf.Model.prototype.onCreated.apply(this, arguments);
 
         model.emitChange('added', options);
+
+        return result;
     },
 
     onUpdated: function onUpdated(model, options) {
-        ghostBookshelf.Model.prototype.onUpdated.apply(this, arguments);
+        const result = ghostBookshelf.Model.prototype.onUpdated.apply(this, arguments);
 
         model.emitChange('edited', options);
+
+        return result;
     },
 
     onDestroyed: function onDestroyed(model, options) {
-        ghostBookshelf.Model.prototype.onDestroyed.apply(this, arguments);
+        const result = ghostBookshelf.Model.prototype.onDestroyed.apply(this, arguments);
 
         model.emitChange('deleted', options);
+
+        return result;
     },
 
     onSaving: function onSaving(newTag, attr, options) {
@@ -221,6 +227,8 @@ Tag = ghostBookshelf.Model.extend({
 Tags = ghostBookshelf.Collection.extend({
     model: Tag
 });
+
+Tag.protectedSlugs = ['new'];
 
 module.exports = {
     Tag: ghostBookshelf.model('Tag', Tag),

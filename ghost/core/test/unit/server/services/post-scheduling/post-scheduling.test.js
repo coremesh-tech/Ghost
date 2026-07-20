@@ -2,10 +2,10 @@ const assert = require('node:assert/strict');
 const sinon = require('sinon');
 const moment = require('moment');
 const testUtils = require('../../../../utils');
-const models = require('../../../../../core/server/models');
+const {Post} = require('../../../../../core/server/models/post');
 const events = require('../../../../../core/server/lib/common/events');
 const schedulingUtils = require('../../../../../core/server/adapters/scheduling/utils');
-const SchedulingDefault = require('../../../../../core/server/adapters/scheduling/scheduling-default');
+const SchedulingDefault = require('../../../../../core/server/adapters/scheduling/scheduling-default').default;
 const urlUtils = require('../../../../../core/shared/url-utils');
 const PostScheduling = require('../../../../../core/server/services/post-scheduling/post-scheduling').default;
 const nock = require('nock');
@@ -16,6 +16,17 @@ describe('PostScheduling', function () {
 
     beforeEach(function () {
         adapter = new SchedulingDefault();
+        // These tests only assert that schedule/unschedule are called with the
+        // right arguments — they don't need the adapter to actually run. Stub
+        // the internals that arm real setTimeout loops and fire real HTTP pings
+        // (run = recursive 5-min loop, _execute = per-job ping timers,
+        // _pingUrl = the got request). Otherwise the adapter leaves live timers
+        // and in-flight requests behind that, under the shared module registry
+        // (isolate: false), hang whichever file runs next in the worker — e.g.
+        // scheduling-default's own real-HTTP pingUrl tests then time out.
+        sinon.stub(adapter, 'run');
+        sinon.stub(adapter, '_execute');
+        sinon.stub(adapter, '_pingUrl').resolves();
         sinon.stub(schedulingUtils, 'createAdapter').returns(Promise.resolve(adapter));
         sinon.spy(adapter, 'schedule');
         sinon.spy(adapter, 'unschedule');
@@ -31,9 +42,9 @@ describe('PostScheduling', function () {
 
     describe('constructor', function () {
         it('wires event handlers and starts the adapter', async function () {
-            const post = models.Post.forge(testUtils.DataGenerator.forKnex.createPost({
+            const post = Post.forge(testUtils.DataGenerator.forKnex.createPost({
                 id: 1337,
-                mobiledoc: testUtils.DataGenerator.markdownToMobiledoc('something')
+                lexical: testUtils.DataGenerator.markdownToLexical('something')
             }));
             nock('http://scheduler.local:1111').get(() => true).query(true).reply(200);
             nock('http://scheduler.local:1111').post(() => true).query(true).reply(200);
@@ -58,11 +69,11 @@ describe('PostScheduling', function () {
 
     describe('rescheduleAll', function () {
         function stubScheduledPost() {
-            const post = models.Post.forge(testUtils.DataGenerator.forKnex.createPost({
+            const post = Post.forge(testUtils.DataGenerator.forKnex.createPost({
                 id: 4004,
-                mobiledoc: testUtils.DataGenerator.markdownToMobiledoc('something')
+                lexical: testUtils.DataGenerator.markdownToLexical('something')
             }));
-            sinon.stub(models.Post, 'findAll').callsFake(({filter}) => {
+            sinon.stub(Post, 'findAll').callsFake(({filter}) => {
                 return Promise.resolve(filter.includes('type:post') ? [post] : []);
             });
             return post;

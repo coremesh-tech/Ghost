@@ -1,4 +1,3 @@
-// NOTE: this has been copy-pasted into apps/posts/src/views/Automations/components/email-design/email-preview.tsx because we need to support the email design modal in both the settings app and the posts app until Automations GAs
 import React from 'react';
 import {GhostOrb} from '@tryghost/shade/components';
 import {cn} from '@tryghost/shade/utils';
@@ -86,7 +85,7 @@ const PublicationHeader: React.FC<{
             {showIcon && iconUrl && (
                 <img
                     alt={siteTitle || 'Publication icon'}
-                    className="mx-auto mb-3 h-12 w-12 rounded"
+                    className="mx-auto mb-3 size-12 rounded"
                     src={iconUrl}
                 />
             )}

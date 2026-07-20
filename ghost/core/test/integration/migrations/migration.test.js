@@ -91,7 +91,7 @@ describe('Migrations', function () {
         // Custom assertion to wrap all permissions
         function assertCompletePermissions(permissions) {
             // If you have to change this number, please add the relevant `assertHavePermission` checks below
-            assert.equal(permissions.length, 135);
+            assert.equal(permissions.length, 142);
 
             assertHavePermission(permissions, 'Export database', ['Administrator', 'DB Backup Integration']);
             assertHavePermission(permissions, 'Import database', ['Administrator', 'Self-Serve Migration Integration', 'DB Backup Integration']);
@@ -111,6 +111,8 @@ describe('Migrations', function () {
             assertHavePermission(permissions, 'Delete posts', ['Administrator', 'Editor', 'Author', 'Contributor', 'Admin Integration', 'Super Editor']);
             assertHavePermission(permissions, 'Publish posts', ['Administrator', 'Editor', 'Admin Integration', 'Scheduler Integration', 'Super Editor']);
             assertHavePermission(permissions, 'Flush gift reminders', ['Scheduler Integration']);
+            assertHavePermission(permissions, 'Manage gift links', ['Administrator', 'Editor', 'Admin Integration', 'Super Editor']);
+            assertHavePermission(permissions, 'Remove all gift links', ['Administrator']);
 
             assertHavePermission(permissions, 'Browse settings', ['Administrator', 'Editor', 'Author', 'Contributor', 'Admin Integration', 'Super Editor']);
             assertHavePermission(permissions, 'Read settings', ['Administrator', 'Editor', 'Author', 'Contributor', 'Admin Integration', 'Super Editor']);
@@ -184,6 +186,12 @@ describe('Migrations', function () {
             assertHavePermission(permissions, 'Edit labels', ['Administrator', 'Admin Integration', 'Super Editor']);
             assertHavePermission(permissions, 'Add labels', ['Administrator', 'Admin Integration', 'Super Editor']);
             assertHavePermission(permissions, 'Delete labels', ['Administrator', 'Admin Integration', 'Super Editor']);
+
+            assertHavePermission(permissions, 'Browse member custom fields', ['Administrator', 'Admin Integration', 'Super Editor']);
+            assertHavePermission(permissions, 'Read member custom fields', ['Administrator', 'Admin Integration', 'Super Editor']);
+            assertHavePermission(permissions, 'Add member custom fields', ['Administrator', 'Admin Integration']);
+            assertHavePermission(permissions, 'Edit member custom fields', ['Administrator', 'Admin Integration']);
+            assertHavePermission(permissions, 'Delete member custom fields', ['Administrator', 'Admin Integration']);
 
             assertHavePermission(permissions, 'Read member signin urls');
             assertHavePermission(permissions, 'Read identities');

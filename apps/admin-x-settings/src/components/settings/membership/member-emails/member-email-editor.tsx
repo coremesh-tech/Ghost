@@ -1,5 +1,7 @@
-import React, {Suspense, useCallback, useMemo, useRef} from 'react';
-import {ErrorBoundary, type KoenigInstance, LoadingIndicator, loadKoenig, useDesignSystem} from '@tryghost/admin-x-design-system';
+import ErrorBoundary from '../../../error-boundary';
+import React, {Suspense, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {type KoenigInstance, loadKoenig, useDesignSystem} from '@tryghost/admin-x-design-system';
+import {LoadingIndicator} from '@tryghost/shade/components';
 import {cn} from '@tryghost/shade/utils';
 import {focusKoenigEditorOnBottomClick, useFramework} from '@tryghost/admin-x-framework';
 import {getSettingValues} from '@tryghost/admin-x-framework/api/settings';
@@ -21,9 +23,24 @@ const fileUploader = {
 
 type EditorResource = ReturnType<typeof loadKoenig>;
 
+const DelayedLoadingIndicator: React.FC<{delay: number}> = ({delay}) => {
+    const [show, setShow] = useState(false);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setShow(true), delay);
+        return () => clearTimeout(timeout);
+    }, [delay]);
+
+    return (
+        <div className={`flex h-64 items-center justify-center transition-opacity ${show ? 'opacity-100' : 'opacity-0'}`}>
+            <LoadingIndicator size="lg" />
+        </div>
+    );
+};
+
 const baseEditorStyles = cn(
     // Base typography
-    'text-[1.6rem] leading-[1.6] tracking-[-0.01em] pb-10',
+    'pb-10 text-[1.6rem] leading-[1.6] tracking-[-0.01em]',
     // Dark mode
     'dark:text-white dark:selection:bg-[rgba(88,101,116,0.99)]',
     // Placeholder styling
@@ -41,7 +58,7 @@ const baseEditorStyles = cn(
     // Reset content typography inside card captions to match Koenig's caption styles
     '[&_figcaption_:is(p,blockquote,aside,ul,ol)]:text-[1.4rem] [&_figcaption_:is(p,blockquote,aside,ul,ol)]:tracking-[.025em]',
     '[&_figcaption_p]:mb-0',
-    '[&_:is(h1)]:text-[36px] [&_:is(h2)]:text-[32px] [&_:is(h3)]:text-[26px] [&_:is(h4)]:text-[21px] [&_:is(h5)]:text-[19px] [&_:is(h6)]:text-[19px] [&_:is(h1,h2,h3,h4,h5,h6)]:mb-[0.5em]',
+    '[&_:is(h1)]:text-[36px] [&_:is(h1,h2,h3,h4,h5,h6)]:mb-[0.5em] [&_:is(h2)]:text-[32px] [&_:is(h3)]:text-[26px] [&_:is(h4)]:text-[21px] [&_:is(h5)]:text-[19px] [&_:is(h6)]:text-[19px]',
     // Horizontal ruler
     '[&_:is(hr)]:pt-0',
     // Paragraph spacing & bold
@@ -49,7 +66,7 @@ const baseEditorStyles = cn(
     // Keep settings panel copy compact
     '[&_[data-kg-settings-panel]_p]:!mb-0',
     // Nested-editor (callout, etc.) fixes: align placeholder with text
-    '[&_.not-kg-prose>div]:font-sans! [&_.not-kg-prose>div]:tracking-tight! [&_.not-kg-prose>div]:text-[1.6rem]! [&_.not-kg-prose>div]:leading-[1.6]!',
+    '[&_.not-kg-prose>div]:font-sans! [&_.not-kg-prose>div]:text-[1.6rem]! [&_.not-kg-prose>div]:leading-[1.6]! [&_.not-kg-prose>div]:tracking-tight!',
     '[&_.kg-inherit-styles_p]:mb-0!',
     '[&_.kg-inherit-styles]:pt-[3px]!',
     // CTA card: keep sponsor label at its intended 12.5px size
@@ -100,7 +117,6 @@ const MemberEmailsEditor: React.FC<MemberEmailsEditorProps> = ({
     const {config, settings} = useGlobalData();
     const {fetchAutocompleteLinks, searchLinks} = useWelcomeEmailLinkSuggestions();
     const fetchEmbed = useKoenigFetchEmbed();
-    const tenorConfig = config.tenor?.googleApiKey ? config.tenor : null;
     const klipyConfig = config.klipy?.apiKey ? config.klipy : null;
     const {fetchKoenigLexical, darkMode} = useDesignSystem();
     const editorResource = useMemo(() => loadKoenig(fetchKoenigLexical), [fetchKoenigLexical]);
@@ -109,7 +125,6 @@ const MemberEmailsEditor: React.FC<MemberEmailsEditorProps> = ({
     const cardConfig = useMemo(() => ({
         unsplash: unsplashConfig,
         pinturaConfig,
-        tenor: tenorConfig,
         klipy: klipyConfig,
         fetchEmbed,
         fetchAutocompleteLinks,
@@ -118,7 +133,7 @@ const MemberEmailsEditor: React.FC<MemberEmailsEditorProps> = ({
             transistor: transistorEnabled
         },
         visibilitySettings: 'none'
-    }), [unsplashConfig, pinturaConfig, tenorConfig, klipyConfig, fetchEmbed, fetchAutocompleteLinks, searchLinks, transistorEnabled]);
+    }), [unsplashConfig, pinturaConfig, klipyConfig, fetchEmbed, fetchAutocompleteLinks, searchLinks, transistorEnabled]);
 
     const registerEditorAPI = useCallback((API: KoenigInstance | null) => {
         editorAPIRef.current = API;
@@ -149,7 +164,7 @@ const MemberEmailsEditor: React.FC<MemberEmailsEditorProps> = ({
     return (
         <div className="h-full" onKeyDown={handleKeyDown} onMouseDown={handleEditorMouseDown}>
             <ErrorBoundary name="email-editor">
-                <Suspense fallback={<LoadingIndicator delay={200} size="lg" />}>
+                <Suspense fallback={<DelayedLoadingIndicator delay={200} />}>
                     <EmailEditorInner
                         cardConfig={cardConfig}
                         className={className}

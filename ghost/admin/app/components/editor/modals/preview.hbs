@@ -13,13 +13,13 @@
                 {{/if}}
             </div>
             <div class="gh-contentfilter-divider"></div>
-            <div class="gh-contentfilter gh-btn-group">
+            <div class="gh-contentfilter gh-btn-group gh-post-preview-sizes">
                 <button type="button" class="gh-btn {{if (eq this.previewSize "desktop") "gh-btn-group-selected"}} gh-post-preview-mode" {{on "click" (fn this.changePreviewSize "desktop")}}><span>{{svg-jar "laptop"}}</span></button>
                 <button type="button" class="gh-btn {{if (eq this.previewSize "mobile") "gh-btn-group-selected"}} gh-post-preview-mode" {{on "click" (fn this.changePreviewSize "mobile")}}><span>{{svg-jar "mobile-phone"}}</span></button>
             </div>
             {{#if this.showMemberSegmentDropdown}}
                 <div class="gh-contentfilter-divider"></div>
-                <span class="gh-select gh-web-preview-segment" data-test-select="preview-segment">
+                <span class="gh-select gh-web-preview-segment gh-preview-member-type" data-test-select="preview-segment">
                     <PowerSelect
                         @selected={{this.selectedPreviewAsOption}}
                         @options={{this.previewAsOptions}}
@@ -34,6 +34,23 @@
                         {{option.label}}
                     </PowerSelect>
                 </span>
+                {{#if this.showTierDropdown}}
+                    <span class="gh-select gh-web-preview-segment gh-preview-tier" data-test-select="preview-tier">
+                        <PowerSelect
+                            @selected={{this.selectedPreviewTier}}
+                            @options={{this.previewTierOptions}}
+                            @onChange={{this.changePreviewTier}}
+                            @triggerComponent={{component "gh-power-select/trigger"}}
+                            @triggerClass="gh-preview-segment-trigger"
+                            @dropdownClass="gh-preview-segment-dropdown gh-preview-tier-dropdown"
+                            @matchTriggerWidth={{false}}
+                            @onOpen={{this.dropdown.closeDropdowns}}
+                            as |tier|
+                        >
+                            {{tier.name}}
+                        </PowerSelect>
+                    </span>
+                {{/if}}
             {{/if}}
         </div>
         <div class="right">
@@ -70,7 +87,7 @@
             <div class="gh-contentfilter-divider"></div>
             <button
                 type="button"
-                class="gh-btn gh-btn-editor gh-editor-preview-trigger active"
+                class="gh-btn gh-btn-editor gh-editor-preview-trigger gh-post-preview-close active"
                 {{on "click" @close}}
             >
                 <span>Close</span>
@@ -109,7 +126,9 @@
             {{else}}
                 <Editor::Modals::Preview::Email
                     @post={{@data.publishOptions.post}}
-                    @memberSegment={{this.previewAsSegment}}
+                    @memberStatus={{this.emailMemberStatus}}
+                    @memberTier={{this.emailMemberTier}}
+                    @memberDescription={{this.emailMemberDescription}}
                     @newsletter={{@data.publishOptions.newsletter}}
                     @skipAnimation={{this.skipAnimation}}
                     @savePostTask={{@data.saveTask}}

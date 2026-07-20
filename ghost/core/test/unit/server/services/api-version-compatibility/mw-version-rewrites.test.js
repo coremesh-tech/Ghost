@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const deferred = require('../../../../utils/deferred');
+const {deferred} = require('../../../../utils/deferred')
 const assert = require('node:assert/strict');
 
 const mwVersionRewrites = require('../../../../../core/server/services/api-version-compatibility/mw-version-rewrites');
@@ -25,8 +25,12 @@ describe('MW Version Rewrites', function () {
         };
     });
 
-    afterEach(function () {
+    afterEach(async function () {
         sinon.restore();
+        // beforeEach overrides the site/admin URL config; restore it so the
+        // override can't leak into a co-scheduled file under the shared module
+        // registry (isolate: false).
+        await configUtils.restore();
     });
 
     function assertVersionRewrittenWithHeaders(version, path, done) {

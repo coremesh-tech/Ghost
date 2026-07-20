@@ -93,6 +93,13 @@ async function initDatabase({config}) {
 async function initCore({ghostServer, config, frontend}) {
     debug('Begin: initCore');
 
+    // Validate configured adapters up-front so misconfiguration fails at boot
+    // rather than on first lazy use (e.g. first image upload or scheduled job)
+    debug('Begin: adapters');
+    const adapterManager = require('./server/services/adapter-manager').default;
+    adapterManager.init();
+    debug('End: adapters');
+
     // URL Utils is a bit slow, put it here so the timing is visible separate from models
     debug('Begin: Load urlUtils');
     require('./shared/url-utils');
@@ -126,6 +133,18 @@ async function initCore({ghostServer, config, frontend}) {
         urlCache: !frontend // hacky parameter to make the cache initialization kick in as we can't initialize labs before the boot
     });
     debug('End: Url Service');
+
+    // Gift links service: wires the (knex-backed) repository once the DB is ready.
+    debug('Begin: Gift Links Service');
+    const giftLinksService = require('./server/services/gift-links');
+    giftLinksService.init();
+    debug('End: Gift Links Service');
+
+    // Member custom fields service: knex-backed, wired once the DB is ready.
+    debug('Begin: Member Custom Fields Service');
+    const memberCustomFieldsService = require('./server/services/members-custom-fields');
+    memberCustomFieldsService.init();
+    debug('End: Member Custom Fields Service');
 
     if (ghostServer) {
         // Job Service allows parts of Ghost to run in the background
@@ -275,15 +294,17 @@ function initPrometheusClient({config}) {
 async function initDynamicRouting() {
     debug('Begin: Dynamic Routing');
     const routing = require('./frontend/services/routing');
-    const routeSettingsService = require('./server/services/route-settings');
+    const routeSettingsModule = require('./server/services/route-settings');
+    const urlService = require('./server/services/url');
     const bridge = require('./bridge');
     bridge.init();
 
-    // We pass the dynamic routes here, so that the frontend services are slightly less tightly-coupled
-    const routeSettings = await routeSettingsService.loadRouteSettings();
+    await routeSettingsModule.service.start({
+        routerManager: routing.routerManager,
+        urlService: urlService.facade
+    });
 
-    routing.routerManager.start(routeSettings);
-    const getRoutesHash = () => routeSettingsService.api.getCurrentHash();
+    const getRoutesHash = () => routeSettingsModule.service.getCurrentHash();
 
     const settings = require('./server/services/settings/settings-service');
     await settings.syncRoutesHash(getRoutesHash);
@@ -306,7 +327,7 @@ async function initAppService() {
  * These services should all be part of core, frontend services should be loaded with the frontend
  * We are working towards this being a service loader, with the ability to make certain services optional
  */
-async function initServices() {
+async function initServices({ghostServer} = {}) {
     debug('Begin: initServices');
 
     debug('Begin: Services');
@@ -315,8 +336,8 @@ async function initServices() {
     const members = require('./server/services/members');
     const tiers = require('./server/services/tiers');
     const permissions = require('./server/services/permissions');
-    const indexnow = require('./server/services/indexnow');
-    const slack = require('./server/services/slack');
+    const indexnow = require('./server/services/indexnow-ping');
+    const slack = require('./server/services/slack-ping');
     const webhooks = require('./server/services/webhooks');
     const postScheduling = require('./server/services/post-scheduling').default;
     const comments = require('./server/services/comments');
@@ -364,10 +385,10 @@ async function initServices() {
         postsPublic.init(),
         membersEvents.init(),
         permissions.init(),
-        indexnow.listen(),
-        slack.listen(),
+        indexnow.init(),
+        slack.init(),
         audienceFeedback.init(),
-        emailService.init(),
+        emailService.init({ghostServer}),
         emailAnalytics.init(),
         webhooks.listen(),
         comments.init(),
@@ -421,12 +442,25 @@ async function initBackgroundServices({config}) {
         return;
     }
 
+    // Resume any newsletter sends interrupted by a prior container shutdown.
+    // Runs before activitypub.init so an activitypub failure can't disable recovery.
+    try {
+        const emailService = require('./server/services/email-service');
+        await emailService.service.resumeInterruptedSends();
+    } catch (err) {
+        const logging = require('@tryghost/logging');
+        logging.error(err);
+    }
+
     const activitypub = require('./server/services/activitypub');
     await activitypub.init();
     // Load email analytics recurring jobs
     if (config.get('backgroundJobs:emailAnalytics')) {
         const emailAnalyticsJobs = require('./server/services/email-analytics/jobs');
-        await emailAnalyticsJobs.scheduleRecurringJobs();
+        await Promise.all([
+            emailAnalyticsJobs.scheduleRecurringNewslettersJob(),
+            emailAnalyticsJobs.scheduleRecurringAutomationsJob()
+        ]);
     }
 
     const updateCheck = require('./server/services/update-check');
@@ -435,12 +469,12 @@ async function initBackgroundServices({config}) {
         updateCheck.scheduleBootJob();
     }
 
+    // Remote feature-flag overrides (config-gated; inert unless explicitly configured).
+    const remoteFlags = require('./server/services/remote-flags');
+    remoteFlags.init(config);
+
     const milestonesService = require('./server/services/milestones');
     milestonesService.initAndRun();
-
-    // TODO(NY-1220): The outbox is deprecated and will soon be removed.
-    const outboxService = require('./server/services/outbox');
-    outboxService.init();
 
     debug('End: initBackgroundServices');
 }
@@ -564,7 +598,7 @@ async function bootGhost({backend = true, frontend = true, server = true} = {}) 
             await initAppService();
         }
 
-        await initServices();
+        await initServices({ghostServer});
         debug('End: Load Ghost Services & Apps');
 
         // Step 5 - Mount the full Ghost app onto the minimal root app & disable maintenance mode
