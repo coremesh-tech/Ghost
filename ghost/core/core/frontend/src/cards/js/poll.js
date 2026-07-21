@@ -25,6 +25,7 @@
     ];
 
     const TREND_BUCKET_COUNT = 12;
+    const TREND_CURVE_SAMPLES_PER_SEGMENT = 8;
     const TREND_POINTS_CACHE_LIMIT = 720;
     const TREND_RATE_LABEL_COLUMN_GAP = 72;
     const TREND_RATE_LABEL_WIDTH = 64;
@@ -238,6 +239,22 @@
         return out;
     };
 
+    const hasStrictlyIncreasingTrendTimes = function (points) {
+        let previousMs = null;
+
+        for (let index = 0; index < points.length; index += 1) {
+            const currentMs = Date.parse(points[index] && points[index].time);
+
+            if (!Number.isFinite(currentMs) || (previousMs !== null && currentMs <= previousMs)) {
+                return false;
+            }
+
+            previousMs = currentMs;
+        }
+
+        return true;
+    };
+
     /**
      * 把 trends 接口的响应映射成图表用的 trendModel.
      * 与 Koenig 编辑器的 mapTrendsResponseToModel 保持同一份语义:
@@ -249,6 +266,10 @@
         const bucketCount = targetBuckets || TREND_BUCKET_COUNT;
         const points = response && Array.isArray(response.points) ? response.points : [];
         if (points.length === 0 || !Array.isArray(options) || options.length === 0) {
+            return null;
+        }
+
+        if (!hasStrictlyIncreasingTrendTimes(points)) {
             return null;
         }
 
@@ -390,7 +411,7 @@
         }
 
         return {
-            seconds: Math.floor(ms / 1000),
+            seconds: ms / 1000,
             milliseconds: ms
         };
     };
@@ -411,9 +432,15 @@
         });
 
         if (buckets.length === 0 || buckets.some(function (bucket) {
-            return bucket.chartTime === null;
+            return !Number.isFinite(bucket.chartTime);
         })) {
             return null;
+        }
+
+        for (let index = 1; index < buckets.length; index += 1) {
+            if (buckets[index].chartTime <= buckets[index - 1].chartTime) {
+                return null;
+            }
         }
 
         const series = trendModel.series.map(function (item) {
@@ -440,6 +467,91 @@
                 Math.max(buckets.length - 1, 0)
             )
         };
+    };
+
+    const buildBoundedTrendData = function (buckets, rates) {
+        const sourcePoints = buckets.map(function (bucket, index) {
+            return {
+                time: bucket.chartTime,
+                value: clampNumber(rates[index], 0, 100)
+            };
+        });
+
+        if (sourcePoints.length < 3) {
+            return sourcePoints;
+        }
+
+        const slopes = [];
+        for (let index = 0; index < sourcePoints.length - 1; index += 1) {
+            const duration = sourcePoints[index + 1].time - sourcePoints[index].time;
+
+            if (duration <= 0) {
+                return sourcePoints;
+            }
+
+            slopes.push((sourcePoints[index + 1].value - sourcePoints[index].value) / duration);
+        }
+
+        const tangents = [slopes[0]];
+        for (let index = 1; index < sourcePoints.length - 1; index += 1) {
+            const previousSlope = slopes[index - 1];
+            const nextSlope = slopes[index];
+
+            tangents.push(previousSlope * nextSlope <= 0
+                ? 0
+                : (previousSlope + nextSlope) / 2);
+        }
+        tangents.push(slopes[slopes.length - 1]);
+
+        slopes.forEach(function (slope, index) {
+            if (slope === 0) {
+                tangents[index] = 0;
+                tangents[index + 1] = 0;
+                return;
+            }
+
+            const startRatio = tangents[index] / slope;
+            const endRatio = tangents[index + 1] / slope;
+            const magnitude = Math.hypot(startRatio, endRatio);
+
+            if (magnitude > 3) {
+                const scale = 3 / magnitude;
+                tangents[index] = scale * startRatio * slope;
+                tangents[index + 1] = scale * endRatio * slope;
+            }
+        });
+
+        const data = [];
+        for (let index = 0; index < sourcePoints.length - 1; index += 1) {
+            const start = sourcePoints[index];
+            const end = sourcePoints[index + 1];
+            const duration = end.time - start.time;
+            const sampleCount = TREND_CURVE_SAMPLES_PER_SEGMENT;
+            const segmentMin = Math.min(start.value, end.value);
+            const segmentMax = Math.max(start.value, end.value);
+
+            for (let sample = 0; sample < sampleCount; sample += 1) {
+                const position = sample / sampleCount;
+                const positionSquared = position * position;
+                const positionCubed = positionSquared * position;
+                const startValueBasis = (2 * positionCubed) - (3 * positionSquared) + 1;
+                const startTangentBasis = positionCubed - (2 * positionSquared) + position;
+                const endValueBasis = (-2 * positionCubed) + (3 * positionSquared);
+                const endTangentBasis = positionCubed - positionSquared;
+                const value = (startValueBasis * start.value)
+                    + (startTangentBasis * duration * tangents[index])
+                    + (endValueBasis * end.value)
+                    + (endTangentBasis * duration * tangents[index + 1]);
+
+                data.push({
+                    time: start.time + (duration * position),
+                    value: clampNumber(value, segmentMin, segmentMax)
+                });
+            }
+        }
+        data.push(sourcePoints[sourcePoints.length - 1]);
+
+        return data;
     };
 
     const measureChartSurface = function (surfaceElement) {
@@ -777,8 +889,8 @@
         const background = chartLibrary.ColorType
             ? {type: chartLibrary.ColorType.Solid, color: 'transparent'}
             : {color: 'transparent'};
-        const lineType = chartLibrary.LineType && typeof chartLibrary.LineType.Curved === 'number'
-            ? chartLibrary.LineType.Curved
+        const lineType = chartLibrary.LineType && typeof chartLibrary.LineType.Simple === 'number'
+            ? chartLibrary.LineType.Simple
             : 0;
         const chart = chartLibrary.createChart(surfaceElement, {
             width: surfaceSize.width,
@@ -840,12 +952,10 @@
                 }
             });
 
-            lineSeries.setData(preparedTrendModel.buckets.map(function (bucket, bucketIndex) {
-                return {
-                    time: bucket.chartTime,
-                    value: preparedTrendModel.series[index].rates[bucketIndex]
-                };
-            }));
+            lineSeries.setData(buildBoundedTrendData(
+                preparedTrendModel.buckets,
+                preparedTrendModel.series[index].rates
+            ));
 
             seriesRef.api = lineSeries;
         });

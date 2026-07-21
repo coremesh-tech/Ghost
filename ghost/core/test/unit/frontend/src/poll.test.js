@@ -6,6 +6,8 @@ describe('frontend/cards/poll', function () {
     let optionsHeight;
     let legendHeight;
     let resizeObserverInstances;
+    let chartSeriesOptions;
+    let chartSeriesData;
     let originalWindow;
     let originalDocument;
     let originalFetch;
@@ -31,10 +33,122 @@ describe('frontend/cards/poll', function () {
         }
     };
 
+    const setTrendPoints = function (points) {
+        const trendsPayload = {points: points};
+        const fetchWithoutTrendOverride = global.fetch;
+
+        global.document.querySelector('.kg-poll-card').__kgPollTrends = trendsPayload;
+        global.fetch = async function (url) {
+            const requestUrl = new URL(url, 'https://example.com');
+
+            if (requestUrl.pathname === '/members/api/polls/poll_123/trends') {
+                return {
+                    ok: true,
+                    status: 200,
+                    json: async function () {
+                        return trendsPayload;
+                    }
+                };
+            }
+
+            return fetchWithoutTrendOverride(url);
+        };
+        global.window.fetch = global.fetch;
+
+        return points.map(function (point) {
+            return Date.parse(point.time) / 1000;
+        });
+    };
+
+    const setTrendRatesAtTimes = function (rates, sourceTimes) {
+        const points = rates.map(function (rate, index) {
+            return {
+                time: sourceTimes[index],
+                options: [
+                    {id: 'option_a', vote_rate: rate},
+                    {id: 'option_b', vote_rate: 100 - rate}
+                ]
+            };
+        });
+
+        return setTrendPoints(points);
+    };
+
+    const setTrendRates = function (rates) {
+        const start = Date.parse('2026-06-10T22:30:00.000Z');
+        const sourceTimes = rates.map(function (_, index) {
+            return new Date(start + (index * 30 * 60 * 1000)).toISOString();
+        });
+
+        return setTrendRatesAtTimes(rates, sourceTimes);
+    };
+
+    const assertSeriesStaysWithinSegments = function (data, times, rates) {
+        assert.ok(Array.isArray(data) && data.length > 0, 'Expected chart series data to be non-empty');
+        assert.ok(times.length >= 2, 'Expected at least two source timestamps');
+        assert.equal(times.length, rates.length, 'Expected one source rate for every timestamp');
+
+        data.forEach(function (point, pointIndex) {
+            const pointDescription = `point time=${String(point.time)} value=${String(point.value)}`;
+            const sourceTimeBounds = `${times[0]}..${times[times.length - 1]}`;
+
+            assert.ok(Number.isFinite(point.time), `${pointDescription}; expected a finite timestamp within source time bounds ${sourceTimeBounds}`);
+            assert.ok(point.time >= times[0] && point.time <= times[times.length - 1], `${pointDescription}; expected source time bounds ${sourceTimeBounds}`);
+
+            if (pointIndex > 0) {
+                assert.ok(point.time > data[pointIndex - 1].time, `${pointDescription}; expected a timestamp strictly after ${data[pointIndex - 1].time} within source time bounds ${sourceTimeBounds}`);
+            }
+
+            assert.ok(Number.isFinite(point.value), `${pointDescription}; expected a finite value within chart bounds 0..100`);
+            assert.ok(point.value >= 0 && point.value <= 100, `${pointDescription}; expected chart value bounds 0..100`);
+
+            let segmentIndex = -1;
+            for (let index = 0; index < times.length - 1; index += 1) {
+                if (point.time >= times[index] && point.time <= times[index + 1]) {
+                    segmentIndex = index;
+                    break;
+                }
+            }
+
+            assert.notEqual(segmentIndex, -1, `${pointDescription}; expected a neighbouring source segment within time bounds ${sourceTimeBounds}`);
+            const segmentMin = Math.min(rates[segmentIndex], rates[segmentIndex + 1]);
+            const segmentMax = Math.max(rates[segmentIndex], rates[segmentIndex + 1]);
+            assert.ok(point.value >= segmentMin && point.value <= segmentMax, `${pointDescription}; expected segment value bounds ${segmentMin}..${segmentMax}`);
+        });
+    };
+
+    const assertSeriesPreservesSourcePoints = function (data, times, rates) {
+        assert.ok(Array.isArray(data), 'Expected chart series data before checking source points');
+
+        times.forEach(function (time, index) {
+            const expectedValue = rates[index];
+            const matches = data.filter(function (point) {
+                return point.time === time;
+            });
+
+            assert.equal(matches.length, 1, `Expected source point time=${time} value=${expectedValue} exactly once; found ${matches.length}`);
+            assert.equal(matches[0].value, expectedValue, `Expected source point time=${time} value=${expectedValue}; found value=${matches[0].value}`);
+        });
+    };
+
+    const assertSeriesMatchesContract = function (seriesIndex, times, rates) {
+        const options = chartSeriesOptions[seriesIndex];
+        const data = chartSeriesData[seriesIndex];
+
+        assert.ok(options, `Expected chart options for series ${seriesIndex}`);
+        assert.equal(options.lineType, global.window.LightweightCharts.LineType.Simple, `Expected bounded trend series ${seriesIndex} to use LineType.Simple`);
+        assert.ok(Array.isArray(data), `Expected chart data for series ${seriesIndex}`);
+        assert.ok(data.length > rates.length, `Expected smoothed series ${seriesIndex} to contain more than ${rates.length} source points; found ${data.length}`);
+        assertSeriesPreservesSourcePoints(data, times, rates);
+        assertSeriesStaysWithinSegments(data, times, rates);
+    };
+
     beforeEach(function () {
         optionsHeight = 90;
         legendHeight = 70;
         resizeObserverInstances = [];
+        chartSeriesOptions = [];
+        chartSeriesData = [];
         originalWindow = global.window;
         originalDocument = global.document;
         originalFetch = global.fetch;
@@ -191,11 +305,18 @@ describe('frontend/cards/poll', function () {
 
         global.window.LightweightCharts = {
             CrosshairMode: {Normal: 0},
+            LineType: {Simple: 0, Curved: 2},
             createChart() {
                 return {
-                    addLineSeries() {
+                    addLineSeries(options) {
+                        const seriesIndex = chartSeriesOptions.length;
+                        chartSeriesOptions.push(options);
+                        chartSeriesData.push([]);
+
                         return {
-                            setData() {}
+                            setData(data) {
+                                chartSeriesData[seriesIndex] = data;
+                            }
                         };
                     },
                     applyOptions() {},
@@ -265,6 +386,282 @@ describe('frontend/cards/poll', function () {
         global.requestAnimationFrame = originalRequestAnimationFrame;
         global.cancelAnimationFrame = originalCancelAnimationFrame;
         global.localStorage = originalLocalStorage;
+    });
+
+    it('keeps smoothed trend data above zero without losing source buckets', async function () {
+        const rates = [100, 0, 0, 100];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const data = chartSeriesData[0];
+        const plateauPoints = data.filter(function (point) {
+            return point.time >= times[1] && point.time <= times[2];
+        });
+        assert.ok(plateauPoints.length > 0, `Expected lower plateau points between ${times[1]} and ${times[2]}`);
+        assert.ok(plateauPoints.every(function (point) {
+            return point.value === 0;
+        }), `Expected lower plateau values to stay at 0; found ${plateauPoints.map(function (point) {
+            return `${point.time}:${point.value}`;
+        }).join(', ')}`);
+    });
+
+    it('keeps smoothed trend data below one hundred across a maximum plateau', async function () {
+        const rates = [0, 100, 100, 0];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const data = chartSeriesData[0];
+        const plateauPoints = data.filter(function (point) {
+            return point.time >= times[1] && point.time <= times[2];
+        });
+        assert.ok(plateauPoints.length > 0, `Expected upper plateau points between ${times[1]} and ${times[2]}`);
+        assert.ok(plateauPoints.every(function (point) {
+            return point.value === 100;
+        }), `Expected upper plateau values to stay at 100; found ${plateauPoints.map(function (point) {
+            return `${point.time}:${point.value}`;
+        }).join(', ')}`);
+    });
+
+    it('preserves subsecond source times without duplicating chart timestamps', async function () {
+        const rates = [25, 75];
+        const points = [
+            {
+                time: '2026-06-10T22:30:00.100Z',
+                options: [
+                    {id: 'option_a', vote_rate: rates[0]},
+                    {id: 'option_b', vote_rate: 100 - rates[0]}
+                ]
+            },
+            {
+                time: '2026-06-10T22:30:00.900Z',
+                options: [
+                    {id: 'option_a', vote_rate: rates[1]},
+                    {id: 'option_b', vote_rate: 100 - rates[1]}
+                ]
+            }
+        ];
+        const times = setTrendPoints(points);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        [rates, inverseRates].forEach(function (seriesRates, seriesIndex) {
+            const data = chartSeriesData[seriesIndex];
+
+            assert.equal(chartSeriesOptions[seriesIndex].lineType, global.window.LightweightCharts.LineType.Simple);
+            assert.deepEqual(data.map(function (point) {
+                return point.time;
+            }), times);
+            assertSeriesPreservesSourcePoints(data, times, seriesRates);
+            assertSeriesStaysWithinSegments(data, times, seriesRates);
+        });
+
+        const controller = global.document.querySelector('.kg-poll-card-chart').__kgChartController;
+        assert.equal(controller.trendModel.buckets.length, rates.length);
+        assert.deepEqual(controller.seriesRefs[0].values, rates);
+    });
+
+    it('rejects duplicate trend timestamps before creating line series', async function () {
+        const duplicateTime = '2026-06-10T22:30:00.100Z';
+        setTrendPoints([
+            {
+                time: duplicateTime,
+                options: [
+                    {id: 'option_a', vote_rate: 25},
+                    {id: 'option_b', vote_rate: 75}
+                ]
+            },
+            {
+                time: duplicateTime,
+                options: [
+                    {id: 'option_a', vote_rate: 75},
+                    {id: 'option_b', vote_rate: 25}
+                ]
+            }
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected duplicate trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected duplicate trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
+    it('rejects out-of-order trend timestamps before creating line series', async function () {
+        setTrendPoints([
+            {
+                time: '2026-06-10T22:30:01.000Z',
+                options: [
+                    {id: 'option_a', vote_rate: 25},
+                    {id: 'option_b', vote_rate: 75}
+                ]
+            },
+            {
+                time: '2026-06-10T22:30:00.000Z',
+                options: [
+                    {id: 'option_a', vote_rate: 75},
+                    {id: 'option_b', vote_rate: 25}
+                ]
+            }
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected out-of-order trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected out-of-order trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
+    it('rejects non-increasing source timestamps before trend sampling', async function () {
+        const start = Date.parse('2026-06-10T22:30:00.000Z');
+        const points = Array.from({length: 13}, function (_, index) {
+            const minuteOffset = index === 6 ? 4 : index;
+            const rate = index * 5;
+
+            return {
+                time: new Date(start + (minuteOffset * 60 * 1000)).toISOString(),
+                options: [
+                    {id: 'option_a', vote_rate: rate},
+                    {id: 'option_b', vote_rate: 100 - rate}
+                ]
+            };
+        });
+        const sampledIndices = Array.from({length: 12}, function (_, index) {
+            return Math.round(index * ((points.length - 1) / (12 - 1)));
+        });
+        const rawTimes = points.map(function (point) {
+            return Date.parse(point.time);
+        });
+        const sampledTimes = sampledIndices.map(function (index) {
+            return rawTimes[index];
+        });
+
+        assert.deepEqual(sampledIndices, [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12]);
+        assert.ok(rawTimes[6] <= rawTimes[5], 'Expected raw index 6 to be non-increasing');
+        for (let index = 1; index < sampledTimes.length; index += 1) {
+            assert.ok(sampledTimes[index] > sampledTimes[index - 1], 'Expected sampled timestamps to hide the raw ordering issue');
+        }
+
+        setTrendPoints(points);
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const chartElement = global.document.querySelector('.kg-poll-card-chart');
+        assert.equal(chartSeriesOptions.length, 0, 'Expected invalid raw trend timestamps to create no line series');
+        assert.equal(chartSeriesData.length, 0, 'Expected invalid raw trend timestamps to never reach setData');
+        assert.equal(chartElement.hidden, true);
+        assert.equal(chartElement.__kgChartController, undefined);
+    });
+
+    it('uses bounded Hermite samples instead of dense straight lines', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRates(rates);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = (times[0] + times[1]) / 2;
+        const midpoint = chartSeriesData[0].find(function (point) {
+            return point.time === midpointTime;
+        });
+
+        assert.ok(midpoint, `Expected a Hermite sample at midpoint time=${midpointTime}`);
+        assert.ok(Math.abs(midpoint.value - 43.75) < 0.001, `Expected midpoint near 43.75; found ${midpoint.value}`);
+        assert.ok(Math.abs(midpoint.value - 40) > 1, `Expected midpoint to differ from linear value 40; found ${midpoint.value}`);
+
+        const controller = global.document.querySelector('.kg-poll-card-chart').__kgChartController;
+        assert.equal(controller.trendModel.buckets.length, rates.length);
+        assert.deepEqual(controller.seriesRefs[0].values, rates);
+    });
+
+    it('densifies rapid subsecond trends with bounded Hermite samples', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRatesAtTimes(rates, [
+            '2026-06-10T22:30:00.100Z',
+            '2026-06-10T22:30:00.500Z',
+            '2026-06-10T22:30:00.900Z'
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assert.equal(chartSeriesData[0].length, 17, 'Expected eight samples per rapid segment plus the final source point');
+        assert.equal(chartSeriesData[1].length, 17, 'Expected eight inverse-series samples per rapid segment plus the final source point');
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = times[0] + ((times[1] - times[0]) / 2);
+        const midpoint = chartSeriesData[0][4];
+        assert.ok(Math.abs(midpoint.time - midpointTime) < 0.000001, `Expected rapid midpoint time near ${midpointTime}; found ${midpoint.time}`);
+        assert.ok(Math.abs(midpoint.value - 43.75) < 0.001, `Expected rapid midpoint near 43.75; found ${midpoint.value}`);
+        assert.ok(Math.abs(midpoint.value - 40) > 1, `Expected rapid midpoint to differ from linear value 40; found ${midpoint.value}`);
+    });
+
+    it('keeps fractional Hermite sample times aligned with their positions', async function () {
+        const rates = [0, 80, 100];
+        const times = setTrendRatesAtTimes(rates, [
+            '2026-06-10T22:30:00.100Z',
+            '2026-06-10T22:30:09.600Z',
+            '2026-06-10T22:30:19.100Z'
+        ]);
+
+        require(pollScriptPath);
+        global.document.dispatchEvent(new global.window.Event('DOMContentLoaded'));
+        await flushMicrotasks();
+
+        const inverseRates = rates.map(function (rate) {
+            return 100 - rate;
+        });
+        assert.equal(chartSeriesData[0].length, 17, 'Expected eight samples per fractional segment plus the final source point');
+        assert.equal(chartSeriesData[1].length, 17, 'Expected eight inverse-series samples per fractional segment plus the final source point');
+        assertSeriesMatchesContract(0, times, rates);
+        assertSeriesMatchesContract(1, times, inverseRates);
+
+        const midpointTime = times[0] + ((times[1] - times[0]) / 2);
+        const midpoint = chartSeriesData[0][4];
+        assert.ok(Math.abs(midpoint.time - midpointTime) < 0.000001, `Expected fractional midpoint time near ${midpointTime}; found ${midpoint.time}`);
     });
 
     it('keeps the desktop trend plot at least 60px tall when the legend grows', async function () {
