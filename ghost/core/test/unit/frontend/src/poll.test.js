@@ -19,7 +19,7 @@ describe('frontend/cards/poll', function () {
 
     const pollScriptPath = '../../../../core/frontend/src/cards/js/poll.js';
 
-    const flushMicrotasks = async function (times = 6) {
+    const flushMicrotasks = async function (times = 20) {
         for (let index = 0; index < times; index += 1) {
             await Promise.resolve();
         }
@@ -254,10 +254,25 @@ describe('frontend/cards/poll', function () {
                     }
                 ]
             };
+            const batchPayloads = {
+                '/members/api/polls-batch': {
+                    polls: {
+                        poll_123: payloads['/members/api/polls/poll_123']
+                    },
+                    meta: {
+                        logged_in: false
+                    }
+                },
+                '/members/api/polls-batch/votes': {
+                    votes: {
+                        poll_123: payloads['/members/api/polls/poll_123/votes']
+                    }
+                }
+            };
             const requestUrl = new URL(url, 'https://example.com');
             const payload = requestUrl.pathname === '/members/api/polls/poll_123/trends'
                 ? trendsPayload
-                : payloads[requestUrl.pathname];
+                : batchPayloads[requestUrl.pathname] || payloads[requestUrl.pathname];
 
             return {
                 ok: Boolean(payload),
