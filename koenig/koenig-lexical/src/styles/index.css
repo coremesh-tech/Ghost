@@ -51,3 +51,7 @@
         translate: none;
     }
 }
+
+.tv-lightweight-charts table tr th, td {
+    border: none !important;
+}

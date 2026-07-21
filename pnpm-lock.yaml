@@ -136,19 +136,8 @@ catalogs:
       specifier: 3.3.2
       version: 3.3.2
     '@tryghost/helpers':
-<<<<<<< HEAD
-      specifier: 1.1.105
-      version: 1.1.105
-    '@tryghost/kg-clean-basic-html':
-      specifier: 4.3.2
-      version: 4.3.2
-    '@tryghost/kg-converters':
-      specifier: 1.2.2
-      version: 1.2.2
-=======
       specifier: 1.1.106
       version: 1.1.106
->>>>>>> main
     '@tryghost/limit-service':
       specifier: 1.5.6
       version: 1.5.6
@@ -302,6 +291,9 @@ catalogs:
     knex-migrator:
       specifier: 5.4.1
       version: 5.4.1
+    lightweight-charts:
+      specifier: ^4.2.0
+      version: 4.2.3
     lodash:
       specifier: 4.18.1
       version: 4.18.1
@@ -417,11 +409,7 @@ catalogs:
       version: 3.4.19
 
 overrides:
-<<<<<<< HEAD
-  '@tryghost/koenig-lexical': file:./.vendor/koenig-lexical-1.7.20-poll.32.tgz
-=======
-  knex-migrator>knex: 2.4.2
->>>>>>> main
+  '@tryghost/koenig-lexical': file:./.vendor/tryghost-koenig-lexical-1.8.3.tgz
   '@tryghost/errors': ^1.3.7
   '@tryghost/logging': 4.2.1
   jackspeak: 4.2.3
@@ -480,7 +468,7 @@ packageExtensionsChecksum: sha256-gFsvptlcVXY90ntXWh9ANUP1/LYyeqXjWoDGw6BCfOY=
 pnpmfileChecksum: sha256-B3i6YArI7D1jT8BbG4lawJAjCjpu7xMSRW7OjAIK0Uw=
 
 patchedDependencies:
-  '@tryghost/admin-api-schema@4.7.4': 5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0
+  '@tryghost/admin-api-schema@4.7.5': 5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0
 
 importers:
 
@@ -609,7 +597,7 @@ importers:
         version: 9.39.4(jiti@2.7.0)
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
+        version: 29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)
       jsdom:
         specifier: 'catalog:'
         version: 29.1.1(@noble/hashes@1.8.0)
@@ -644,20 +632,11 @@ importers:
         specifier: workspace:*
         version: link:../admin-x-settings
       '@tryghost/kg-unsplash-selector':
-<<<<<<< HEAD
-        specifier: 0.4.2
-        version: 0.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.32.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.32.tgz
-      '@tryghost/posts':
-=======
->>>>>>> main
         specifier: workspace:*
         version: link:../../koenig/kg-unsplash-selector
       '@tryghost/koenig-lexical':
-        specifier: workspace:*
-        version: link:../../koenig/koenig-lexical
+        specifier: file:../../.vendor/tryghost-koenig-lexical-1.8.3.tgz
+        version: file:.vendor/tryghost-koenig-lexical-1.8.3.tgz
       '@tryghost/nql-lang':
         specifier: 'catalog:'
         version: 0.6.6
@@ -1059,13 +1038,8 @@ importers:
         specifier: 'catalog:'
         version: 14.3.1(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tryghost/koenig-lexical':
-<<<<<<< HEAD
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.32.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.32.tgz
-=======
-        specifier: workspace:*
-        version: link:../../koenig/koenig-lexical
->>>>>>> main
+        specifier: file:../../.vendor/tryghost-koenig-lexical-1.8.3.tgz
+        version: file:.vendor/tryghost-koenig-lexical-1.8.3.tgz
       '@types/react':
         specifier: 'catalog:'
         version: 18.3.31
@@ -1352,7 +1326,7 @@ importers:
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       react:
         specifier: catalog:react17
         version: 17.0.2
@@ -1446,7 +1420,7 @@ importers:
     dependencies:
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
     devDependencies:
       '@doist/react-interpolate':
         specifier: 2.2.3
@@ -1510,132 +1484,7 @@ importers:
         version: 4.5.0(@typescript/typescript6@6.0.2)(rollup@4.62.2)(vite@8.1.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
       vitest:
         specifier: 'catalog:'
-<<<<<<< HEAD
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(@vitest/coverage-v8@4.1.7)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.2(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.9.0))
-
-  apps/posts:
-    dependencies:
-      '@ebay/nice-modal-react':
-        specifier: 'catalog:'
-        version: 1.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tryghost/admin-x-framework':
-        specifier: workspace:*
-        version: link:../admin-x-framework
-      '@tryghost/color-utils':
-        specifier: 'catalog:'
-        version: 0.2.18
-      '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.32.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.32.tgz
-      '@tryghost/nql-lang':
-        specifier: 'catalog:'
-        version: 0.6.5
-      '@tryghost/shade':
-        specifier: workspace:*
-        version: link:../shade
-      '@xyflow/react':
-        specifier: 12.10.2
-        version: 12.10.2(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      dequal:
-        specifier: 'catalog:'
-        version: 2.0.3
-      i18n-iso-countries:
-        specifier: 7.14.0
-        version: 7.14.0
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.17.0(react@18.3.1)
-      moment-timezone:
-        specifier: 0.5.45
-        version: 0.5.45
-      papaparse:
-        specifier: 5.5.3
-        version: 5.5.3
-      react:
-        specifier: 'catalog:'
-        version: 18.3.1
-      react-dom:
-        specifier: 'catalog:'
-        version: 18.3.1(react@18.3.1)
-      react-router:
-        specifier: 'catalog:'
-        version: 7.14.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      sonner:
-        specifier: 'catalog:'
-        version: 2.0.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      temporal-polyfill:
-        specifier: 0.3.2
-        version: 0.3.2
-      use-debounce:
-        specifier: 10.1.1
-        version: 10.1.1(react@18.3.1)
-      validator:
-        specifier: 'catalog:'
-        version: 13.12.0
-      zod:
-        specifier: 'catalog:'
-        version: 4.1.12
-    devDependencies:
-      '@playwright/test':
-        specifier: 'catalog:'
-        version: 1.60.0
-      '@tanstack/react-query':
-        specifier: 'catalog:'
-        version: 4.44.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/react-virtual':
-        specifier: 3.13.25
-        version: 3.13.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 6.9.1
-      '@testing-library/react':
-        specifier: 'catalog:'
-        version: 14.3.1(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@types/jest':
-        specifier: 'catalog:'
-        version: 29.5.14
-      '@types/papaparse':
-        specifier: 5.5.2
-        version: 5.5.2
-      '@types/react':
-        specifier: 'catalog:'
-        version: 18.3.29
-      '@types/validator':
-        specifier: 'catalog:'
-        version: 13.15.10
-      '@vitest/coverage-v8':
-        specifier: 'catalog:'
-        version: 4.1.7(vitest@4.1.7)
-      eslint:
-        specifier: 'catalog:'
-        version: 8.57.1
-      eslint-plugin-react-hooks:
-        specifier: 'catalog:'
-        version: 5.2.0(eslint@8.57.1)
-      eslint-plugin-react-refresh:
-        specifier: 'catalog:'
-        version: 0.5.2(eslint@8.57.1)
-      eslint-plugin-tailwindcss:
-        specifier: 'catalog:'
-        version: 4.0.0-beta.0(tailwindcss@4.2.2)
-      jsdom:
-        specifier: 'catalog:'
-        version: 29.1.1(@noble/hashes@1.8.0)
-      msw:
-        specifier: 'catalog:'
-        version: 2.14.6(@types/node@25.9.1)(typescript@5.9.3)
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.2.2
-      vite:
-        specifier: 'catalog:'
-        version: 7.3.2(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.9.0)
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(@vitest/coverage-v8@4.1.7)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.2(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.9.0))
-=======
         version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@26.0.0)(@vitest/browser-playwright@4.1.9)(@vitest/coverage-v8@4.1.9)(@vitest/ui@4.1.9)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@26.0.0)(@typescript/typescript6@6.0.2))(vite@8.1.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
->>>>>>> main
 
   apps/shade:
     dependencies:
@@ -1843,7 +1692,7 @@ importers:
     dependencies:
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       react:
         specifier: 'catalog:'
         version: 18.3.1
@@ -1928,7 +1777,7 @@ importers:
     dependencies:
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       '@tryghost/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -2066,7 +1915,7 @@ importers:
         version: 1.61.1
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       '@tryghost/logging':
         specifier: 4.2.1
         version: 4.2.1(supports-color@5.5.0)
@@ -2207,13 +2056,8 @@ importers:
         specifier: workspace:*
         version: link:../../koenig/kg-converters
       '@tryghost/koenig-lexical':
-<<<<<<< HEAD
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.32.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.32.tgz
-=======
-        specifier: workspace:*
-        version: link:../../koenig/koenig-lexical
->>>>>>> main
+        specifier: file:../../.vendor/tryghost-koenig-lexical-1.8.3.tgz
+        version: file:.vendor/tryghost-koenig-lexical-1.8.3.tgz
       '@tryghost/limit-service':
         specifier: 'catalog:'
         version: 1.5.6
@@ -2285,7 +2129,7 @@ importers:
         version: 3.0.1
       ember-cli:
         specifier: 3.24.0
-        version: 3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@1.2.0)(underscore@1.13.8)
+        version: 3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@5.5.0)(underscore@1.13.8)
       ember-cli-app-version:
         specifier: 5.0.0
         version: 5.0.0
@@ -2300,7 +2144,7 @@ importers:
         version: 1.0.3
       ember-cli-dependency-checker:
         specifier: 3.3.2
-        version: 3.3.2(ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@1.2.0)(underscore@1.13.8))
+        version: 3.3.2(ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@5.5.0)(underscore@1.13.8))
       ember-cli-deprecation-workflow:
         specifier: 2.2.0
         version: 2.2.0
@@ -2560,13 +2404,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/adapters/sso-base
       '@tryghost/admin-api-schema':
-<<<<<<< HEAD
-        specifier: 4.7.4
-        version: 4.7.4(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)
-=======
         specifier: 4.7.5
-        version: 4.7.5
->>>>>>> main
+        version: 4.7.5(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)
       '@tryghost/api-framework':
         specifier: 'catalog:'
         version: 3.3.2
@@ -2593,7 +2432,7 @@ importers:
         version: 2.3.2
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       '@tryghost/domain-events':
         specifier: 'catalog:'
         version: 3.3.2
@@ -2719,7 +2558,7 @@ importers:
         version: 2.3.2
       '@tryghost/zip':
         specifier: 3.5.1
-        version: 3.5.1
+        version: 3.5.1(supports-color@5.5.0)
       body-parser:
         specifier: 1.20.5
         version: 1.20.5
@@ -2980,14 +2819,10 @@ importers:
         version: 0.9.1
       probe-image-size:
         specifier: 7.3.0
-<<<<<<< HEAD
-        version: 7.3.0
+        version: 7.3.0(supports-color@1.2.0)
       qs:
         specifier: 6.15.2
         version: 6.15.2
-=======
-        version: 7.3.0(supports-color@1.2.0)
->>>>>>> main
       rss:
         specifier: 1.2.2
         version: 1.2.2
@@ -3189,17 +3024,7 @@ importers:
         version: 8.5.16
       postcss-cli:
         specifier: 11.0.1
-<<<<<<< HEAD
-        version: 11.0.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.21.0)
-      rewire:
-        specifier: 9.0.1
-        version: 9.0.1(jiti@2.7.0)
-=======
         version: 11.0.1(jiti@2.7.0)(postcss@8.5.16)(tsx@4.23.0)
-      qs:
-        specifier: 6.15.3
-        version: 6.15.3
->>>>>>> main
       sinon:
         specifier: 'catalog:'
         version: 22.0.0
@@ -4063,6 +3888,9 @@ importers:
       lexical:
         specifier: 0.13.1
         version: 0.13.1
+      lightweight-charts:
+        specifier: 'catalog:'
+        version: 4.2.3
       lodash:
         specifier: 'catalog:'
         version: 4.18.1
@@ -4311,7 +4139,7 @@ importers:
     dependencies:
       '@tryghost/debug':
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.3.2(supports-color@5.5.0)
       i18next:
         specifier: 23.16.8
         version: 23.16.8
@@ -10042,6 +9870,7 @@ packages:
 
   '@tryghost/admin-api-schema@4.7.5':
     resolution: {integrity: sha512-k8XWP5g6hwpe3DcxhujBVHrDSkUSZ1nedR/TBony3TMbqNCMi4v40HkOhXiryAZ/ENDcmlKj/ZLzYDgG6cb0ww==}
+    deprecated: This package is now maintained as an internal Ghost workspace package. Existing versions remain available for older Ghost releases; direct use is unsupported.
 
   '@tryghost/api-framework@3.3.2':
     resolution: {integrity: sha512-z5xbe0nYQILciHm7VySDPlsR48tWAItRhachLOb/bMPvWdP83n//2GUuUcNSQZ23pWnklpsqMtp0NNMsH2S9sw==}
@@ -10143,17 +9972,8 @@ packages:
   '@tryghost/helpers@1.1.106':
     resolution: {integrity: sha512-Yjrb/VLvRqgtMsiKXvuSRoVvAm2HJ6SJakdo25va4sU9sA7yXBSWWHkukE8q27Ty9R2fE5jEEWziIhrZy+Tkog==}
 
-<<<<<<< HEAD
-  '@tryghost/html-to-mobiledoc@3.3.2':
-    resolution: {integrity: sha512-fCf4aHPV7hmF0AugRMfADiFJRh2ZxlhaQsUQSm0iVV5Kof7PgRIt8V7AYphV++aVLm8sXCU8rQkcDr5VMm9T+Q==}
-    deprecated: 'Deprecated: Ghost has moved to the Lexical editor and no longer supports mobiledoc. Use @tryghost/kg-html-to-lexical instead.'
-
-  '@tryghost/html-to-plaintext@1.0.10':
-    resolution: {integrity: sha512-kMg2knP6r8NP980WkXq13CV1fUc7bnLoMJRprXHEIcpiuHh2wcT74qJvP76tnofJ7EP7G5gRga4aZ3WCG2i0jg==}
-=======
   '@tryghost/html-to-plaintext@1.0.11':
     resolution: {integrity: sha512-pCmCQLrZN+IqTUli07I+1oZGkZN4a6PDU/lqJ2DTe6Up86OmPOKePWUH43zzOGM5RO3aaRP1I3zUzfOW1iCFxA==}
->>>>>>> main
 
   '@tryghost/http-cache-utils@0.1.25':
     resolution: {integrity: sha512-OJAD1ESvV+F81w6IOTKCX0JLGIiJqNn87HVFMskpUC3IUGpqcDP1pCM79d72khxLWy5oRQDYu8xIqicHJ9ST1Q==}
@@ -10170,73 +9990,12 @@ packages:
   '@tryghost/job-manager@1.0.9':
     resolution: {integrity: sha512-Wlwr1R8oeU6HLB7RB1g6VxAH6VEZIaXTVV2GdvCbipK+TA0MIo6YOQUgrIky25RpyRqKXR0UuDIfXDB4+S+GgQ==}
 
-<<<<<<< HEAD
-  '@tryghost/kg-card-factory@5.2.2':
-    resolution: {integrity: sha512-CmWqnHY6+LiZOFz3hBx0qx12mlWQ5Xd21CMgDlF4oO9JhrLuLU/1nU5C3/hSfM5FwOKOuWNRoGdk2J8hNQPdDw==}
-    engines: {node: ^22.13.1 || ^24.0.0}
+  '@tryghost/koenig-lexical@file:.vendor/tryghost-koenig-lexical-1.8.3.tgz':
+    resolution: {integrity: sha512-ZcuVaW4d/t9+Nin19J9lat9Vjo1FC5JkCtS4j89qoraMjKolfVb3i8ZKidM+uL5OPi3l2UYiqJ58RT+886sAlw==, tarball: file:.vendor/tryghost-koenig-lexical-1.8.3.tgz}
+    version: 1.8.3
 
-  '@tryghost/kg-clean-basic-html@4.3.2':
-    resolution: {integrity: sha512-TflS50zmHbrKTTaL5p9DddAdFrSQGmOziWNn3SbGBcMCZyACOJyVG1sIKTLRu0nJafA0cK6084p7MMW9/mYFhQ==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-
-  '@tryghost/kg-converters@1.2.2':
-    resolution: {integrity: sha512-15wigkPDdFkfWZx2uJFHhgdVItGesjzAaM11GTC/3lmqaqjZrcohvMIvI1BhW2HOcid4PeUnlD9eox/6Isai/w==}
-
-  '@tryghost/kg-default-atoms@5.2.2':
-    resolution: {integrity: sha512-ZWNKaUjEyAcjyltL4k6vyBh3O2cmST15Bx7jRADeOBVQm5ScAgNyWI7sIaJvELhrb8X7mfp909pAcqH/ZGDauA==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-    deprecated: 'Deprecated: Ghost has moved to the Lexical editor and no longer supports mobiledoc. This package is unmaintained.'
-
-  '@tryghost/kg-default-cards@10.3.2':
-    resolution: {integrity: sha512-A9Jymh2VFtzqWb6/m8a6pHNLSflDwvVcX159v6vvbcwFV+/BhCHk138n9c/2bcMS8tUPCvHuI+LiFwuohtJaBQ==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-
-  '@tryghost/kg-default-nodes@2.1.2':
-    resolution: {integrity: sha512-NrylDTmwwye4n4FATHsFh2iP90K5ygSk+fPHpCsLzgUIxFAF/lGP1OOSEZFgkyhMtdvxrCXYzmv1ZvDUf3YYVQ==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-
-  '@tryghost/kg-default-transforms@1.3.2':
-    resolution: {integrity: sha512-Lg355HYbjdw5Z3q+y0xBSUTfYhPSYVzOfumCrwaiBUba7vALDIlm4mCvY5fdxX0owMbk9JSTUwoo2Do/5F2rOg==}
-
-  '@tryghost/kg-html-to-lexical@1.3.2':
-    resolution: {integrity: sha512-JFnom30RxH1j6/MLoi6s9CEvfeVbt2fc5ULgwPmU9xLLK/S0kakfJGtPiSTFIG7xapXozTTNmOb4ywv6k+eyDg==}
-
-  '@tryghost/kg-lexical-html-renderer@1.4.2':
-    resolution: {integrity: sha512-XTA1Jyo+yYy8n3jTYw1DgllmodJpJI8HRwFpsirNhe+rBz8sUnoUU11M+esEKWDLtFxV1sR+uBNk/1x/2XNrLw==}
-
-  '@tryghost/kg-markdown-html-renderer@7.2.2':
-    resolution: {integrity: sha512-k2b/Eu8X7DHlP4T45IjWvwTMIH7DFmkGjifCwJAe6+JCpsC7FzAGp5Yo50mSvttn/AK9NKbw3UScG4GR8TfNWg==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-
-  '@tryghost/kg-mobiledoc-html-renderer@7.2.2':
-    resolution: {integrity: sha512-616EF/4ODqlDxcYxpvqtm/y62RiP727kxcLLC/UtqE5KwwPTL1Dt870YfFSA4DqehDZE1/avB4VhLv6+kcUa9g==}
-    engines: {node: ^22.13.1 || ^24.0.0}
-    deprecated: 'Deprecated: Ghost has moved to the Lexical editor and no longer supports mobiledoc. This package is unmaintained.'
-
-  '@tryghost/kg-parser-plugins@4.3.2':
-    resolution: {integrity: sha512-VWODmGYeriEPeAD0gvJsXmc7RtISoWh2L+eQVq0TjhFQkiNGlX7ocXbcDXEZkbqBwKcZUtDPOqcI6h+NQUPjPA==}
-    engines: {node: ^22.13.1}
-    deprecated: 'Deprecated: Ghost has moved to the Lexical editor and no longer supports mobiledoc. This package is unmaintained.'
-
-  '@tryghost/kg-unsplash-selector@0.4.2':
-    resolution: {integrity: sha512-1m4NbxCi5VHN2d6JlxWXKj3gy/rRzFez5ZD9Y5RdOovZgQhLKvCz2PiEYwRqRpLgaINxSYH3MTF3Q24jWkGvJQ==}
-    peerDependencies:
-      react: ^18.2.0
-      react-dom: ^18.2.0
-
-  '@tryghost/kg-utils@1.1.2':
-    resolution: {integrity: sha512-pATOtb4JhSm+Tx8+7FxHdEkBIi8h43ZffPQu1Mr8bdHVLzN4FalB4fHukRYy53JZc3UEtxSVBZHeg7Q2ZPFR1Q==}
-
-  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.32.tgz':
-    resolution: {integrity: sha512-fqbEwSPzGmO1CaeLzLQYAZsX982yW3evjZJSHx3aX7e3F4ACBkM0+nkWKPOiR9e7B9YMJAzuhbjU3E/LZpW++A==, tarball: file:.vendor/koenig-lexical-1.7.20-poll.32.tgz}
-    version: 1.7.20-poll.32
-
-  '@tryghost/limit-service@1.5.5':
-    resolution: {integrity: sha512-WQ2+avaWQR+kVjwt5b8h8dLzYuHf/xnfJP5oBRltrVkYxzJId14MS83xPIux+z5Cw28yaYFfFsaPiwi18lFCZA==}
-=======
   '@tryghost/limit-service@1.5.6':
     resolution: {integrity: sha512-wR+Hm2v5k2FjOUhLhfPZ0p0acCfaTQoSEhuw96uw8c15CLZtm/HKsLnxA5d3AXwYmjRo5gkYskP8UYxrCKNcoQ==}
->>>>>>> main
 
   '@tryghost/logging@4.2.1':
     resolution: {integrity: sha512-yZ83IIZtTbTThBAIc12y+uFSoItZ70Yiek3I8lWHK4p2jX2Nes+G1RwEkKmODw3gRq9SH4NhdHJn/BHD80n2Xw==}
@@ -10247,14 +10006,8 @@ packages:
   '@tryghost/metrics@1.0.43':
     resolution: {integrity: sha512-zTpO/VWhhsDgT/NPeXTa2UNO6KRoMVroo5oHpvKCB29eSE2td6uSarxZCzoxZ9c6rgA2TW0tiGuNu7sB3bMY7g==}
 
-<<<<<<< HEAD
-  '@tryghost/mobiledoc-kit@0.12.4-ghost.1':
-    resolution: {integrity: sha512-c4aheSWH2Y7x4uSkAx08gbtvuEgPGjlu6v+FeUdSJZ1blEd+knL3zTcUAfeSiM6rgLEHxlNWtt+KFwotdf6rTA==}
-    deprecated: 'Deprecated: Ghost has moved to the Lexical editor and no longer supports mobiledoc. See bustle/mobiledoc-kit for the upstream project.'
-=======
   '@tryghost/mongo-knex@0.10.1':
     resolution: {integrity: sha512-6LRA4zVpNvCrVrA9hOhs8N4iylAiafGssiKuD8yML/13xg2PvKw6dzOZj6hg0CKQwG7tVp8TA+7Nw3iDOzy/jQ==}
->>>>>>> main
 
   '@tryghost/mongo-utils@0.6.5':
     resolution: {integrity: sha512-fMEfdlVaVkr7SJwVxBxVDfUQ+x4DVF4PMet698PLzabqSnGsaWcruBaQlOuNvtf8ITNXKFUAqZMdmSUTIAHU+Q==}
@@ -13848,6 +13601,9 @@ packages:
   crelt@1.0.6:
     resolution: {integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==}
 
+  crelt@1.0.7:
+    resolution: {integrity: sha512-aK6BbWfhf4U/wCcLHKPJl/xa6VkVstRaPywWtMKGwuOLc/wZTyQYuoxgvZnNsBvv7Kg3YTBQYYBCggcviQczuA==}
+
   cron-validate@1.4.5:
     resolution: {integrity: sha512-nKlOJEnYKudMn/aNyNH8xxWczlfpaazfWV32Pcx/2St51r2bxWbGhZD7uwzMcRhunA/ZNL+Htm/i0792Z59UMQ==}
 
@@ -15744,6 +15500,9 @@ packages:
   fake-xml-http-request@2.1.2:
     resolution: {integrity: sha512-HaFMBi7r+oEC9iJNpc3bvcW7Z7iLmM26hPDmlb0mFwyANSsOQAtJxbdWsXITKOzZUyMYK0zYCv3h5yDj9TsiXg==}
 
+  fancy-canvas@2.1.0:
+    resolution: {integrity: sha512-nifxXJ95JNLFR2NgRV4/MxVP45G9909wJTEKz5fg/TZS20JJZA6hfgRVh/bC9bwl2zBtBNcYPjiBE4njQHVBwQ==}
+
   fancy-log@1.3.3:
     resolution: {integrity: sha512-k9oEhlyc0FrVh25qYuSELjr8oxsCoc4/LEZfg2iJJrfEk/tZL9bCoJE47gqAvI2m/AUjluCS4+3I0eTx8n3AEw==}
     engines: {node: '>= 0.10'}
@@ -16374,19 +16133,23 @@ packages:
 
   glob@3.2.11:
     resolution: {integrity: sha512-hVb0zwEZwC1FXSKRPFTeOtN7AArJcJlI6ULGLtrstaswKNlrTJqAA+1lYlSUop4vjA423xlBzqfVS3iWGlqJ+g==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@5.0.15:
     resolution: {integrity: sha512-c9IPMazfRITpmAAKi22dK1VKxGDX9ehhqfABDriL/lzO92xcUKEJPQHrVA/2YHSNFB4iFlykVmWvwo48nr3OxA==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@6.0.4:
     resolution: {integrity: sha512-MKZeRNyYZAVVVG1oZeLaWie1uweH40m9AZwIwxyPbTSX4hHrVYSzLg0Ro5Z5R7XKkIX+Cc6oD1rqeDJnwsB8/A==}
+    deprecated: Glob versions prior to v9 are no longer supported
+
+  glob@7.2.0:
+    resolution: {integrity: sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==}
     deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@9.3.5:
     resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
@@ -18098,6 +17861,37 @@ packages:
       tedious:
         optional: true
 
+  knex@3.2.10:
+    resolution: {integrity: sha512-oypTHfrc9i72iyxaUQBKHOxhcr0xM65MPf6FpN02nimsftXwzXprIkLjfXdubvhbu4PMWLp023q8o8CYvHSuZw==}
+    engines: {node: '>=16'}
+    hasBin: true
+    peerDependencies:
+      better-sqlite3: '*'
+      mysql: '*'
+      mysql2: '*'
+      pg: '*'
+      pg-native: '*'
+      pg-query-stream: ^4.14.0
+      sqlite3: '*'
+      tedious: '*'
+    peerDependenciesMeta:
+      better-sqlite3:
+        optional: true
+      mysql:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+      pg-native:
+        optional: true
+      pg-query-stream:
+        optional: true
+      sqlite3:
+        optional: true
+      tedious:
+        optional: true
+
   knip@6.24.0:
     resolution: {integrity: sha512-PokLlgeEjLh1rAsB7ts+52wZ37HBr1nDhE6NNONwEaXdeZGCJOkP7ZlIAI2Gtu8xohquzTWy75bc/1diI9shQw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -18245,6 +18039,9 @@ packages:
   lightningcss@1.32.0:
     resolution: {integrity: sha512-NXYBzinNrblfraPGyrbPoD19C1h9lfI/1mzgWYvXUTe414Gz/X1FD2XBZSZM7rRTrMA8JL3OtAaGifrIKhQ5yQ==}
     engines: {node: '>= 12.0.0'}
+
+  lightweight-charts@4.2.3:
+    resolution: {integrity: sha512-5kS/2hY3wNYNzhnS8Gb+GAS07DX8GPF2YVDnd2NMC85gJVQ6RLU6YrXNgNJ6eg0AnWPwCnvaGtYmGky3HiLQEw==}
 
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
@@ -21221,6 +21018,10 @@ packages:
     resolution: {integrity: sha512-+Owyggi9IxT1ePKGafcI87ubSmxol6smwJ+RAHDQlx9+9cPwFWDiKFFCPuWhr9ignlGpZ9vDQLw67N4dcTVFEA==}
     engines: {node: '>=20'}
 
+  qs@6.15.2:
+    resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
+    engines: {node: '>=0.6'}
+
   qs@6.15.3:
     resolution: {integrity: sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==}
     engines: {node: '>=0.6'}
@@ -23202,22 +23003,9 @@ packages:
     engines: {node: '>=16.20.2'}
     hasBin: true
 
-<<<<<<< HEAD
-  tsconfck@3.1.6:
-    resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
-    engines: {node: ^18 || >=20}
-    deprecated: unmaintained
-    hasBin: true
-    peerDependencies:
-      typescript: ^5.0.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-=======
   tsconfig-paths-webpack-plugin@4.2.0:
     resolution: {integrity: sha512-zbem3rfRS8BgeNK50Zz5SIQgXzLafiHjOwUAvk/38/o1jHn/V5QAgVUcz884or7WYcPaH3N2CIfUc2u0ul7UcA==}
     engines: {node: '>=10.13.0'}
->>>>>>> main
 
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
@@ -23709,7 +23497,7 @@ packages:
 
   uuid@3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
 
   uuid@8.3.2:
@@ -25672,13 +25460,13 @@ snapshots:
     dependencies:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6
-      crelt: 1.0.6
+      crelt: 1.0.7
 
   '@codemirror/search@6.7.1':
     dependencies:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6
-      crelt: 1.0.6
+      crelt: 1.0.7
 
   '@codemirror/state@6.7.1':
     dependencies:
@@ -25694,7 +25482,7 @@ snapshots:
   '@codemirror/view@6.43.6':
     dependencies:
       '@codemirror/state': 6.7.1
-      crelt: 1.0.6
+      crelt: 1.0.7
       style-mod: 4.1.3
       w3c-keyname: 2.2.8
 
@@ -27106,10 +26894,10 @@ snapshots:
       jest-util: 29.7.0
       slash: 3.0.0
 
-  '@jest/core@29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)':
+  '@jest/core@29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)':
     dependencies:
       '@jest/console': 29.7.0
-      '@jest/reporters': 29.7.0(node-notifier@10.0.1)
+      '@jest/reporters': 29.7.0(node-notifier@10.0.1)(supports-color@5.5.0)
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
@@ -27203,7 +26991,7 @@ snapshots:
       '@types/node': 26.0.0
       jest-regex-util: 30.0.1
 
-  '@jest/reporters@29.7.0(node-notifier@10.0.1)':
+  '@jest/reporters@29.7.0(node-notifier@10.0.1)(supports-color@5.5.0)':
     dependencies:
       '@bcoe/v8-coverage': 0.2.3
       '@jest/console': 29.7.0
@@ -27220,7 +27008,7 @@ snapshots:
       istanbul-lib-coverage: 3.2.2
       istanbul-lib-instrument: 6.0.3
       istanbul-lib-report: 3.0.1
-      istanbul-lib-source-maps: 4.0.1
+      istanbul-lib-source-maps: 4.0.1(supports-color@5.5.0)
       istanbul-reports: 3.2.0
       jest-message-util: 29.7.0
       jest-util: 29.7.0
@@ -30871,11 +30659,7 @@ snapshots:
 
   '@tryghost/adapter-base-cache@0.1.27': {}
 
-<<<<<<< HEAD
-  '@tryghost/admin-api-schema@4.7.4(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)':
-=======
-  '@tryghost/admin-api-schema@4.7.5':
->>>>>>> main
+  '@tryghost/admin-api-schema@4.7.5(patch_hash=5faf6ca795495a568b5c775409c080b9b64a3f067d44e647aca396a88128dce0)':
     dependencies:
       '@tryghost/errors': 1.3.13
       ajv: 8.20.0
@@ -30886,7 +30670,7 @@ snapshots:
 
   '@tryghost/api-framework@3.3.2':
     dependencies:
-      '@tryghost/debug': 2.3.2
+      '@tryghost/debug': 2.3.2(supports-color@5.5.0)
       '@tryghost/errors': 1.3.13
       '@tryghost/promise': 2.3.2
       '@tryghost/tpl': 2.3.2
@@ -30907,14 +30691,14 @@ snapshots:
 
   '@tryghost/bookshelf-eager-load@2.3.2':
     dependencies:
-      '@tryghost/debug': 2.3.2
+      '@tryghost/debug': 2.3.2(supports-color@5.5.0)
       lodash: 4.18.1
     transitivePeerDependencies:
       - supports-color
 
   '@tryghost/bookshelf-filter@2.3.2':
     dependencies:
-      '@tryghost/debug': 2.3.2
+      '@tryghost/debug': 2.3.2(supports-color@5.5.0)
       '@tryghost/errors': 1.3.13
       '@tryghost/nql': 0.13.1
       '@tryghost/tpl': 2.3.2
@@ -30923,14 +30707,14 @@ snapshots:
 
   '@tryghost/bookshelf-has-posts@2.4.2':
     dependencies:
-      '@tryghost/debug': 2.3.2
+      '@tryghost/debug': 2.3.2(supports-color@5.5.0)
       lodash: 4.18.1
     transitivePeerDependencies:
       - supports-color
 
   '@tryghost/bookshelf-include-count@2.3.2':
     dependencies:
-      '@tryghost/debug': 2.3.2
+      '@tryghost/debug': 2.3.2(supports-color@5.5.0)
       lodash: 4.18.1
     transitivePeerDependencies:
       - supports-color
@@ -31024,7 +30808,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tryghost/debug@2.3.2':
+  '@tryghost/debug@2.3.2(supports-color@5.5.0)':
     dependencies:
       '@tryghost/root-utils': 2.3.2
       debug: 4.4.3(supports-color@5.5.0)
@@ -31146,134 +30930,9 @@ snapshots:
       - '@75lb/nature'
       - supports-color
 
-<<<<<<< HEAD
-  '@tryghost/kg-card-factory@5.2.2': {}
+  '@tryghost/koenig-lexical@file:.vendor/tryghost-koenig-lexical-1.8.3.tgz': {}
 
-  '@tryghost/kg-clean-basic-html@4.3.2': {}
-
-  '@tryghost/kg-converters@1.2.2':
-    dependencies:
-      lodash: 4.18.1
-
-  '@tryghost/kg-default-atoms@5.2.2': {}
-
-  '@tryghost/kg-default-cards@10.3.2(encoding@0.1.13)':
-    dependencies:
-      '@tryghost/kg-markdown-html-renderer': 7.2.2
-      '@tryghost/kg-utils': 1.1.2
-      '@tryghost/string': 0.3.4
-      '@tryghost/url-utils': 5.2.4
-      handlebars: 4.7.9
-      juice: 9.1.0(encoding@0.1.13)
-      luxon: 3.7.2
-    transitivePeerDependencies:
-      - encoding
-
-  '@tryghost/kg-default-nodes@2.1.2(@noble/hashes@1.8.0)':
-    dependencies:
-      '@lexical/clipboard': 0.13.1(lexical@0.13.1)
-      '@lexical/rich-text': 0.13.1(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(lexical@0.13.1)
-      '@lexical/selection': 0.13.1(lexical@0.13.1)
-      '@lexical/utils': 0.13.1(lexical@0.13.1)
-      '@tryghost/kg-clean-basic-html': 4.3.2
-      '@tryghost/kg-markdown-html-renderer': 7.2.2
-      clsx: 2.1.1
-      html-minifier: 4.0.0
-      jsdom: 29.1.1(@noble/hashes@1.8.0)
-      lexical: 0.13.1
-      lodash: 4.18.1
-      luxon: 3.7.2
-    transitivePeerDependencies:
-      - '@noble/hashes'
-      - canvas
-
-  '@tryghost/kg-default-transforms@1.3.2(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@noble/hashes@1.8.0)':
-    dependencies:
-      '@lexical/list': 0.13.1(lexical@0.13.1)
-      '@lexical/rich-text': 0.13.1(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(lexical@0.13.1)
-      '@lexical/utils': 0.13.1(lexical@0.13.1)
-      '@tryghost/kg-default-nodes': 2.1.2(@noble/hashes@1.8.0)
-      lexical: 0.13.1
-    transitivePeerDependencies:
-      - '@lexical/clipboard'
-      - '@lexical/selection'
-      - '@noble/hashes'
-      - canvas
-
-  '@tryghost/kg-html-to-lexical@1.3.2(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(@noble/hashes@1.8.0)':
-    dependencies:
-      '@lexical/clipboard': 0.13.1(lexical@0.13.1)
-      '@lexical/headless': 0.13.1(lexical@0.13.1)
-      '@lexical/html': 0.13.1(lexical@0.13.1)
-      '@lexical/link': 0.13.1(lexical@0.13.1)
-      '@lexical/list': 0.13.1(lexical@0.13.1)
-      '@lexical/rich-text': 0.13.1(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(lexical@0.13.1)
-      '@tryghost/kg-default-nodes': 2.1.2(@noble/hashes@1.8.0)
-      '@tryghost/kg-default-transforms': 1.3.2(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@noble/hashes@1.8.0)
-      jsdom: 29.1.1(@noble/hashes@1.8.0)
-      lexical: 0.13.1
-    transitivePeerDependencies:
-      - '@lexical/selection'
-      - '@lexical/utils'
-      - '@noble/hashes'
-      - canvas
-
-  '@tryghost/kg-lexical-html-renderer@1.4.2(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(@noble/hashes@1.8.0)':
-    dependencies:
-      '@lexical/clipboard': 0.13.1(lexical@0.13.1)
-      '@lexical/code': 0.13.1(lexical@0.13.1)
-      '@lexical/headless': 0.13.1(lexical@0.13.1)
-      '@lexical/link': 0.13.1(lexical@0.13.1)
-      '@lexical/list': 0.13.1(lexical@0.13.1)
-      '@lexical/rich-text': 0.13.1(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@lexical/utils@0.13.1(lexical@0.13.1))(lexical@0.13.1)
-      '@tryghost/kg-default-nodes': 2.1.2(@noble/hashes@1.8.0)
-      '@tryghost/kg-default-transforms': 1.3.2(@lexical/clipboard@0.13.1(lexical@0.13.1))(@lexical/selection@0.13.1(lexical@0.13.1))(@noble/hashes@1.8.0)
-      jsdom: 29.1.1(@noble/hashes@1.8.0)
-      lexical: 0.13.1
-    transitivePeerDependencies:
-      - '@lexical/selection'
-      - '@lexical/utils'
-      - '@noble/hashes'
-      - canvas
-
-  '@tryghost/kg-markdown-html-renderer@7.2.2':
-    dependencies:
-      '@tryghost/kg-utils': 1.1.2
-      markdown-it: 14.2.0
-      markdown-it-footnote: 4.0.0
-      markdown-it-image-lazy-loading: 2.0.1
-      markdown-it-lazy-headers: 0.1.3
-      markdown-it-mark: 4.0.0
-      markdown-it-sub: 2.0.0
-      markdown-it-sup: 2.0.0
-      semver: 7.8.1
-
-  '@tryghost/kg-mobiledoc-html-renderer@7.2.2':
-    dependencies:
-      '@tryghost/kg-utils': 1.1.2
-      mobiledoc-dom-renderer: 0.7.2
-      simple-dom: 1.4.0
-
-  '@tryghost/kg-parser-plugins@4.3.2':
-    dependencies:
-      '@tryghost/kg-clean-basic-html': 4.3.2
-    optional: true
-
-  '@tryghost/kg-unsplash-selector@0.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-
-  '@tryghost/kg-utils@1.1.2':
-    dependencies:
-      semver: 7.8.1
-
-  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.32.tgz': {}
-
-  '@tryghost/limit-service@1.5.5':
-=======
   '@tryghost/limit-service@1.5.6':
->>>>>>> main
     dependencies:
       '@tryghost/errors': 1.3.13
       lodash: 4.18.1
@@ -31605,18 +31264,18 @@ snapshots:
     dependencies:
       '@tryghost/errors': 1.3.13
       archiver: 8.0.0
-      extract-zip: 2.0.1
+      extract-zip: 2.0.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - react-native-b4a
       - supports-color
 
-  '@tryghost/zip@3.5.1':
+  '@tryghost/zip@3.5.1(supports-color@5.5.0)':
     dependencies:
       '@tryghost/errors': 1.3.13
       archiver: 8.0.0
-      extract-zip: 2.0.1
+      extract-zip: 2.0.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -35155,7 +34814,7 @@ snapshots:
       '@npmcli/move-file': 1.1.2
       chownr: 2.0.0
       fs-minipass: 2.1.0
-      glob: 7.2.3
+      glob: 7.2.0
       infer-owner: 1.0.4
       lru-cache: 6.0.0
       minipass: 3.3.6
@@ -36088,6 +35747,8 @@ snapshots:
       - ts-node
 
   crelt@1.0.6: {}
+
+  crelt@1.0.7: {}
 
   cron-validate@1.4.5:
     dependencies:
@@ -37213,10 +36874,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ember-cli-dependency-checker@3.3.2(ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@1.2.0)(underscore@1.13.8)):
+  ember-cli-dependency-checker@3.3.2(ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@5.5.0)(underscore@1.13.8)):
     dependencies:
       chalk: 2.4.2
-      ember-cli: 3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@1.2.0)(underscore@1.13.8)
+      ember-cli: 3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@5.5.0)(underscore@1.13.8)
       find-yarn-workspace-root: 1.2.1
       is-git-url: 1.0.0
       resolve: 1.22.12
@@ -37549,7 +37210,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@1.2.0)(underscore@1.13.8):
+  ember-cli@3.24.0(encoding@0.1.13)(handlebars@4.7.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(supports-color@5.5.0)(underscore@1.13.8):
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-modules-amd': 7.29.7(@babel/core@7.29.7)
@@ -39405,7 +39066,7 @@ snapshots:
 
   extract-stack@2.0.0: {}
 
-  extract-zip@2.0.1:
+  extract-zip@2.0.1(supports-color@5.5.0):
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
       get-stream: 5.2.0
@@ -39418,6 +39079,8 @@ snapshots:
   extsprintf@1.3.0: {}
 
   fake-xml-http-request@2.1.2: {}
+
+  fancy-canvas@2.1.0: {}
 
   fancy-log@1.3.3:
     dependencies:
@@ -40216,6 +39879,16 @@ snapshots:
 
   glob@6.0.4:
     dependencies:
+      inflight: 1.0.6
+      inherits: 2.0.4
+      minimatch: 3.1.5
+      once: 1.4.0
+      path-is-absolute: 1.0.1
+    optional: true
+
+  glob@7.2.0:
+    dependencies:
+      fs.realpath: 1.0.0
       inflight: 1.0.6
       inherits: 2.0.4
       minimatch: 3.1.5
@@ -41581,7 +41254,7 @@ snapshots:
       make-dir: 4.0.0
       supports-color: 7.2.0
 
-  istanbul-lib-source-maps@4.0.1:
+  istanbul-lib-source-maps@4.0.1(supports-color@5.5.0):
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.2
@@ -41658,7 +41331,7 @@ snapshots:
 
   jest-cli@29.7.0(@types/node@22.20.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1):
     dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
+      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
@@ -41680,7 +41353,7 @@ snapshots:
 
   jest-cli@29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1):
     dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
+      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
@@ -42089,7 +41762,7 @@ snapshots:
 
   jest@29.7.0(@types/node@22.20.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1):
     dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
+      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)
       '@jest/types': 29.6.3
       import-local: 3.2.0
       jest-cli: 29.7.0(@types/node@22.20.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
@@ -42102,9 +41775,9 @@ snapshots:
       - ts-node
     optional: true
 
-  jest@29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1):
+  jest@29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0):
     dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
+      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)(supports-color@5.5.0)
       '@jest/types': 29.6.3
       import-local: 3.2.0
       jest-cli: 29.7.0(@types/node@26.0.0)(babel-plugin-macros@3.1.0)(node-notifier@10.0.1)
@@ -42407,7 +42080,7 @@ snapshots:
       commander: 5.1.0
       compare-ver: 2.0.2
       debug: 4.4.3(supports-color@5.5.0)
-      knex: 2.4.2(better-sqlite3@12.11.1)(mysql2@3.22.5(@types/node@22.20.0))(sqlite3@5.1.7)
+      knex: 3.2.10(better-sqlite3@12.11.1)(mysql2@3.22.5(@types/node@22.20.0))(sqlite3@5.1.7)
       lodash: 4.18.1
       moment: 2.30.1
       mysql2: 3.22.5(@types/node@22.20.0)
@@ -42423,6 +42096,7 @@ snapshots:
       - mysql
       - pg
       - pg-native
+      - pg-query-stream
       - supports-color
       - tedious
 
@@ -42487,6 +42161,29 @@ snapshots:
       tildify: 2.0.0
     optionalDependencies:
       mysql2: 3.22.5(@types/node@26.0.0)
+    transitivePeerDependencies:
+      - supports-color
+
+  knex@3.2.10(better-sqlite3@12.11.1)(mysql2@3.22.5(@types/node@22.20.0))(sqlite3@5.1.7):
+    dependencies:
+      colorette: 2.0.19
+      commander: 10.0.1
+      debug: 4.3.4
+      escalade: 3.2.0
+      esm: 3.2.25
+      get-package-type: 0.1.0
+      getopts: 2.3.0
+      interpret: 2.2.0
+      lodash: 4.18.1
+      pg-connection-string: 2.6.2
+      rechoir: 0.8.0
+      resolve-from: 5.0.0
+      tarn: 3.0.2
+      tildify: 2.0.0
+    optionalDependencies:
+      better-sqlite3: 12.11.1
+      mysql2: 3.22.5(@types/node@22.20.0)
+      sqlite3: 5.1.7
     transitivePeerDependencies:
       - supports-color
 
@@ -42638,6 +42335,10 @@ snapshots:
       lightningcss-linux-x64-musl: 1.32.0
       lightningcss-win32-arm64-msvc: 1.32.0
       lightningcss-win32-x64-msvc: 1.32.0
+
+  lightweight-charts@4.2.3:
+    dependencies:
+      fancy-canvas: 2.1.0
 
   lilconfig@3.1.3: {}
 
@@ -44284,7 +43985,7 @@ snapshots:
   node-gyp@8.4.1:
     dependencies:
       env-paths: 2.2.1
-      glob: 7.2.3
+      glob: 7.2.0
       graceful-fs: 4.2.11
       make-fetch-happen: 9.1.0
       nopt: 5.0.0
@@ -46317,6 +46018,10 @@ snapshots:
   qified@0.10.1:
     dependencies:
       hookified: 2.2.0
+
+  qs@6.15.2:
+    dependencies:
+      side-channel: 1.1.1
 
   qs@6.15.3:
     dependencies:

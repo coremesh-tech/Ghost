@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import {get} from '@ember/object';
+import {action, get} from '@ember/object';
 import {inject as service} from '@ember/service';
 
 export default class PostsListContentFilter extends Component {

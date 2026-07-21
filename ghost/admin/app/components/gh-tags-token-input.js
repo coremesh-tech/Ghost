@@ -12,134 +12,18 @@ export default class GhTagsTokenInput extends Component {
 
     _knownTags = new TrackedArray();
 
-    _initialTagsMeta = null;
-    _hasLoadedInitialTags = false;
-    _searchedTagsQuery = null;
-    _searchedTagsMeta = null;
-
-    _powerSelectAPI = null;
-
-    constructor() {
-        super(...arguments);
-        this.addInitialTags(this.args.selected?.toArray ? this.args.selected.toArray() : (this.args.selected || []));
+    // pm.org: 当 @typeFilter 传入时,所有查询/新建都归入该维度(genre/segment/topic/function)
+    get _typeFilterQuery() {
+        return this.args.typeFilter ? `type:${this.args.typeFilter}` : null;
     }
 
-    get availableTags() {
-        const selectedTags = this.args.selected || [];
-        return this.tagsManager.sortTags(this._initialTags.filter(tag => !selectedTags.includes(tag)));
-    }
-
-    // pm.org:按维度类型过滤候选(@typeFilter 传入时生效)
-    _matchesTypeFilter(tag) {
-        if (!this.args.typeFilter) {
-            return true;
-        }
-        return tag.get('type') === this.args.typeFilter;
-    }
-
-    // if we only have one page of tags available or we've already loaded all tags
-    // then we can use the client-side search
-    get useServerSideSearch() {
-        const hasLoadedAnyTags = !!this._initialTagsMeta;
-        const hasLoadedAllTags = hasLoadedAnyTags && parseInt(this._initialTagsMeta.pagination.pages, 10) === parseInt(this._initialTagsMeta.pagination.page, 10);
-
-        return !hasLoadedAllTags;
-    }
-
-    @action
-    addInitialTags(tags) {
-        // 候选池收全部(同类型)tag,不在加载时排除已选;是否作为候选显示由 availableTags
-        // 动态用 !selected.includes 过滤。这样取消选择的 tag 能立刻回到下拉。
-        const existing = this._initialTags;
-        const toAdd = tags.filter(tag => this._matchesTypeFilter(tag) && !existing.includes(tag));
-        this._initialTags.push(...toAdd);
-    }
-
-    @action
-    addSearchedTags(tags) {
-        const existing = this._searchedTags;
-        const toAdd = tags.filter(tag => this._matchesTypeFilter(tag) && !existing.includes(tag));
-        this._searchedTags.push(...toAdd);
-    }
-
-    @action
-    registerPowerSelectAPI(api) {
-        this._powerSelectAPI = api;
-    }
-
-    @action
-    async loadInitialTags() {
-        if (!this._hasLoadedInitialTags) {
-            await this.loadMoreTagsTask.perform(false);
-            this._hasLoadedInitialTags = true;
-        }
-    }
-
-    @task
-    *loadMoreTagsTask() {
-        const isSearch = !!this._powerSelectAPI.searchText;
-        if (isSearch) {
-            if (!this.useServerSideSearch) {
-                return;
-            }
-
-            if (this.searchTagsTask.isRunning) {
-                return;
-            }
-
-            if (this._searchedTagsMeta?.pagination && this._searchedTagsMeta.pagination.pages <= this._searchedTagsMeta.pagination.page) {
-                return;
-            }
-
-            const page = this._searchedTagsMeta.pagination.page + 1;
-            const searchOptions = {page};
-            if (this.args.typeFilter) {
-                searchOptions.filter = `type:${this.args.typeFilter}`;
-            }
-            const tags = yield this.tagsManager.searchTagsTask.perform(this._searchedTagsQuery, searchOptions);
-            this.addSearchedTags(tags.toArray());
-            this._searchedTagsMeta = tags.meta;
-        } else {
-            if (this._initialTagsMeta?.pagination && this._initialTagsMeta.pagination.pages <= this._initialTagsMeta.pagination.page) {
-                return;
-            }
-
-            const page = this._initialTagsMeta?.pagination.page ? this._initialTagsMeta.pagination.page + 1 : 1;
-            const query = {limit: PAGE_SIZE, page, order: 'name asc'};
-            if (this.args.typeFilter) {
-                query.filter = `type:${this.args.typeFilter}`;
-            }
-            const tags = yield this.store.query('tag', query);
-            this.addInitialTags(tags.toArray());
-            this._initialTagsMeta = tags.meta;
-        }
-    }
-
-    @task
-    *searchTagsTask(term) {
-        this._searchedTagsQuery = term;
-        const searchOptions = {};
-        if (this.args.typeFilter) {
-            searchOptions.filter = `type:${this.args.typeFilter}`;
-        }
-        const tags = yield this.tagsManager.searchTagsTask.perform(term, searchOptions);
-        this._searchedTagsMeta = tags.meta;
-
-        // we need to create a tracked array for vertical-collection to update as new options are loaded
-        // because we can't rely on power-select re-rendering as @options changes via auto template updates
-        this._searchedTags = new TrackedArray();
-        this.addSearchedTags(tags.toArray());
-        return this._searchedTags;
-    }
-
-    @action
-    showCreateWhen(term) {
-        const availableTagNames = this._searchedTags.map(tag => tag.name.toLowerCase());
-        availableTagNames.push(...this.args.selected.map(tag => tag.name.toLowerCase()));
-    }
     @action
     loadTagsPage({limit, page}) {
-        return this.store.query('tag', {limit, page, order: 'name asc'}).then((tags) => {
+        const query = {limit, page, order: 'name asc'};
+        if (this._typeFilterQuery) {
+            query.filter = this._typeFilterQuery;
+        }
+        return this.store.query('tag', query).then((tags) => {
             this._addKnownTags(tags.toArray());
             return tags;
         });
@@ -147,7 +31,11 @@ export default class GhTagsTokenInput extends Component {
 
     @action
     searchTagsPage(term, {limit, page}) {
-        return this.store.query('tag', {filter: `tags.name:~${escapeNqlString(term)}`, limit, page, order: 'name asc'}).then((tags) => {
+        let filter = `tags.name:~${escapeNqlString(term)}`;
+        if (this._typeFilterQuery) {
+            filter = `${filter}+${this._typeFilterQuery}`;
+        }
+        return this.store.query('tag', {filter, limit, page, order: 'name asc'}).then((tags) => {
             this._addKnownTags(tags.toArray());
             return tags;
         });
@@ -208,7 +96,7 @@ export default class GhTagsTokenInput extends Component {
         if (!tagToAdd) {
             tagToAdd = this.store.createRecord('tag', {
                 name: tagNameAttr,
-                // pm.org:内联新建自动归入当前字段维度
+                // pm.org: 内联新建的 tag 自动归入当前字段维度
                 type: this.args.typeFilter || null
             });
 

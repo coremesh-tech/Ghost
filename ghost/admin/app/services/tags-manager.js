@@ -1,4 +1,5 @@
 import Service from '@ember/service';
+import {task, timeout} from 'ember-concurrency';
 import {tracked} from '@glimmer/tracking';
 
 export default class TagsManagerService extends Service {

@@ -19,7 +19,7 @@
             }
         }
     },
-    "PREDICTIONMARKETS_API_URL": "https://test-api.predictionmarkets.org",
+    "PREDICTIONMARKETS_API_URL": "http://host.docker.internal:3001",
     "admin": {
         "allowedOrigins": [
             "https://test.predictionmarkets.org",

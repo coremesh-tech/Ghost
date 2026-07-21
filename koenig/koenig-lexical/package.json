@@ -117,6 +117,7 @@
     "highlight.js": "10.7.3",
     "jsdom": "catalog:",
     "lexical": "0.13.1",
+    "lightweight-charts": "catalog:",
     "lodash": "catalog:",
     "pluralize": "8.0.0",
     "postcss": "catalog:",
