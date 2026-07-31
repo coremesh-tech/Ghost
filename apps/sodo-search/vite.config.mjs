@@ -51,7 +51,10 @@ export default defineConfig((config) => {
         build: {
             outDir: resolve(__dirname, 'umd'),
             reportCompressedSize: false,
-            emptyOutDir: true,
+            // 与独立的 tailwind:base 步骤共用 umd/ 输出目录:若开启 emptyOutDir,
+            // vite build:watch 每次构建会清空 umd/,连带删掉 tailwind 生成的 main.css,
+            // 导致 /ghost/assets/sodo-search/main.css 404。关闭以保住 main.css。
+            emptyOutDir: false,
             minify: true,
             sourcemap: true,
             cssCodeSplit: true,
