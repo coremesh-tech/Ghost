@@ -305,7 +305,7 @@ catalogs:
       version: 3.4.18
 
 overrides:
-  '@tryghost/koenig-lexical': file:./.vendor/koenig-lexical-1.7.20-poll.34.tgz
+  '@tryghost/koenig-lexical': file:./.vendor/koenig-lexical-1.7.20-poll.35.tgz
   '@tryghost/errors': ^1.3.7
   '@tryghost/logging': 4.2.1
   jackspeak: 4.2.3
@@ -529,8 +529,8 @@ importers:
         specifier: 0.4.2
         version: 0.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.34.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.34.tgz
+        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.35.tgz
+        version: file:.vendor/koenig-lexical-1.7.20-poll.35.tgz
       '@tryghost/posts':
         specifier: workspace:*
         version: link:../posts
@@ -869,8 +869,8 @@ importers:
         specifier: 'catalog:'
         version: 14.3.1(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.34.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.34.tgz
+        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.35.tgz
+        version: file:.vendor/koenig-lexical-1.7.20-poll.35.tgz
       '@types/react':
         specifier: 'catalog:'
         version: 18.3.29
@@ -1320,8 +1320,8 @@ importers:
         specifier: 'catalog:'
         version: 0.2.18
       '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.34.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.34.tgz
+        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.35.tgz
+        version: file:.vendor/koenig-lexical-1.7.20-poll.35.tgz
       '@tryghost/nql-lang':
         specifier: 'catalog:'
         version: 0.6.5
@@ -2007,8 +2007,8 @@ importers:
         specifier: 'catalog:'
         version: 1.2.2
       '@tryghost/koenig-lexical':
-        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.34.tgz
-        version: file:.vendor/koenig-lexical-1.7.20-poll.34.tgz
+        specifier: file:../../.vendor/koenig-lexical-1.7.20-poll.35.tgz
+        version: file:.vendor/koenig-lexical-1.7.20-poll.35.tgz
       '@tryghost/limit-service':
         specifier: 'catalog:'
         version: 1.5.5
@@ -8751,9 +8751,9 @@ packages:
   '@tryghost/kg-utils@1.1.2':
     resolution: {integrity: sha512-pATOtb4JhSm+Tx8+7FxHdEkBIi8h43ZffPQu1Mr8bdHVLzN4FalB4fHukRYy53JZc3UEtxSVBZHeg7Q2ZPFR1Q==, tarball: https://registry.npmjs.org/@tryghost/kg-utils/-/kg-utils-1.1.2.tgz}
 
-  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.34.tgz':
-    resolution: {integrity: sha512-JAtoBK8Qeu9FxW81W6rFVMt3fzXyYoVNEbxf6V13jvuIrMfx3Hfdk5YJVTeEbi8kluepA/evcUoAOqnh1lJhOw==, tarball: file:.vendor/koenig-lexical-1.7.20-poll.34.tgz}
-    version: 1.7.20-poll.34
+  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.35.tgz':
+    resolution: {integrity: sha512-cCuhwrL8hJ+81Ka8Kbixp1Vwo8NuUrA8Nff+BRpBISht8DlnWQkRL2q6zaV+Ali9moRzqYNRhjwq7GPp5cfOXA==, tarball: file:.vendor/koenig-lexical-1.7.20-poll.35.tgz}
+    version: 1.7.20-poll.35
 
   '@tryghost/limit-service@1.5.5':
     resolution: {integrity: sha512-WQ2+avaWQR+kVjwt5b8h8dLzYuHf/xnfJP5oBRltrVkYxzJId14MS83xPIux+z5Cw28yaYFfFsaPiwi18lFCZA==, tarball: https://registry.npmjs.org/@tryghost/limit-service/-/limit-service-1.5.5.tgz}
@@ -28821,7 +28821,7 @@ snapshots:
     dependencies:
       semver: 7.8.1
 
-  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.34.tgz': {}
+  '@tryghost/koenig-lexical@file:.vendor/koenig-lexical-1.7.20-poll.35.tgz': {}
 
   '@tryghost/limit-service@1.5.5':
     dependencies:
