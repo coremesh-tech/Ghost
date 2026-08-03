@@ -18,8 +18,8 @@ const TARBALLS = [
     {
         name: '@tryghost/koenig-lexical',
         version: '1.7.20-poll.32',
-        filename: 'koenig-lexical-1.7.20-poll.36.tgz',
-        url: 'http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.36.tgz'
+        filename: 'koenig-lexical-1.7.20-poll.37.tgz',
+        url: 'http://ratus-dnat-8ade08c660eaf714.elb.ap-east-1.amazonaws.com:31081/repository/npm-hosted1/@tryghost/koenig-lexical/-/koenig-lexical-1.7.20-poll.37.tgz'
     }
 ];
 
