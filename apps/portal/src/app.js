@@ -87,6 +87,21 @@ export default class App extends React.Component {
         const scrollbarWidth = this.getScrollbarWidth();
         this.setState({scrollbarWidth});
 
+        // Bridge: let theme scripts (e.g. the inline subscribe form) trigger the
+        // native Portal notification, so their toast matches sign-in / sign-up.
+        this.notifyHandler = (event) => {
+            const detail = (event && event.detail) || {};
+            this.dispatchAction('openNotification', {
+                action: detail.type || 'signup',
+                status: detail.status || 'success',
+                autoHide: detail.autoHide !== false,
+                closeable: detail.closeable !== false,
+                ...(detail.message ? {message: detail.message} : {}),
+                ...(detail.duration ? {duration: detail.duration} : {})
+            });
+        };
+        window.addEventListener('ghost:notify', this.notifyHandler, false);
+
         this.initSetup();
     }
 
@@ -144,6 +159,7 @@ export default class App extends React.Component {
             customTriggerButton.removeEventListener('click', this.clickHandler);
         });
         window.removeEventListener('hashchange', this.hashHandler, false);
+        window.removeEventListener('ghost:notify', this.notifyHandler, false);
     }
 
     sendPortalReadyEvent() {
@@ -1108,6 +1124,10 @@ export default class App extends React.Component {
         } else if (path === 'signin') {
             return {
                 page: 'signin'
+            };
+        } else if (path === 'subscribe') {
+            return {
+                page: 'subscribe'
             };
         } else if (path === 'account') {
             return {

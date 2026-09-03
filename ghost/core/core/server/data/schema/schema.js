@@ -57,7 +57,12 @@ module.exports = {
         section_title_color: {type: 'string', maxlength: 50, nullable: true},
         divider_color: {type: 'string', maxlength: 50, nullable: true},
         button_color: {type: 'string', maxlength: 50, nullable: true, defaultTo: 'accent'},
-        link_color: {type: 'string', maxlength: 50, nullable: true, defaultTo: 'accent'}
+        link_color: {type: 'string', maxlength: 50, nullable: true, defaultTo: 'accent'},
+        // Layered subscription routing (pm.org): JSON arrays of slugs/ids that route a
+        // subscriber into this newsletter. Edited in admin; matched at subscribe time.
+        subscription_tags: {type: 'text', maxlength: 65535, nullable: true},
+        subscription_authors: {type: 'text', maxlength: 65535, nullable: true},
+        subscription_pages: {type: 'text', maxlength: 65535, nullable: true}
     },
     posts: {
         id: {type: 'string', maxlength: 24, nullable: false, primary: true},

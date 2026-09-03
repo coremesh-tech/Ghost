@@ -37,6 +37,9 @@ export type Newsletter = {
     header_background_color: string;
     button_color: string | null;
     link_color: string | null;
+    subscription_tags: string[] | null;
+    subscription_authors: string[] | null;
+    subscription_pages: string[] | null;
     post_title_color: string | null;
     section_title_color: string | null;
     divider_color: string | null;

@@ -461,7 +461,7 @@ const createSessionFromMagicLink = async function createSessionFromMagicLink(req
     }
 };
 
-// Set req.member & res.locals.member if a cookie is set
+
 module.exports = {
     loadMemberSession,
     authMemberByUuid,

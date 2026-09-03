@@ -403,6 +403,10 @@ module.exports = function MembersAPI({
             body.json(),
             forwardError((req, res) => routerController.sendMagicLink(req, res))
         ),
+        subscribeDirect: Router().use(
+            body.json(),
+            forwardError((req, res) => routerController.subscribeDirect(req, res))
+        ),
         verifyOTC: Router().use(
             body.json(),
             forwardError((req, res) => routerController.verifyOTC(req, res))

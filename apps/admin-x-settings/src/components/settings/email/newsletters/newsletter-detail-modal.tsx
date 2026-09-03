@@ -4,10 +4,12 @@ import React, {useCallback, useEffect, useState} from 'react';
 import useFeatureFlag from '../../../../hooks/use-feature-flag';
 import useSettingGroup from '../../../../hooks/use-setting-group';
 import validator from 'validator';
-import {Button, ButtonGroup, ColorPickerField, ConfirmationModal, Form, Heading, Hint, HtmlField, Icon, ImageUpload, LimitModal, PreviewModalContent, Select, type SelectOption, Separator, type Tab, TabView, TextArea, TextField, Toggle, ToggleGroup, showToast} from '@tryghost/admin-x-design-system';
+import {Button, ButtonGroup, ColorPickerField, ConfirmationModal, Form, Heading, Hint, HtmlField, Icon, ImageUpload, LimitModal, MultiSelect, type MultiSelectOption, PreviewModalContent, Select, type SelectOption, Separator, type Tab, TabView, TextArea, TextField, Toggle, ToggleGroup, showToast} from '@tryghost/admin-x-design-system';
 import {type ErrorMessages, useForm, useHandleError} from '@tryghost/admin-x-framework/hooks';
 import {HostLimitError, useLimiter} from '../../../../hooks/use-limiter';
 import {type Newsletter, useBrowseNewsletters, useEditNewsletter} from '@tryghost/admin-x-framework/api/newsletters';
+import {useBrowseTags} from '@tryghost/admin-x-framework/api/tags';
+import {useBrowseUsers} from '@tryghost/admin-x-framework/api/users';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
 import {getImageUrl, useUploadImage} from '@tryghost/admin-x-framework/api/images';
 import {getSettingValue, getSettingValues} from '@tryghost/admin-x-framework/api/settings';
@@ -79,6 +81,35 @@ const Sidebar: React.FC<{
     const handleError = useHandleError();
     const {data: {newsletters: apiNewsletters} = {}} = useBrowseNewsletters();
     const commentsEnabled = ['all', 'paid'].includes(getSettingValue(settings, 'comments_enabled') || '');
+
+    // Layered subscription routing: which tags / authors / pages route subscribers into this newsletter.
+    const {data: {tags: allTags} = {}} = useBrowseTags({filter: {visibility: 'public'}, searchParams: {limit: 'all'}});
+    const {data: {users: allUsers} = {}} = useBrowseUsers({searchParams: {limit: 'all'}});
+    // 内置:routes.yaml 专题页选项。value 必须与页面模板里 data-context-slug 一致。
+    const subscriptionPageOptions: MultiSelectOption[] = [
+        {value: 'pop-culture', label: 'Pop Culture'},
+        {value: 'politics', label: 'Politics'}
+    ];
+    const subscriptionTagOptions: MultiSelectOption[] = (allTags || []).map(t => ({value: t.slug, label: t.name || t.slug}));
+    const subscriptionAuthorOptions: MultiSelectOption[] = (allUsers || []).map(u => ({value: u.slug, label: u.name || u.slug}));
+    // Backend stores these as JSON text; tolerate array | JSON-string | null so a
+    // stale (un-parsed) API response can't crash the modal.
+    const toSlugArray = (value: unknown): string[] => {
+        if (Array.isArray(value)) {
+            return value as string[];
+        }
+        if (typeof value === 'string' && value.trim()) {
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    };
+    const selectedOptions = (value: unknown, options: MultiSelectOption[]): MultiSelectOption[] =>
+        toSlugArray(value).map(slug => options.find(o => o.value === slug) || {value: slug, label: slug});
 
     let newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
     const [newsletters, setNewsletters] = useState<Newsletter[]>(apiNewsletters || []);
@@ -275,6 +306,30 @@ const Sidebar: React.FC<{
                         labelStyle='value'
                         onChange={e => updateNewsletter({subscribe_on_signup: e.target.checked})}
                     />
+                </Form>
+                <Form className='mt-6' gap='sm' margins='lg' title='Subscription routing'>
+                    <MultiSelect
+                        options={subscriptionTagOptions}
+                        placeholder='Select tags…'
+                        title='Tags'
+                        values={selectedOptions(newsletter.subscription_tags, subscriptionTagOptions)}
+                        onChange={selected => updateNewsletter({subscription_tags: selected.map(o => o.value)})}
+                    />
+                    <MultiSelect
+                        options={subscriptionAuthorOptions}
+                        placeholder='Select authors…'
+                        title='Authors'
+                        values={selectedOptions(newsletter.subscription_authors, subscriptionAuthorOptions)}
+                        onChange={selected => updateNewsletter({subscription_authors: selected.map(o => o.value)})}
+                    />
+                    <MultiSelect
+                        options={subscriptionPageOptions}
+                        placeholder='Select pages…'
+                        title='Pages'
+                        values={selectedOptions(newsletter.subscription_pages, subscriptionPageOptions)}
+                        onChange={selected => updateNewsletter({subscription_pages: selected.map(o => o.value)})}
+                    />
+                    <Hint>Subscribers coming from these tags, authors or pages are added to this newsletter.</Hint>
                 </Form>
                 <div className='mt-10 mb-5'>
                     {newsletter.status === 'active' ? (!onlyOne && <Button color='red' disabled={activeNewsletters.length === 1} label='Archive newsletter' link onClick={confirmStatusChange}/>) : <Button color='green' label='Reactivate newsletter' link onClick={confirmStatusChange} />}

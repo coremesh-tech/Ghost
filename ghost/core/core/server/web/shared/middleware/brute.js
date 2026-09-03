@@ -129,6 +129,13 @@ module.exports = {
     },
 
     /**
+     * Block too many subscribe-direct requests from the same IP (public subscribe box)
+     */
+    subscribeDirect(req, res, next) {
+        return spamPrevention.subscribeDirect().prevent(req, res, next);
+    },
+
+    /**
      * Block too many OTC verification attempts from same IP (blocks user enumeration)
      */
     otcVerificationEnumeration(req, res, next) {

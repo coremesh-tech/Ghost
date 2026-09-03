@@ -6,6 +6,35 @@ const urlUtils = require('../../shared/url-utils');
 const Newsletter = ghostBookshelf.Model.extend({
     tableName: 'newsletters',
 
+    // Layered subscription routing fields stored as JSON arrays (text columns).
+    parse(attrs) {
+        const SUBSCRIPTION_JSON_FIELDS = ['subscription_tags', 'subscription_authors', 'subscription_pages'];
+        for (const key of SUBSCRIPTION_JSON_FIELDS) {
+            if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+                if (typeof attrs[key] === 'string') {
+                    try {
+                        attrs[key] = JSON.parse(attrs[key]);
+                    } catch (e) {
+                        attrs[key] = [];
+                    }
+                } else if (attrs[key] === null || attrs[key] === undefined) {
+                    attrs[key] = [];
+                }
+            }
+        }
+        return attrs;
+    },
+
+    format(attrs) {
+        const SUBSCRIPTION_JSON_FIELDS = ['subscription_tags', 'subscription_authors', 'subscription_pages'];
+        for (const key of SUBSCRIPTION_JSON_FIELDS) {
+            if (Array.isArray(attrs[key])) {
+                attrs[key] = JSON.stringify(attrs[key]);
+            }
+        }
+        return attrs;
+    },
+
     defaults: function defaults() {
         return {
             uuid: crypto.randomUUID(),

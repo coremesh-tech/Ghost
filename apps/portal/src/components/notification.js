@@ -150,6 +150,13 @@ const NotificationText = ({type, status, message, context}) => {
             </p>
         );
     }
+    if (type === 'subscribe') {
+        return (
+            <p>
+                {message || (status === 'success' ? t('Success') : t('Error'))}
+            </p>
+        );
+    }
     return (
         <p>
             {status === 'success' ? t('Success') : t('Error')}

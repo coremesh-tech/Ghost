@@ -233,6 +233,68 @@ async function signup({data, state, api}) {
     }
 }
 
+async function subscribeDirect({data, state, api}) {
+    try {
+        const {email, phonenumber, newsletters, context} = data;
+        const trimmedEmail = (email || '').trim();
+        const integrityToken = await api.member.getIntegrityToken();
+        const result = await api.member.subscribeDirect({
+            email: trimmedEmail,
+            newsletters,
+            context,
+            integrityToken,
+            phonenumber
+        });
+
+        // Source-side validation said this tag/author isn't subscribable -> corner notification.
+        if (result?.status === 'invalid') {
+            const invalidNotification = createNotification({
+                type: 'subscribe',
+                status: 'error',
+                autoHide: true,
+                closeable: true,
+                state,
+                message: t('This topic isn\u2019t available for subscription.')
+            });
+            removePortalLinkFromUrl();
+            return {
+                showPopup: false,
+                notification: invalidNotification,
+                notificationSequence: invalidNotification.count
+            };
+        }
+
+        const alreadySubscribed = result?.status === 'already';
+        const notification = createNotification({
+            type: 'subscribe',
+            status: 'success',
+            autoHide: true,
+            closeable: true,
+            state,
+            message: alreadySubscribed
+                ? t('You are already subscribed.')
+                : t('Thanks for subscribing!')
+        });
+        removePortalLinkFromUrl();
+
+        // Close the popup and show a corner toast (like sign-in success).
+        // No session is created, so the visitor is NOT logged in.
+        return {
+            showPopup: false,
+            notification,
+            notificationSequence: notification.count
+        };
+    } catch (e) {
+        return {
+            action: 'subscribeDirect:failed',
+            popupNotification: createPopupNotification({
+                type: 'subscribeDirect:failed', autoHide: false, closeable: true, state, status: 'error',
+                message: chooseBestErrorMessage(e, t('Failed to subscribe, please try again'))
+            })
+        };
+    }
+}
+
 async function redeemGift({data, state, api}) {
     try {
         let {email, name, giftToken} = data;
@@ -839,7 +901,8 @@ const Actions = {
     removeEmailFromSuppressionList,
     oneClickSubscribe,
     trackRecommendationClicked,
-    trackRecommendationSubscribed
+    trackRecommendationSubscribed,
+    subscribeDirect
 };
 
 /** Handle actions in the App, returns updated state */

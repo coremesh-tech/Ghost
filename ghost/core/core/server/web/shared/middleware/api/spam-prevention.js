@@ -41,6 +41,7 @@ let spamWebmentionsBlock = spam.webmentions_block || {};
 let spamEmailPreviewBlock = spam.email_preview_block || {};
 let spamOtcVerificationEnumeration = spam.otc_verification_enumeration || {};
 let spamOtcVerification = spam.otc_verification || {};
+let spamSubscribeDirect = spam.subscribe_direct || {};
 
 let store;
 let memoryStore;
@@ -58,6 +59,7 @@ let contentApiKeyInstance;
 let emailPreviewBlockInstance;
 let otcVerificationEnumerationInstance;
 let otcVerificationInstance;
+let subscribeDirectInstance;
 
 const spamConfigKeys = ['freeRetries', 'minWait', 'maxWait', 'lifetime'];
 
@@ -494,6 +496,35 @@ const contentApiKey = () => {
     return contentApiKeyInstance;
 };
 
+const subscribeDirect = () => {
+    const ExpressBrute = require('express-brute');
+    const BruteKnex = require('brute-knex');
+    const db = require('../../../../data/db');
+
+    store = store || new BruteKnex({
+        tablename: 'brute',
+        createTable: false,
+        knex: db.knex
+    });
+
+    if (!subscribeDirectInstance) {
+        subscribeDirectInstance = new ExpressBrute(store,
+            extend({
+                attachResetToRequest: false,
+                failCallback(req, res, next, nextValidRequestDate) {
+                    return next(new errors.TooManyRequestsError({
+                        message: `Too many subscribe attempts from this IP, try again in ${moment(nextValidRequestDate).fromNow(true)}`,
+                        code: 'SUBSCRIBE_RATE_LIMITED'
+                    }));
+                },
+                handleStoreError: handleStoreError
+            }, pick(spamSubscribeDirect, spamConfigKeys))
+        );
+    }
+
+    return subscribeDirectInstance;
+};
+
 module.exports = {
     globalBlock: globalBlock,
     globalReset: globalReset,
@@ -502,6 +533,7 @@ module.exports = {
     userVerification: userVerification,
     membersAuth: membersAuth,
     membersAuthEnumeration: membersAuthEnumeration,
+    subscribeDirect: subscribeDirect,
     otcVerification: otcVerification,
     otcVerificationEnumeration: otcVerificationEnumeration,
     userReset: userReset,
@@ -518,6 +550,7 @@ module.exports = {
         userLoginInstance = undefined;
         membersAuthInstance = undefined;
         membersAuthEnumerationInstance = undefined;
+        subscribeDirectInstance = undefined;
         userResetInstance = undefined;
         sendVerificationCodeInstance = undefined;
         userVerificationInstance = undefined;

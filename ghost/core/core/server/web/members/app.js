@@ -67,6 +67,8 @@ module.exports = function setupMembersApp() {
     membersApp.put('/api/member', bodyParser.json({limit: '50mb'}), middleware.updateMemberData);
     membersApp.post('/api/member/email', bodyParser.json({limit: '50mb'}), (req, res, next) => membersService.api.middleware.updateEmailAddress(req, res, next));
 
+    // Follow / unfollow a tag or author for the logged-in member (adds/removes a label)
+
     // 批量拉取多个 poll 定义 (首屏一次性加载, 解决 N+1 请求).
     // 用 /polls-batch 独立前缀, 避免和 /polls/:id 路由冲突.
     membersApp.get('/api/polls-batch',
@@ -264,6 +266,17 @@ module.exports = function setupMembersApp() {
         // NOTE: this is wrapped in a function to ensure we always go via the getter
         function lazySendMagicLinkMw(req, res, next) {
             return membersService.api.middleware.sendMagicLink(req, res, next);
+        }
+    );
+    membersApp.post(
+        '/api/subscribe-direct',
+        bodyParser.json(),
+        middleware.verifyIntegrityToken,
+        // Dedicated per-IP limit for the public subscribe box (60 / IP / hour)
+        shared.middleware.brute.subscribeDirect,
+        // NOTE: wrapped in a function so we always go via the getter
+        function lazySubscribeDirectMw(req, res, next) {
+            return membersService.api.middleware.subscribeDirect(req, res, next);
         }
     );
     membersApp.post(

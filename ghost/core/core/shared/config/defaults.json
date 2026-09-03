@@ -154,6 +154,12 @@
             "lifetime": 3600,
             "freeRetries": 4
         },
+        "subscribe_direct": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries": 60
+        },
         "blocked_email_domains": []
     },
     "caching": {
@@ -261,8 +267,8 @@
         "clickTrackingLastSeenAtUpdater": true
     },
     "portal": {
-        "url": "/assets/umd/portal.min.js?v=2.77",
-        "version": "2.77"
+        "url": "/assets/umd/portal.min.js?v=2.79",
+        "version": "2.79"
     },
     "sodoSearch": {
         "url": "https://cdn.jsdelivr.net/ghost/sodo-search@~{version}/umd/sodo-search.min.js",

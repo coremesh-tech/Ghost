@@ -400,6 +400,38 @@ function setupGhostApi({siteUrl = window.location.origin, apiUrl, apiKey}) {
             }
         },
 
+        async subscribeDirect({email, newsletters, context, integrityToken, phonenumber}) {
+            const url = endpointFor({type: 'members', resource: 'subscribe-direct'});
+            const body = {
+                email,
+                newsletters,
+                context,
+                integrityToken,
+                // hidden honeypot field to deter bots
+                honeypot: phonenumber,
+                requestSrc: 'portal'
+            };
+
+            const res = await makeRequest({
+                url,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                return await res.json();
+            } else {
+                const humanError = await HumanReadableError.fromApiResponse(res);
+                if (humanError) {
+                    throw humanError;
+                }
+                throw new Error('Failed to subscribe');
+            }
+        },
+
         signout(all = false) {
             const url = endpointFor({type: 'members', resource: 'session'});
             return makeRequest({

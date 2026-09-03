@@ -9,6 +9,8 @@ const normalizeEmail = require('../utils/normalize-email');
 const hasActiveOffer = require('../utils/has-active-offer');
 const {getInboxLinks} = require('../../../../lib/get-inbox-links');
 const {SIGNUP_CONTEXTS} = require('../../../lib/member-signup-contexts');
+// Layered subscription: context type -> the newsletter column that lists its subscribers' slugs.
+const SUBSCRIPTION_DIM = {tag: 'subscription_tags', author: 'subscription_authors', page: 'subscription_pages'};
 /** @typedef {import('../../../lib/member-signup-contexts').SignupContext} SignupContext */
 
 const messages = {
@@ -943,6 +945,199 @@ module.exports = class RouterController {
             // Let the normal error middleware handle this error
             throw err;
         }
+    }
+
+    /**
+     * Directly subscribe an email as a free member — no verification, no session.
+     * Powers the "email-only" subscribe popup (pure mailing-list style).
+     * Idempotent: existing members are never duplicated.
+     */
+    async subscribeDirect(req, res) {
+        const {email, honeypot} = req.body;
+
+        if (!email) {
+            throw new errors.BadRequestError({
+                message: tpl(messages.emailRequired)
+            });
+        }
+
+        if (!isEmail(email)) {
+            throw new errors.BadRequestError({
+                message: tpl(messages.invalidEmail)
+            });
+        }
+
+        const normalizedEmail = normalizeEmail(email);
+        if (!normalizedEmail) {
+            throw new errors.BadRequestError({
+                message: tpl(messages.invalidEmail)
+            });
+        }
+
+        // Honeypot filled -> likely a bot. Pretend success without creating anything.
+        if (honeypot) {
+            logging.warn('Honeypot filled on subscribe-direct, likely a bot');
+            return res.json({status: 'subscribed'});
+        }
+
+        // Respect blocked email domains (same guard as signup)
+        const blockedEmailDomains = this._settingsCache.get('all_blocked_email_domains') || [];
+        const emailDomain = normalizedEmail.split('@')[1]?.toLowerCase();
+        if (emailDomain && blockedEmailDomains.includes(emailDomain)) {
+            throw new errors.BadRequestError({
+                message: tpl(messages.blockedEmailDomain)
+            });
+        }
+
+        // Resolve which newsletters this subscribe targets:
+        //  - explicit newsletter names in the body (back-compat / manual override), plus
+        //  - newsletters whose own subscription_* fields (set in admin) list this page context.
+        // A tag/author/page may belong to several newsletters -> subscribe to all of them.
+        const explicitNames = new Set();
+        (Array.isArray(req.body.newsletters) ? req.body.newsletters : []).forEach((n) => {
+            const name = typeof n === 'string' ? n : (n && n.name);
+            if (name) {
+                explicitNames.add(String(name).toLowerCase());
+            }
+        });
+
+        const contexts = Array.isArray(req.body.context)
+            ? req.body.context
+            : (req.body.context ? [req.body.context] : []);
+        const rawContexts = contexts
+            .map(ctx => ({
+                type: (ctx && ctx.type) || '',
+                dim: SUBSCRIPTION_DIM[ctx && ctx.type],
+                slug: ((ctx && ctx.slug) || '').toString().trim().toLowerCase()
+            }))
+            .filter(ctx => ctx.dim && ctx.slug);
+
+        // Validate that tag/author contexts point at real entities before treating them as
+        // subscribable. Pages come from routes.yaml (no entity) so they're always accepted.
+        let normalizedContexts = rawContexts;
+        if (rawContexts.length) {
+            const models = require('../../../../models');
+            const tagSlugs = [...new Set(rawContexts.filter(c => c.type === 'tag').map(c => c.slug))];
+            const authorSlugs = [...new Set(rawContexts.filter(c => c.type === 'author').map(c => c.slug))];
+            const existingTags = new Set();
+            const existingAuthors = new Set();
+            const quote = list => list.map(v => `'${v.replace(/'/g, "\\'")}'`).join(',');
+            if (tagSlugs.length) {
+                const tags = await models.Tag.findAll({
+                    filter: `slug:[${quote(tagSlugs)}]+visibility:public`,
+                    columns: ['slug']
+                });
+                tags.forEach(tag => existingTags.add((tag.get('slug') || '').toLowerCase()));
+            }
+            if (authorSlugs.length) {
+                const users = await models.User.findAll({
+                    filter: `slug:[${quote(authorSlugs)}]`,
+                    columns: ['slug']
+                });
+                users.forEach(user => existingAuthors.add((user.get('slug') || '').toLowerCase()));
+            }
+            normalizedContexts = rawContexts.filter((ctx) => {
+                if (ctx.type === 'tag') {
+                    return existingTags.has(ctx.slug);
+                }
+                if (ctx.type === 'author') {
+                    return existingAuthors.has(ctx.slug);
+                }
+                return true; // page
+            });
+
+            // Contexts were provided but none point at a real, subscribable entity, and there is
+            // no explicit newsletter -> tell the caller so it can show a friendly "not subscribable".
+            if (!normalizedContexts.length && !explicitNames.size) {
+                return res.json({status: 'invalid'});
+            }
+        }
+
+        const requestedTargeting = explicitNames.size > 0 || normalizedContexts.length > 0;
+
+        // Newsletter subscription_* fields are stored as JSON text; tolerate array | JSON-string
+        // so matching works even if the model parse isn't active in the running process.
+        const toSlugArray = (value) => {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (typeof value === 'string' && value.trim()) {
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            return [];
+        };
+
+        let targetNewsletters = [];
+        if (requestedTargeting) {
+            const active = await this._newslettersService.getAll({filter: 'status:active'});
+            targetNewsletters = active.filter((nl) => {
+                if (explicitNames.has((nl.name || '').toLowerCase())) {
+                    return true;
+                }
+                return normalizedContexts.some((ctx) => {
+                    const list = toSlugArray(nl[ctx.dim]);
+                    return list.some(entry => String(entry).trim().toLowerCase() === ctx.slug);
+                });
+            }).map(nl => ({id: nl.id, name: nl.name}));
+        }
+
+        const existingMember = await this._memberRepository.get(
+            {email: normalizedEmail},
+            {withRelated: ['newsletters']}
+        );
+
+        if (existingMember) {
+            const currentActiveIds = existingMember.related('newsletters').models
+                .filter(n => n.get('status') === 'active')
+                .map(n => n.id);
+
+            // Which newsletters to (try to) add:
+            //  - targeting matched -> exactly those
+            //  - no match (plain whole-site subscribe, OR a valid tag/author with no newsletter
+            //    mapped to it) -> fall back to the default (whole-site) newsletters
+            let resolved = targetNewsletters;
+            if (!resolved.length) {
+                const defaults = await this._newslettersService.getAll({
+                    filter: 'status:active+subscribe_on_signup:true+visibility:members',
+                    columns: ['id', 'name']
+                });
+                resolved = (defaults || []).map(n => ({id: n.id, name: n.name}));
+            }
+
+            const currentSet = new Set(currentActiveIds);
+            const toAdd = resolved.filter(n => !currentSet.has(n.id));
+            if (toAdd.length === 0) {
+                return res.json({status: 'already'});
+            }
+
+            // Pass the UNION so existing subscriptions are preserved (update is a set-operation).
+            const unionNewsletters = [
+                ...currentActiveIds.map(id => ({id})),
+                ...toAdd.map(n => ({id: n.id}))
+            ];
+            await this._memberRepository.update(
+                {newsletters: unionNewsletters},
+                {id: existingMember.id, withRelated: ['newsletters']}
+            );
+            return res.json({status: 'subscribed'});
+        }
+
+        // New member: create free + subscribed, no session (no login).
+        //  - targeting matched -> exactly those newsletters
+        //  - no match (whole-site subscribe, or a valid tag/author with no newsletter mapped)
+        //    -> omit -> Ghost subscribes to the default (whole-site) newsletters
+        await this._memberRepository.create({
+            email: normalizedEmail,
+            subscribed: true,
+            ...(targetNewsletters.length ? {newsletters: targetNewsletters.map(n => ({id: n.id}))} : {})
+        });
+
+        return res.json({status: 'subscribed'});
     }
 
     async verifyOTC(req, res) {
