@@ -278,6 +278,12 @@ export function isSigninAllowed({site}) {
     return site?.members_signup_access !== 'none';
 }
 
+// RATUS: Google 登录开关来自 /members/api/site (public-config)。
+// 站点关了会员登录时也不该显示。
+export function isGoogleAuthAllowed({site}) {
+    return Boolean(site?.google_auth_enabled) && isSigninAllowed({site});
+}
+
 export function isSignupAllowed({site}) {
     const hasSignupAccess = site?.members_signup_access === 'all' || site?.members_signup_access === 'paid';
     const hasSignupConfigured = site?.paid_members_enabled || hasOnlyFreePlan({site});

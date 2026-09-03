@@ -5,6 +5,7 @@
 
 import {GlobalStyles} from './global.styles';
 import {ActionButtonStyles} from './common/action-button';
+import {GoogleSignInButtonStyles} from './common/google-signin-button'; // RATUS
 import {BackButtonStyles} from './common/back-button';
 import {SwitchStyles} from './common/switch';
 import AccountHomePageStyles from './pages/AccountHomePage/account-home-page.css?inline';
@@ -1304,6 +1305,7 @@ export function getFrameStyles({site}) {
         ProductsSectionStyles({site}) +
         SwitchStyles +
         ActionButtonStyles +
+        GoogleSignInButtonStyles +
         BackButtonStyles +
         AvatarStyles +
         MagicLinkStyles +

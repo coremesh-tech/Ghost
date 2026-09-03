@@ -476,5 +476,9 @@ module.exports = {
     accessInfoSession,
     deleteSuppression,
     createIntegrityToken,
-    verifyIntegrityToken
+    verifyIntegrityToken,
+
+    // 给 google-auth-middleware 复用登录后的收尾逻辑
+    getFreeTier,
+    setAccessCookies
 };

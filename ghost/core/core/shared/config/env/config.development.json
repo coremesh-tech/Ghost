@@ -44,5 +44,10 @@
     "alternativeDomains": [
         "test.informarket.org",
         "test.predictionmarkets.org"
-    ]
+    ],
+    "members": {
+        "googleAuth": {
+            "enabled": true
+        }
+    }
 }

@@ -589,12 +589,13 @@ async function clearPopupNotification() {
 }
 
 async function showPopupNotification({data, state}) {
-    let {action, message = '', status = 'success'} = data;
+    // RATUS: 增加 autoHide 入参(默认 true 保持原行为)。错误类提示和 signin:failed 一致,不自动消失
+    let {action, message = '', status = 'success', autoHide = true} = data;
     action = action || 'showPopupNotification:success';
     return {
         popupNotification: createPopupNotification({
             type: action,
-            autoHide: true,
+            autoHide,
             closeable: true,
             state,
             status,

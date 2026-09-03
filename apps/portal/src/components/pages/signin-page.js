@@ -5,7 +5,8 @@ import CloseButton from '../common/close-button';
 import AppContext from '../../app-context';
 import InputForm from '../common/input-form';
 import {ValidateInputForm} from '../../utils/form';
-import {hasAvailablePrices, isSigninAllowed, isSignupAllowed} from '../../utils/helpers';
+import {hasAvailablePrices, isGoogleAuthAllowed, isSigninAllowed, isSignupAllowed} from '../../utils/helpers';
+import GoogleSignInButton from '../common/google-signin-button';
 import InvitationIcon from '../../images/icons/invitation.svg?react';
 import {t} from '../../utils/i18n';
 import {trackEvent} from '../../utils/tracker';
@@ -170,6 +171,7 @@ export default class SigninPage extends React.Component {
                 </div>
                 <footer className='gh-portal-signin-footer'>
                     {this.renderSubmitButton()}
+                    {isGoogleAuthAllowed({site}) && <GoogleSignInButton />}
                     {isSignupAvailable && this.renderSignupMessage()}
                 </footer>
             </section>

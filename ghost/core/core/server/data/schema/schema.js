@@ -446,6 +446,8 @@ module.exports = {
             }
         },
         name: {type: 'string', maxlength: 191, nullable: true},
+        // Google 账号的稳定标识(id_token 的 sub),用户改 Google 邮箱后还能认出是同一人
+        google_sub: {type: 'string', maxlength: 191, nullable: true, unique: true},
         expertise: {type: 'string', maxlength: 191, nullable: true, validations: {isLength: {max: 50}}},
         note: {type: 'string', maxlength: 2000, nullable: true},
         geolocation: {type: 'string', maxlength: 2000, nullable: true},

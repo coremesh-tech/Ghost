@@ -300,5 +300,10 @@
     "See more": "查看更多",
     "Join": "加入",
     "Successfully applied for creator plan": "如果申請成功，請檢查您的電子郵件以獲取確認資訊",
-    "Failed to apply for creator plan": "申請創作者計劃失敗"
+    "Failed to apply for creator plan": "申請創作者計劃失敗",
+    "Sign in with Google": "使用 Google 登入",
+    "Sign up with Google": "使用 Google 註冊",
+    "Waiting for Google…": "等待 Google 授權…",
+    "There was an error signing you in, please try again.": "登入失敗，請重試。",
+    "or": "或"
 }
