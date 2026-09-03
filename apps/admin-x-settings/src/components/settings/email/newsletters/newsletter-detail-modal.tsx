@@ -88,7 +88,14 @@ const Sidebar: React.FC<{
     // 内置:routes.yaml 专题页选项。value 必须与页面模板里 data-context-slug 一致。
     const subscriptionPageOptions: MultiSelectOption[] = [
         {value: 'pop-culture', label: 'Pop Culture'},
-        {value: 'politics', label: 'Politics'}
+        {value: 'semiconductor', label: 'Semiconductor'},
+        {value: 'lollapalooza-chicago', label: 'Lollapalooza Chicago'},
+        {value: 'election-2026', label: 'Election 2026'},
+        {value: 'economics-finance', label: 'Economics & Finance'},
+        {value: 'politics', label: 'Politics'},
+        {value: 'tech', label: 'Tech'},
+        {value: 'sports', label: 'Sports'},
+        {value: 'congressional-hearing', label: 'Congressional Hearing'}
     ];
     const subscriptionTagOptions: MultiSelectOption[] = (allTags || []).map(t => ({value: t.slug, label: t.name || t.slug}));
     const subscriptionAuthorOptions: MultiSelectOption[] = (allUsers || []).map(u => ({value: u.slug, label: u.name || u.slug}));
