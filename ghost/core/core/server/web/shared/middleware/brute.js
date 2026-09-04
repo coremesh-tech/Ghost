@@ -136,6 +136,13 @@ module.exports = {
     },
 
     /**
+     * RATUS: Block too many Google sign-in attempts from the same IP
+     */
+    googleAuth(req, res, next) {
+        return spamPrevention.googleAuth().prevent(req, res, next);
+    },
+
+    /**
      * Block too many OTC verification attempts from same IP (blocks user enumeration)
      */
     otcVerificationEnumeration(req, res, next) {

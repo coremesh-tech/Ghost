@@ -62,6 +62,9 @@
         "emailTemplate": {
             "showSiteHeader": true,
             "showPoweredBy": true
+        },
+        "googleAuth": {
+            "enabled": false
         }
     },
     "logging": {
@@ -159,6 +162,12 @@
             "maxWait": 3600000,
             "lifetime": 3600,
             "freeRetries": 60
+        },
+        "google_auth": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries": 30
         },
         "blocked_email_domains": []
     },
@@ -267,8 +276,8 @@
         "clickTrackingLastSeenAtUpdater": true
     },
     "portal": {
-        "url": "/assets/umd/portal.min.js?v=2.79",
-        "version": "2.79"
+        "url": "/assets/umd/portal.min.js?v=2.81",
+        "version": "2.81"
     },
     "sodoSearch": {
         "url": "https://cdn.jsdelivr.net/ghost/sodo-search@~{version}/umd/sodo-search.min.js",

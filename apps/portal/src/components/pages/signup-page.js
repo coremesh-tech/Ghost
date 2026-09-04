@@ -7,7 +7,8 @@ import NewsletterSelectionPage from './newsletter-selection-page';
 import ProductsSection from '../common/products-section';
 import InputForm from '../common/input-form';
 import {ValidateInputForm} from '../../utils/form';
-import {getSiteProducts, getSitePrices, hasAvailablePrices, hasOnlyFreePlan, isInviteOnly, isFreeSignupAllowed, isPaidMembersOnly, freeHasBenefitsOrDescription, hasMultipleNewsletters, hasFreeTrialTier, isSignupAllowed, isSigninAllowed} from '../../utils/helpers';
+import {getSiteProducts, getSitePrices, hasAvailablePrices, hasOnlyFreePlan, isInviteOnly, isFreeSignupAllowed, isGoogleAuthAllowed, isPaidMembersOnly, freeHasBenefitsOrDescription, hasMultipleNewsletters, hasFreeTrialTier, isSignupAllowed, isSigninAllowed} from '../../utils/helpers';
+import GoogleSignInButton from '../common/google-signin-button';
 import InvitationIcon from '../../images/icons/invitation.svg?react';
 import {interceptAnchorClicks} from '../../utils/links';
 import {sanitizeHtml} from '../../utils/sanitize-html';
@@ -771,13 +772,17 @@ class SignupPage extends React.Component {
 
                         {(hasOnlyFree ?
                             <div className='gh-portal-btn-container'>
-                                <div className='gh-portal-logged-out-form-container'>
+                                <div className='gh-portal-logged-out-form-container gh-portal-signup-actions'>
                                     {this.renderSubmitButton()}
+                                    {isGoogleAuthAllowed({site}) && <GoogleSignInButton label={t('Sign up with Google')} />}
                                     {this.renderLoginMessage()}
                                 </div>
                             </div>
                             :
-                            this.renderLoginMessage())}
+                            <div className='gh-portal-signup-actions'>
+                                {isGoogleAuthAllowed({site}) && <GoogleSignInButton label={t('Sign up with Google')} />}
+                                {this.renderLoginMessage()}
+                            </div>)}
                     </div>
                 </div>
             </section>

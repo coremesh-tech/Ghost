@@ -2,10 +2,10 @@
     "database": {
         "client": "mysql",
         "connection": {
-            "host"     : "127.0.0.1",
-            "user"     : "root",
-            "password" : "",
-            "database" : "ghost"
+            "host": "127.0.0.1",
+            "user": "root",
+            "password": "",
+            "database": "ghost"
         }
     },
     "paths": {
@@ -16,7 +16,9 @@
         "rotation": {
             "enabled": true
         },
-        "transports": ["file"]
+        "transports": [
+            "file"
+        ]
     },
     "explore": {
         "update_url": "https://explore.ghost.org/api/update",
@@ -26,5 +28,10 @@
     "alternativeDomains": [
         "www.informarket.org",
         "www.predictionmarkets.org"
-    ]
+    ],
+    "members": {
+        "googleAuth": {
+            "enabled": true
+        }
+    }
 }

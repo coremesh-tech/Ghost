@@ -42,6 +42,7 @@ let spamEmailPreviewBlock = spam.email_preview_block || {};
 let spamOtcVerificationEnumeration = spam.otc_verification_enumeration || {};
 let spamOtcVerification = spam.otc_verification || {};
 let spamSubscribeDirect = spam.subscribe_direct || {};
+let spamGoogleAuth = spam.google_auth || {};
 
 let store;
 let memoryStore;
@@ -60,6 +61,7 @@ let emailPreviewBlockInstance;
 let otcVerificationEnumerationInstance;
 let otcVerificationInstance;
 let subscribeDirectInstance;
+let googleAuthInstance;
 
 const spamConfigKeys = ['freeRetries', 'minWait', 'maxWait', 'lifetime'];
 
@@ -525,6 +527,37 @@ const subscribeDirect = () => {
     return subscribeDirectInstance;
 };
 
+// Google 登录回调的 per-IP 限流。/callback 是一个「无需密码即可建会员」的入口,
+// 必须挡住暴力刷。
+const googleAuth = () => {
+    const ExpressBrute = require('express-brute');
+    const BruteKnex = require('brute-knex');
+    const db = require('../../../../data/db');
+
+    store = store || new BruteKnex({
+        tablename: 'brute',
+        createTable: false,
+        knex: db.knex
+    });
+
+    if (!googleAuthInstance) {
+        googleAuthInstance = new ExpressBrute(store,
+            extend({
+                attachResetToRequest: false,
+                failCallback(req, res, next, nextValidRequestDate) {
+                    return next(new errors.TooManyRequestsError({
+                        message: `Too many sign-in attempts from this IP, try again in ${moment(nextValidRequestDate).fromNow(true)}`,
+                        code: 'GOOGLE_AUTH_RATE_LIMITED'
+                    }));
+                },
+                handleStoreError: handleStoreError
+            }, pick(spamGoogleAuth, spamConfigKeys))
+        );
+    }
+
+    return googleAuthInstance;
+};
+
 module.exports = {
     globalBlock: globalBlock,
     globalReset: globalReset,
@@ -534,6 +567,7 @@ module.exports = {
     membersAuth: membersAuth,
     membersAuthEnumeration: membersAuthEnumeration,
     subscribeDirect: subscribeDirect,
+    googleAuth: googleAuth,
     otcVerification: otcVerification,
     otcVerificationEnumeration: otcVerificationEnumeration,
     userReset: userReset,
@@ -551,6 +585,7 @@ module.exports = {
         membersAuthInstance = undefined;
         membersAuthEnumerationInstance = undefined;
         subscribeDirectInstance = undefined;
+        googleAuthInstance = undefined;
         userResetInstance = undefined;
         sendVerificationCodeInstance = undefined;
         userVerificationInstance = undefined;

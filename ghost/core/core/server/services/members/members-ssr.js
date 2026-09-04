@@ -271,6 +271,32 @@ class MembersSSR {
         return member;
     }
 
+    /**
+     * 不经过 magic link 直接给某个会员种 session。
+     * 给 Google 等外部身份提供方用 —— exchangeTokenForSession 强依赖 URL 上的 ?token=,
+     * 那条路对 OAuth 回调没有意义。
+     *
+     * 调用方必须自己保证 member 是经过认证得来的(校验过的 id_token 等)。
+     *
+     * @method createSessionForMember
+     * @param {Request} req
+     * @param {Response} res
+     * @param {Member} member
+     *
+     * @returns {Promise<Member>}
+     */
+    async createSessionForMember(req, res, member) {
+        if (!member || !member.transient_id) {
+            throw new BadRequestError({
+                message: 'Cannot create session: member is missing a transient_id'
+            });
+        }
+
+        this._setSessionCookie(req, res, member.transient_id);
+
+        return member;
+    }
+
     async _cycleTransientId(memberId) {
         const api = await this._getMembersApi();
         return api.cycleTransientId(memberId);

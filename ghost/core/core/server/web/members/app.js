@@ -15,10 +15,14 @@ const api = require('../../api').endpoints;
 const commentRouter = require('../comments');
 const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
+const googleAuthMiddleware = require('../../services/members/google-auth-middleware'); // RATUS
 const requestExternal = require('../../lib/request-external');
 const pollsService = require('../../services/polls/poll-service');
 
 const predictionMarketsApiUrl = config.get('PREDICTIONMARKETS_API_URL');
+
+// express 4 不会自动捕获 async handler 抛出的异常,统一包一层
+const wrapAsync = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 /**
  * @returns {import('express').Application}
@@ -219,6 +223,17 @@ module.exports = function setupMembersApp() {
 
     // Remove email from suppression list
     membersApp.delete('/api/member/suppression', middleware.deleteSuppression);
+
+    // Google 登录 (OAuth 授权码流程, Portal 里以弹窗方式发起)
+    // /start 只是签个 state 然后 302,不限流;
+    // /callback 会向 Google 换 token 并可能建会员,按 IP 限流,登录成功后计数归零
+    membersApp.get('/api/auth/google/start',
+        wrapAsync(googleAuthMiddleware.startGoogleAuth)
+    );
+    membersApp.get('/api/auth/google/callback',
+        shared.middleware.brute.googleAuth,
+        wrapAsync(googleAuthMiddleware.googleAuthCallback)
+    );
 
     // Manage session
     membersApp.get('/api/session', middleware.getIdentityToken);
