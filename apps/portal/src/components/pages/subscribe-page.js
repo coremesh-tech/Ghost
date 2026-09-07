@@ -104,7 +104,7 @@ const SubscribePage = () => {
         {
             type: 'email',
             value: email,
-            placeholder: t('you@example.com'),
+            placeholder: t('jamie@example.com'),
             label: t('Email'),
             name: 'email',
             required: true,
