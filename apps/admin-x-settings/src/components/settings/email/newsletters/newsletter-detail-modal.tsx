@@ -8,14 +8,14 @@ import {Button, ButtonGroup, ColorPickerField, ConfirmationModal, Form, Heading,
 import {type ErrorMessages, useForm, useHandleError} from '@tryghost/admin-x-framework/hooks';
 import {HostLimitError, useLimiter} from '../../../../hooks/use-limiter';
 import {type Newsletter, useBrowseNewsletters, useEditNewsletter} from '@tryghost/admin-x-framework/api/newsletters';
-import {useBrowseTags} from '@tryghost/admin-x-framework/api/tags';
-import {useBrowseUsers} from '@tryghost/admin-x-framework/api/users';
 import {type RoutingModalProps, useRouting} from '@tryghost/admin-x-framework/routing';
 import {getImageUrl, useUploadImage} from '@tryghost/admin-x-framework/api/images';
 import {getSettingValue, getSettingValues} from '@tryghost/admin-x-framework/api/settings';
 import {hasSendingDomain, isManagedEmail, sendingDomain} from '@tryghost/admin-x-framework/api/config';
 import {renderReplyToEmail, renderSenderEmail} from '../../../../utils/newsletter-emails';
 import {textColorForBackgroundColor} from '@tryghost/color-utils';
+import {useBrowseTags} from '@tryghost/admin-x-framework/api/tags';
+import {useBrowseUsers} from '@tryghost/admin-x-framework/api/users';
 import {useGlobalData} from '../../../providers/global-data-provider';
 
 const ReplyToEmailField: React.FC<{
@@ -83,8 +83,38 @@ const Sidebar: React.FC<{
     const commentsEnabled = ['all', 'paid'].includes(getSettingValue(settings, 'comments_enabled') || '');
 
     // Layered subscription routing: which tags / authors / pages route subscribers into this newsletter.
-    const {data: {tags: allTags} = {}} = useBrowseTags({filter: {visibility: 'public'}, searchParams: {limit: 'all'}});
-    const {data: {users: allUsers} = {}} = useBrowseUsers({searchParams: {limit: 'all'}});
+    const {
+        data: {tags: allTags} = {},
+        fetchNextPage: fetchNextTagsPage,
+        hasNextPage: hasNextTagsPage,
+        isFetchingNextPage: isFetchingNextTagsPage
+    } = useBrowseTags({filter: {visibility: 'public'}, searchParams: {limit: '100'}});
+    const {
+        data: {users: allUsers} = {},
+        fetchNextPage: fetchNextUsersPage,
+        hasNextPage: hasNextUsersPage,
+        isFetchingNextPage: isFetchingNextUsersPage
+    } = useBrowseUsers({
+        searchParams: {limit: '100', include: 'roles'},
+        // useBrowseUsers 默认的 defaultNextPageParams 永远返回对象(hasNextPage 恒为 true),
+        // 直接自动翻页会死循环反复拉第 1 页 —— 覆盖成:无 next 时返回 undefined。
+        getNextPageParams: (lastPage, otherParams) => (lastPage.meta?.pagination.next
+            ? {...otherParams, page: lastPage.meta.pagination.next.toString()}
+            : undefined)
+    });
+
+    // Tags / Authors 可能分页(如 198 个分 2 页,limit=100)。按 meta.pagination.next
+    // 自动继续拉,直到全部加载完,保证多选项里能看到全部。
+    useEffect(() => {
+        if (hasNextTagsPage && !isFetchingNextTagsPage) {
+            fetchNextTagsPage();
+        }
+    }, [hasNextTagsPage, isFetchingNextTagsPage, fetchNextTagsPage]);
+    useEffect(() => {
+        if (hasNextUsersPage && !isFetchingNextUsersPage) {
+            fetchNextUsersPage();
+        }
+    }, [hasNextUsersPage, isFetchingNextUsersPage, fetchNextUsersPage]);
     // 内置:routes.yaml 专题页选项。value 必须与页面模板里 data-context-slug 一致。
     const subscriptionPageOptions: MultiSelectOption[] = [
         {value: 'pop-culture', label: 'Pop Culture'},
@@ -109,14 +139,15 @@ const Sidebar: React.FC<{
             try {
                 const parsed = JSON.parse(value);
                 return Array.isArray(parsed) ? parsed : [];
-            } catch (e) {
+            } catch {
                 return [];
             }
         }
         return [];
     };
-    const selectedOptions = (value: unknown, options: MultiSelectOption[]): MultiSelectOption[] =>
-        toSlugArray(value).map(slug => options.find(o => o.value === slug) || {value: slug, label: slug});
+    const selectedOptions = (value: unknown, options: MultiSelectOption[]): MultiSelectOption[] => (
+        toSlugArray(value).map(slug => options.find(o => o.value === slug) || {value: slug, label: slug})
+    );
 
     let newsletterAddress = renderSenderEmail(newsletter, config, defaultEmailAddress);
     const [newsletters, setNewsletters] = useState<Newsletter[]>(apiNewsletters || []);
