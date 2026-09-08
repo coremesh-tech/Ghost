@@ -324,6 +324,11 @@ const googleAuthCallback = async function googleAuthCallback(req, res) {
             }
         }
 
+        // id_token、userinfo 都拿不到 name 时,兜底用邮箱前缀(@ 之前)当名字,避免会员空名字。
+        if (!profile.name) {
+            profile.name = String(profile.email || '').split('@')[0];
+        }
+
         const attribution = await resolveAttribution(rawHistory);
         const {member} = await findOrCreateMember({
             email: profile.email,
