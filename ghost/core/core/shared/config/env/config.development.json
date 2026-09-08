@@ -47,7 +47,9 @@
     ],
     "members": {
         "googleAuth": {
-            "enabled": true
+            "enabled": true,
+            "clientId": "608596710096-bhts9rvb26nl7d0t78lig9hptpusof5r.apps.googleusercontent.com",
+            "callbackUrl": ["https://test.predictionmarkets.org/members/api/auth/google/callback", "https://test.informarket.org/members/api/auth/google/callback"]
         }
     }
 }
