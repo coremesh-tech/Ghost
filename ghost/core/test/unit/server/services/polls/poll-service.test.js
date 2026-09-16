@@ -29,9 +29,7 @@ describe('services/polls/poll-service', function () {
 
         assert.deepEqual(headers, {
             'X-User-Id': 'member_123',
-            'X-User-Name': 'Ghost Member',
-            'X-User-Role': 'member',
-            'X-User-Email': 'member@example.com'
+            'X-User-Role': 'member'
         });
     });
 

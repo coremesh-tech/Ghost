@@ -38,13 +38,13 @@ function buildPollViewerHeaders(member) {
     }
 
     const userId = member.uuid || member.id?.toString?.() || '';
-    const userName = member.name || member.email || userId;
 
+    // 下游 (node-market-topic-server) 只读 X-User-Id / X-User-Role,成员名/邮箱它自己
+    // 用 JWT 里的 email 查库拿。不传 X-User-Name / X-User-Email:一来是死头,二来
+    // 中文名放进 HTTP 头会触发 Node ERR_INVALID_CHAR(头值只允许 latin1)。
     return {
         'X-User-Id': userId,
-        'X-User-Name': userName,
-        'X-User-Role': 'member',
-        ...(member.email ? {'X-User-Email': member.email} : {})
+        'X-User-Role': 'member'
     };
 }
 
