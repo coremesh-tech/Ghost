@@ -131,6 +131,12 @@ label[for="member-description"] + p {
     align-items: center;
 }
 
+.gh-member-details-identity-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .gh-member-details-meta {
     display: grid;
     padding: 3.2rem 0;
